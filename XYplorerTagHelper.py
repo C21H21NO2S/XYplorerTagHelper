@@ -12,7 +12,7 @@ import ctypes
 # ==========================================
 # 1. 基础配置与本地数据管理 (兼容 PyInstaller 打包)
 # ==========================================
-WINDOW_TITLE = 'XYplorerTagHelper 1.2'
+WINDOW_TITLE = 'XYplorerTagHelper 1.2.1'
 
 # 如果是被打包成 .exe 运行，则获取 .exe 所在目录；否则获取当前 .py 脚本所在目录
 if getattr(sys, 'frozen', False):
@@ -771,6 +771,7 @@ html_template = """
         <div style="border-top:1px solid var(--border-color); margin:4px 0;"></div>
         <div class="menu-item" onclick="ctxAction('color')"><span class="menu-icon" v-html="palette"></span><span class="menu-text" data-i18n="edit_color">修改分类颜色</span></div>
         <div class="menu-item" onclick="ctxAction('color-reset')"><span class="menu-icon" v-html="refresh"></span><span class="menu-text" data-i18n="reset_color">恢复默认颜色</span></div>
+        <div class="menu-item" id="ctx-reset-uncat" onclick="ctxAction('reset-uncat')"><span class="menu-icon" v-html="refresh"></span><span class="menu-text" data-i18n="reset_uncat">恢复默认标签</span></div>
         <div class="menu-item" id="ctx-rename" onclick="ctxAction('rename')"><span class="menu-icon" v-html="edit"></span><span class="menu-text" data-i18n="rename_group">重命名分组</span></div>
         <div style="border-top:1px solid var(--border-color); margin:4px 0;"></div>
         <div class="menu-item" onclick="ctxAction('add')"><span class="menu-icon" v-html="add"></span><span class="menu-text" data-i18n="add_sub">新建子组</span></div>
@@ -1025,7 +1026,7 @@ ageM: <= 7 d = modified last 7 days</div>
                 'hint_rating': '点击选择评分 (支持多选与拖拽)', 'unrated': '未评分',
                 'size': '文件大小', 'date': '日期时间', 'date_c': '创建日期', 'date_m': '修改日期', 'date_a': '访问日期', 'age_c': '创建时间', 'age_m': '修改时间', 'age_a': '访问时间', 'value': '数值',
                 'tag_group': '🏷️ 标签组',
-                'edit_color': '修改分类颜色', 'reset_color': '恢复默认颜色', 'add_sub': '新建子组', 'batch_add_sub': '批量新建子组',
+                'edit_color': '修改分类颜色', 'reset_color': '恢复默认颜色', 'reset_uncat': '恢复默认标签', 'add_sub': '新建子组', 'batch_add_sub': '批量新建子组',
                 'move_to': '移动到工作区', 'copy_to': '复制到工作区', 'del_group': '删除分组',
                 'rename_group': '重命名分组', 'collapse_leaf': '折叠子组', 'expand_all_sub': '展开子组', 'add_tag_menu': '新建标签', 'batch_add_tag_menu': '批量新建标签',
                 'edit_bg': '修改背景颜色', 'batch_add': '批量新建',
@@ -1070,7 +1071,7 @@ ageM: <= 7 d = modified last 7 days</div>
                 'hint_rating': '點擊選擇評分 (支援多選與拖曳)', 'unrated': '未評分',
                 'size': '檔案大小', 'date': '日期時間', 'date_c': '建立日期', 'date_m': '修改日期', 'date_a': '存取日期', 'age_c': '建立時間', 'age_m': '修改時間', 'age_a': '存取時間', 'value': '數值',
                 'tag_group': '🏷️ 標籤群組',
-                'edit_color': '修改顏色', 'reset_color': '恢復預設顏色', 'add_sub': '新建子群組', 'batch_add_sub': '批次新建子群組',
+                'edit_color': '修改顏色', 'reset_color': '恢復預設顏色', 'reset_uncat': '恢復預設標籤', 'add_sub': '新建子群組', 'batch_add_sub': '批次新建子群組',
                 'move_to': '移動到工作區', 'copy_to': '複製到工作區', 'del_group': '刪除群組',
                 'rename_group': '重新命名群組', 'collapse_leaf': '摺疊子群組', 'expand_all_sub': '展開子群組', 'add_tag_menu': '新建標籤', 'batch_add_tag_menu': '批次新建標籤',
                 'edit_bg': '修改背景顏色', 'batch_add': '批次新建',
@@ -1115,7 +1116,7 @@ ageM: <= 7 d = modified last 7 days</div>
                 'hint_rating': 'Click to select rating (multi-select & drag to sort)', 'unrated': 'Unrated',
                 'size': 'File Size', 'date': 'Date/Time', 'date_c': 'Created', 'date_m': 'Modified', 'date_a': 'Accessed', 'age_c': 'Age C', 'age_m': 'Age M', 'age_a': 'Age A', 'value': 'Value',
                 'tag_group': '🏷️ Tags Group',
-                'edit_color': 'Edit Color', 'reset_color': 'Reset Color', 'add_sub': 'New Subgroup', 'batch_add_sub': 'Batch New Subgroup',
+                'edit_color': 'Edit Color', 'reset_color': 'Reset Color', 'reset_uncat': 'Restore Default Tags', 'add_sub': 'New Subgroup', 'batch_add_sub': 'Batch New Subgroup',
                 'move_to': 'Move to Workspace', 'copy_to': 'Copy to Workspace', 'del_group': 'Delete Group',
                 'rename_group': 'Rename Group', 'collapse_leaf': 'Collapse Leaf Groups', 'expand_all_sub': 'Expand All Subgroups', 'add_tag_menu': 'New Tag', 'batch_add_tag_menu': 'Batch New Tag',
                 'edit_bg': 'Edit Background Color', 'batch_add': 'Batch Add',
@@ -2707,6 +2708,10 @@ ageM: <= 7 d = modified last 7 days</div>
             if (expBtn) expBtn.style.display = isUncat ? 'none' : 'flex';
             let colBtn = document.getElementById('ctx-collapse');
             if (colBtn) colBtn.style.display = isUncat ? 'none' : 'flex';
+            
+            let rstUncatBtn = document.getElementById('ctx-reset-uncat');
+            if (rstUncatBtn) rstUncatBtn.style.display = isUncat ? 'flex' : 'none';
+            
             ctxMenu.style.display = 'flex'; setSafePosition(ctxMenu, e.clientX, e.clientY);
             
             let wsKeys = getWsList().filter(w => w !== configData.currentWs); 
@@ -2729,6 +2734,20 @@ ageM: <= 7 d = modified last 7 days</div>
             ctxMenu.style.display = 'none'; let p = ctxTarget.path, n = ctxTarget.name; 
             if (action === 'color') { let node = getNodeByPath(p); openColorModal(node._bg_color || "", (newHex) => { if (newHex) { node._bg_color = newHex; saveDataAndRenderAll(); sysLog("分组颜色已更新", "INFO"); } }); } 
             else if (action === 'color-reset') { let node = getNodeByPath(p); delete node._bg_color; saveDataAndRenderAll(); sysLog("分组颜色已恢复默认", "INFO"); }
+            else if (action === 'reset-uncat') {
+                if (n !== "未分类") return;
+                let node = getNodeByPath(p);
+                node._tags = ["?*", '""'];
+                // 同步清理被删除标签的激活状态，防止产生幽灵过滤项
+                Object.keys(state.tagStates).forEach(k => {
+                    if (k.startsWith(p + '|') && k !== (p + '|?*') && k !== (p + '|""')) {
+                        delete state.tagStates[k];
+                        clickOrder = clickOrder.filter(x => x !== k);
+                    }
+                });
+                saveDataAndRenderAll();
+                sysLog("未分类组已恢复默认标签", "INFO");
+            }
             else if (action === 'rename') {
                 if (n === "未分类") return; 
                 openQuickEdit(gStartX, gStartY, n, (val) => { 
