@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XYplorerTagHelper User Guide</title>
+    <style>
+        :root {
+            --bg-color: #f5f5f7;
+            --card-bg: #ffffff;
+            --text-main: #1d1d1f;
+            --text-muted: #86868b;
+            --accent-color: #0066cc;
+            --accent-hover: #0077ed;
+            --border-color: #d2d2d7;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+            --radius-large: 18px;
+            --radius-small: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .layout-container {
+            display: flex;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            gap: 40px;
+            align-items: flex-start;
+        }
+
+        .sidebar {
+            flex: 0 0 280px;
+            position: sticky;
+            top: 40px;
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: var(--radius-large);
+            box-shadow: var(--shadow);
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+        }
+
+        .sidebar-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar > ul > li {
+            margin-bottom: 6px;
+        }
+
+        .sidebar a {
+            display: block;
+            text-decoration: none;
+            color: var(--text-main);
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: var(--radius-small);
+            transition: all 0.2s ease;
+            line-height: 1.4;
+			white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar a:hover {
+            background-color: var(--bg-color);
+            color: var(--accent-color);
+        }
+
+        .sidebar a.active {
+            background-color: #e8f0fe;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .sidebar ul ul {
+            margin-top: 4px;
+            margin-bottom: 8px;
+            margin-left: 16px;
+            padding-left: 8px;
+            border-left: 1px solid var(--border-color);
+        }
+
+        .sidebar ul ul li {
+            margin-bottom: 2px;
+        }
+
+        .sidebar ul ul a {
+            font-size: 13px;
+            color: var(--text-muted);
+            padding: 6px 10px;
+        }
+
+        .sidebar ul ul a.active {
+            background-color: transparent;
+            color: var(--accent-color);
+            position: relative;
+        }
+        
+        .sidebar ul ul a.active::before {
+            content: '';
+            position: absolute;
+            left: -9px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: var(--accent-color);
+            border-radius: 2px;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .content {
+            flex: 1;
+            background: var(--card-bg);
+            padding: 48px 64px;
+            border-radius: var(--radius-large);
+            box-shadow: var(--shadow);
+            min-width: 0;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .intro-text {
+            font-size: 1.1rem;
+            color: #424245;
+            margin-bottom: 40px;
+            text-align: justify;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-top: 48px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            scroll-margin-top: 40px;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 32px;
+            margin-bottom: 16px;
+            color: #1d1d1f;
+            scroll-margin-top: 40px; 
+        }
+
+        p {
+            margin-bottom: 16px;
+        }
+
+        ul {
+            margin-bottom: 16px;
+            padding-left: 24px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        li > p {
+            margin-bottom: 8px;
+        }
+
+        strong {
+            font-weight: 600;
+            color: #000;
+        }
+
+        code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            background-color: var(--bg-color);
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            color: #d12e65;
+        }
+
+        hr {
+            border: none;
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 40px 0;
+        }
+
+        @media (max-width: 900px) {
+            .layout-container {
+                flex-direction: column;
+                padding: 20px;
+            }
+            .sidebar {
+                position: static;
+                width: 100%;
+                max-height: 250px; 
+                flex: none;
+            }
+            .content {
+                padding: 32px 24px;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout-container">
+    <nav class="sidebar">
+        <div class="sidebar-title">Table of Contents</div>
+        <ul id="nav-links">
+            <li><a href="#sec-1">I. Software Architecture & Logic</a></li>
+            <li>
+                <a href="#sec-2">II. Config & Workspace Mgt</a>
+                <ul>
+                    <li><a href="#sec-2-1">1. Basic Settings</a></li>
+                    <li><a href="#sec-2-2">2. Advanced Operations</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#sec-3">III. Four Core Action Buttons</a>
+                <ul>
+                    <li><a href="#sec-3-1">1. 🔍 Search</a></li>
+                    <li><a href="#sec-3-2">2. 🏷️ Tag / Untag</a></li>
+                    <li><a href="#sec-3-3">3. 📖 Read Tags</a></li>
+                    <li><a href="#sec-3-4">4. 🗑️ Clear</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#sec-4">IV. Composite Filter Area</a>
+                <ul>
+                    <li><a href="#sec-4-1">1. L/R Click Mutex Logic</a></li>
+                    <li><a href="#sec-4-2">2. Drag-and-Drop Sorting</a></li>
+                    <li><a href="#sec-4-3">3. Edit Custom Extensions</a></li>
+                    <li><a href="#sec-4-4">4. Smart Text Input</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#sec-5">V. Tag Tree & Visual Mgt</a>
+                <ul>
+                    <li><a href="#sec-5-1">1. Tag Selection Logic</a></li>
+                    <li><a href="#sec-5-2">2. Drag & Drop Reorganization</a></li>
+                    <li><a href="#sec-5-3">3. Right Toolbar Details</a></li>
+                    <li><a href="#sec-5-4">4. Right-Click Menus</a></li>
+                </ul>
+            </li>
+            <li><a href="#sec-6">VI. Core Operation Precautions</a></li>
+        </ul>
+    </nav>
+
+    <main class="content">
+        <h1>XYplorerTagHelper User Guide</h1>
+        
+        <p class="intro-text">On the surface, <strong>XYplorerTagHelper</strong> is a tagging assistant, but it is actually a <strong>full-featured Visual Search Builder for XYplorer</strong>. It converts complex file types, paths, comments, and multi-tag logic into intuitive "point, click, and drag" operations, compiling them in real-time into XYplorer's advanced search syntax.</p>
+
+        <h2 id="sec-1">🏗️ I. Software Architecture & Underlying Logic</h2>
+        <ul>
+            <li><strong>Technical Architecture:</strong> Adopts a lightweight <code>pywebview</code> architecture. The frontend is a modern UI built with pure HTML/CSS/JS (supporting smooth dark/light dual themes), while the backend is Python. It has zero dependency on large third-party frameworks, ensuring extremely fast startup and low memory usage.</li>
+            <li><strong>State Machine Logic:</strong> Every click (left/right), input, and drag is stored in a global state tree. The engine parses this tree in real-time to compile boolean search syntax, such as <code>tags:A &amp; !B /types={:Image}</code>.</li>
+            <li><strong>Communication & Execution:</strong> The compiled syntax is silently sent via Python to <code>XYplorer.exe</code> as a command line execution (<code>/feed="::goto..."</code>). Reading and writing tags are achieved through two-way communication using internal scripts and the system clipboard.</li>
+        </ul>
+
+        <hr>
+
+        <h2 id="sec-2">⚙️ II. Initial Configuration & Workspace Management</h2>
+        <p>The software supports multi-workspace management. Data, tag tree structures, and filter states are <strong>completely independent and do not interfere with each other</strong> across different workspaces.</p>
+        
+        <h3 id="sec-2-1">1. Basic Settings</h3>
+        <ul>
+            <li>Click the <strong>"⚙️ (Gear)"</strong> icon in the top right corner of the interface to enter system settings.</li>
+            <li><strong>XYplorer Path:</strong> You must accurately enter the path to XYplorer (either the <code>.exe</code> file path or its folder); otherwise, search commands cannot be sent.</li>
+            <li><strong>UI Language & Theme:</strong> Supports seamless switching between English/Simplified Chinese/Traditional Chinese and light/dark themes.</li>
+        </ul>
+
+        <h3 id="sec-2-2">2. Advanced Workspace Operations</h3>
+        <ul>
+            <li><strong>Drag-and-Drop Sorting:</strong> The workspace tabs at the top can be directly dragged left or right with the <strong>left mouse button</strong> to arrange their order as desired.</li>
+            <li><strong>Right-Click Menu (Core):</strong> <strong>Right-click</strong> on any workspace tab to bring up the advanced menu:
+                <ul>
+                    <li><strong>Modify Tab Color:</strong> Set an exclusive theme color block for different workspaces for easy visual separation.</li>
+                    <li><strong>Rename / Delete:</strong> Deletion includes an anti-accidental touch confirmation. Note: The system strictly requires at least one workspace to be retained.</li>
+                    <li><strong>Duplicate Workspace:</strong> Perfectly clones all tag group structures and color configurations of the current workspace, making it ideal as an initialization template for new projects.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <hr>
+
+        <h2 id="sec-3">🎛️ III. Four Core Action Buttons (Top Action Buttons)</h2>
+        <p>The four large buttons at the top of the interface are the "execution engine" of the tool. They are responsible for translating the visual state you built in the modern UI panel below into actual commands that XYplorer understands.</p>
+
+        <h3 id="sec-3-1">1. <strong>🔍 Search</strong></h3>
+        <ul>
+            <li><strong>Function:</strong> Automatically compiles all active filter conditions on the panel (including file types, custom extensions, paths, advanced composite tags, etc.) into XYplorer's advanced search syntax, and dispatches it to execute a full-disk or specific-directory search.</li>
+            <li><strong>Note:</strong> The search logic strictly follows your click states on the panel: Left-click (Green) means include/OR, Right-click (Red) means exclude/NOT. After every successful search, the system automatically saves your inputted path, name, and comments into the history dropdown menus.</li>
+        </ul>
+
+        <h3 id="sec-3-2">2. <strong>🏷️ Tag / Untag</strong></h3>
+        <ul>
+            <li><strong>Function:</strong> Batch modify tags of the currently selected files in XYplorer. <strong>Supports simultaneously completing "adding new tags" and "precisely erasing old tags" in a single click.</strong></li>
+            <li><strong>Core Operation Logic:</strong>
+                <ul>
+                    <li><strong>Left-click Highlight (Blue 🔵):</strong> Marked for <strong>Addition</strong>. This tag will be written to the selected files.</li>
+                    <li><strong>Right-click Highlight (Red 🔴):</strong> Marked for <strong>Removal</strong>. If the selected files currently contain this tag, it will be precisely erased.</li>
+                </ul>
+            </li>
+            <li><strong>Note:</strong>
+                <ul>
+                    <li>The underlying engine intelligently prioritizes "Remove" commands before executing "Add" commands.</li>
+                    <li>Before clicking, <strong>you must ensure XYplorer is the active window and at least one file is selected</strong>. If no files are selected, or if there are no active Blue/Red tags on the interface (e.g., only Green 🟢), the system will block the operation and pop up an error prompt.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3 id="sec-3-3">3. <strong>📖 Read Tags</strong></h3>
+        <ul>
+            <li><strong>Function:</strong> Extracts existing tags from the currently selected file in XYplorer, and automatically highlights, categorizes, and expands the corresponding tag tree hierarchy in the helper panel.</li>
+            <li><strong>Note:</strong> This function uses the system clipboard for data transfer. If the read tag text is extremely large (e.g., over 500 characters or containing multiple lines of abnormal text), the system will pop up a safety confirmation window to prevent massive erroneous activations, allowing you to preview and manually confirm before writing to the UI.</li>
+        </ul>
+
+        <h3 id="sec-3-4">4. <strong>🗑️ Clear</strong></h3>
+        <ul>
+            <li><strong>Function:</strong> One-click state reset. Instantly clears all highlight states (Green, Red, Blue) in the composite filter area and tag tree, empties all text input boxes, and restores the workspace to its initial standby state.</li>
+            <li><strong>Note:</strong> This operation only clears the <strong>search filter conditions on the current interface</strong>; it will absolutely NOT delete any of your group names, tag configurations, or workspace history data, nor will it affect the real file tags in XYplorer.</li>
+        </ul>
+
+        <hr>
+
+        <h2 id="sec-4">🎛️ IV. Composite Filter Area (Top Module)</h2>
+        <p>This is the core area for building filter conditions like file types, paths, names, and comments.</p>
+
+        <h3 id="sec-4-1">1. Button States & L/R Click Mutex Logic</h3>
+        <p>In panels like "Types", "Custom Ext.", and "Rating", the button operation logic is highly rigorous:</p>
+        <ul>
+            <li><strong>Left-click (Include / OR):</strong> Button turns <strong>Green</strong> 🟢. Indicates the condition is included in the search. <em>Note: Left-click activation features smart mutex, automatically canceling all excluded (Red) states under the same category.</em></li>
+            <li><strong>Right-click (Exclude / NOT):</strong> Button turns <strong>Red</strong> 🔴. Indicates the condition is excluded from the search. <em>Note: Right-click exclusion forces the clearing of all active (Green) states under that category.</em></li>
+        </ul>
+
+        <h3 id="sec-4-2">2. Drag-and-Drop Sorting (Custom UI)</h3>
+        <p>The composite area panels highly support customization:</p>
+        <ul>
+            <li><strong>Types and Extensions Sorting:</strong> Click and hold preset type buttons like "Text", "Image", or your own custom extension buttons, and <strong>drag left/right</strong> to adjust their arrangement order on the interface.</li>
+            <li><strong>Labels Sorting:</strong> After clicking "Sync XYplorer Labels" to fetch configurations, it also supports left/right dragging to rearrange the order of label colors.</li>
+        </ul>
+
+        <h3 id="sec-4-3">3. Deep Editing of Custom Extensions</h3>
+        <ul>
+            <li><strong>Batch Add (Right-click):</strong> <strong>Right-click on the "➕ (Plus)" button</strong> on the right side of the custom extensions area to bring up the batch add menu, allowing one-click import of common extensions (like Images, Documents) or pasting a custom list.</li>
+            <li><strong>Edit Mode:</strong> Click the <strong>"✏️ (Pencil)"</strong> icon in the panel to enter extension edit mode.
+                <ul>
+                    <li><strong>Rename:</strong> <strong>Left-click</strong> any extension button to pop up an input box; modify and hit Enter.</li>
+                    <li><strong>Delete:</strong> Click the red <strong>"X"</strong> in the top right corner of the button to delete.</li>
+                    <li><em>(Note: Please click the pencil icon again to exit after modifications are complete; otherwise, normal left/right click filtering operations cannot be performed)</em></li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3 id="sec-4-4">4. Smart Text Input</h3>
+        <ul>
+            <li><strong>Path/Name/Comment:</strong> Supports smart composite logic. Typing <code>A+B,C-D</code> in the input box will automatically be converted by the engine into strict XYplorer syntax: <code>(A AND B) OR (C AND NOT D)</code>.</li>
+        </ul>
+
+        <hr>
+
+        <h2 id="sec-5">🌳 V. Tag Tree & Visual Management (Bottom Module)</h2>
+        <p>This is the core workflow area for managing tag categories, tagging, and reading tags.</p>
+
+        <h3 id="sec-5-1">1. Advanced Tag Selection Logic</h3>
+        <ul>
+            <li><strong>Left-click:</strong> Turns <strong>Blue</strong> 🔵 (MUST contain this tag).</li>
+            <li><strong>Right-click:</strong> Turns <strong>Red</strong> 🔴 (MUST exclude this tag).</li>
+            <li><strong>Middle-click:</strong> Turns <strong>Green</strong> 🟢 (OR logic, as long as it contains any one of the multiple blue tags).</li>
+        </ul>
+
+        <h3 id="sec-5-2">2. Powerful Drag & Drop Reorganization</h3>
+        <p>The entire tag tree supports free drag-and-drop rearrangement and hierarchy modification just like a file manager:</p>
+        <ul>
+            <li><strong>Tag Button Dragging:</strong> Click and hold a tag button, drag it into the dashed box area of another group and release it to <strong>transfer the tag to the new group</strong>.</li>
+            <li><strong>Group Rearrangement & Parent-Child Hierarchy Conversion:</strong> Click and hold the "Group Name" area (Header) of a group and drag. Pay attention to the <strong>highlight prompt lines</strong> of the target group:
+                <ul>
+                    <li><strong>Top Solid Yellow Line:</strong> Places it as the <strong>previous sibling group</strong> of the target.</li>
+                    <li><strong>Bottom Solid Yellow Line:</strong> Places it as the <strong>next sibling group</strong> of the target.</li>
+                    <li><strong>Full Row Background Highlight (Center):</strong> Places it <strong>inside</strong> the target group, making it a <strong>subgroup</strong> of the target.</li>
+                    <li><em>(Note: The "Uncategorized" group in the root directory is protected by the system and cannot be dragged and converted into a subgroup)</em></li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3 id="sec-5-3">3. Toolbar on the Right of Tag Groups</h3>
+        <p>On the right side of the text "🏷️ Tag Groups", there is a row of view-control artifacts:</p>
+        <ul>
+            <li><strong>🧹 Clear:</strong> One-click clear of all highlighted active states of tags in the tree.</li>
+            <li><strong>↕️ Expand/Collapse All:</strong> One-click control of the overall collapse state of the tag tree.</li>
+            <li><strong>⏺ Solid Circle (Expand Active Only):</strong> Intelligently collapses irrelevant groups, forces expansion, and <strong>tracks and locates</strong> the path of the group where tags are currently highlighted and active.</li>
+            <li><strong>⭕ Hollow Circle (Focus Mode):</strong> Directly <strong>hides</strong> all inactive groups, instantly refreshing the interface to show only the operating context.</li>
+            <li><strong>✏️ Pencil (Edit Mode):</strong> Once entered, <strong>left-click</strong> a group name or tag to directly rename it; click the red X to delete.</li>
+            <li><strong>➕ Plus Sign (New Root Group):</strong> Left-click to create a single root group; <strong>right-click</strong> to paste multi-line text to batch generate multiple root groups.</li>
+        </ul>
+
+        <h3 id="sec-5-4">4. Omnipresent Right-Click Menus</h3>
+        <ul>
+            <li><strong>Top Four Operation Buttons (Search/Tag/Read/Clear):</strong> <strong>Right-click</strong> to customize the background colors of these four core buttons, creating your preferred visual focus.</li>
+            <li><strong>Group Name Right-Click Menu:</strong> Right-click on any group name:
+                <ul>
+                    <li><strong>Modify Category Color:</strong> Set the background color for that group.</li>
+                    <li><strong>Batch Create Subgroups:</strong> Paste multi-line text to generate tree-like child nodes in one click.</li>
+                    <li><strong>Cross-Workspace Transfer:</strong> Select "Move to Workspace" or "Copy to Workspace" to uproot the group and all its subgroups/tags and transfer them to another workspace.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <hr>
+
+        <h2 id="sec-6">⚠️ VI. Core Operation Precautions</h2>
+        <ol>
+            <li><strong>Prerequisite for Tagging:</strong> Before using the "Tag" function, please ensure XYplorer is active and <strong>at least one file is selected</strong>. If no file is selected, XYplorer will ignore the tag command.</li>
+            <li><strong>Clipboard Limits for Reading Tags:</strong> The "Read Tags" function works by copying the file's tags to the clipboard. If a huge number of files are read at once and the tags are extremely complex (over 500 characters), the software will pop up a "Batch Confirmation Window" to prevent misoperation, allowing you to manually confirm the read tag details before executing activation.</li>
+            <li><strong>System Data Security:</strong> All configurations and tag data are saved in <code>.json</code> format in the <code>Data</code> folder of the software directory. Although the software has a built-in debounce auto-save mechanism, it is recommended to use <strong>"Export Workspace Data"</strong> in "⚙️ Settings" for manual backup before performing large-scale structural rearrangements (large-scale drag-and-drop, batch renaming).</li>
+        </ol>
+
+    </main>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Now listens to both H2 and H3 simultaneously
+        const headings = document.querySelectorAll('h2[id], h3[id]');
+        const navLinks = document.querySelectorAll('.sidebar a');
+
+        // Set up Intersection Observer
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px 0px -70% 0px', // Trigger highlight in advance
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // Remove all active states
+                    navLinks.forEach(link => link.classList.remove('active'));
+                    
+                    // Add active state to the navigation link corresponding to the currently visible section
+                    const activeLink = document.querySelector(`.sidebar a[href="#${entry.target.id}"]`);
+                    if (activeLink) {
+                        activeLink.classList.add('active');
+                    }
+                }
+            });
+        }, observerOptions);
+
+        headings.forEach(heading => {
+            observer.observe(heading);
+        });
+    });
+</script>
+
+</body>
+</html>

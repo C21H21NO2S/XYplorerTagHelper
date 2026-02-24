@@ -1,0 +1,59 @@
+{
+    "colorHistory": [],
+    "customColors": [],
+    "currentWs": "默认工作区",
+    "hist_path": [],
+    "hist_name": [],
+    "hist_remark": [],
+    "customExts": [],
+    "xyPath": "C:\\XYplorer\\XYplorer.exe",
+    "orderType": [
+        "文本",
+        "图像",
+        "照片",
+        "音频",
+        "视频",
+        "媒体",
+        "字体",
+        "矢量图",
+        "网页",
+        "文档",
+        "压缩包",
+        "可执行",
+        "文件夹"
+    ],
+    "orderLabel": [
+        "Red",
+        "Orange",
+        "Yellow",
+        "Green",
+        "Blue",
+        "Purple",
+        "Black",
+        "White"
+    ],
+    "orderRating": [
+        "unrated",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+    ],
+    "orderExt": [],
+    "xyLabels": [],
+    "actionBtnColors": {},
+    "wsColors": {},
+    "theme": "dark",
+    "lang": "zh-CN",
+    "orderWs": [
+        "默认工作区"
+    ],
+    "syntax_w": "",
+    "syntax_h": "",
+    "comp_h": "218px",
+    "win_width": 528,
+    "win_height": 906,
+    "win_x": 257,
+    "win_y": 178
+}
