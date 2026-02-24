@@ -1,0 +1,5 @@
+Data/
+Logs/
+Output/
+__pycache__/
+*.spec
