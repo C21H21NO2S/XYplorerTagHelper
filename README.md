@@ -3,6 +3,9 @@
 一个专为强大文件管理器 **XYplorer** 量身定制的高级标签辅助与过滤工具。
 通过现代化的可视化界面，帮助你更高效地管理文件标签、生成复杂的搜索语法、并实现工作区的自由定制。
 
+<img width="1100" height="960" alt="XYplorerTagHelper 1 2 2-Dark   Light" src="https://github.com/user-attachments/assets/a756e291-1d21-42f7-97cd-5285437fa03b" />
+
+
 ## ✨ 核心特性
 
 * **🚀 可视化标签树**：告别繁琐的纯文本输入，支持无限层级的标签分组、自由拖拽排序。
@@ -20,11 +23,11 @@
 
 ## 💻 从源码运行 (开发者)
 
-如果你安装了 Python 环境，可以按以下步骤运行或二次开发（requirements：pywebview>=4.0）：
+如果你安装了 Python 环境，可以按以下步骤运行或二次开发（requirements：pywebview≥4.0）：
 
 ```bash
 # 克隆仓库
-git clone [https://github.com/C21H21NO2S/XYplorerTagHelper.git](https://github.com/C21H21NO2S/XYplorerTagHelper.git)
+git clone https://github.com/C21H21NO2S/XYplorerTagHelper.git
 cd 你的仓库名
 
 # 安装依赖项 (核心依赖为 pywebview)
