@@ -8,11 +8,12 @@ import glob
 import time
 import sys
 import ctypes
+import webbrowser
 
 # ==========================================
 # 1. 基础配置与本地数据管理 (兼容 PyInstaller 打包)
 # ==========================================
-WINDOW_TITLE = 'XYplorerTagHelper 1.2.1'
+WINDOW_TITLE = 'XYplorerTagHelper 1.2.2'
 
 # 如果是被打包成 .exe 运行，则获取 .exe 所在目录；否则获取当前 .py 脚本所在目录
 if getattr(sys, 'frozen', False):
@@ -322,6 +323,14 @@ class Api:
             self.log_message(f"打开文档失败: {e}", "ERROR")
             return {"success": False}
 
+    def open_url(self, url):
+            try:
+                webbrowser.open(url)
+                return {"success": True}
+            except Exception as e:
+                self.log_message(f"打开链接失败: {e}", "ERROR")
+                return {"success": False}
+
     def toggle_pin(self, current_state):
         def _pin():
             w = webview.windows[0]
@@ -493,14 +502,14 @@ html_template = """
         .group-sub { display: flex; position: relative; margin-top: 2px; }
         .group-root > .group-content > .subgroups-area > .group-sub { margin-left: 20px; }
         .group-sub > .group-sub-main > .group-content > .subgroups-area > .group-sub { margin-left: 4px; }
-        .group-sub-bar { width: 14px; flex-shrink: 0; border-radius: var(--radius) 0 0 var(--radius); display: flex; align-items: flex-start; justify-content: center; padding-top: 3px; color: rgba(255,255,255,0.7); cursor: pointer; transition: opacity 0.2s;}
+        .group-sub-bar { width: 14px; flex-shrink: 0; border-radius: var(--radius) 0 0 var(--radius); display: flex; align-items: flex-start; justify-content: center; padding-top: 3px; color: var(--sub-arrow, rgba(255,255,255,0.7)); cursor: pointer; transition: opacity 0.2s;}
         .group-sub-bar:hover { opacity: 1; }
         .group-sub-bar svg { width: 10px; height: 10px; }
         .group-sub-main { flex: 1; min-width: 0; padding-left: 2px; }
 
-        .group-header { display: flex; align-items: center; padding: 2px 4px; border-radius: var(--radius); position: relative; transition: background-color 0.1s; min-height: 21px;}
+        .group-header { display: flex; align-items: center; padding: 2px 4px; border-radius: var(--radius); position: relative; transition: background-color 0.1s; min-height: 21px; color: var(--group-text, var(--text-main));}
         .group-header:hover { background-color: rgba(128, 128, 128, 0.08) !important; }
-        .group-arrow { width: 16px; font-weight: bold; color: var(--text-muted); display: flex; align-items: center; }
+        .group-arrow { width: 16px; font-weight: bold; color: var(--group-arrow, var(--text-muted)); display: flex; align-items: center; }
         .group-arrow svg { width: 14px; height: 14px; }
         .group-title { font-weight: bold; font-size: 13px; pointer-events: none;}
         .group-dot { color: var(--green); font-size: 10px; margin-left: 6px; display: none; }
@@ -520,7 +529,7 @@ html_template = """
         .subgroups-area { display: flex; flex-direction: column; width: 100%; }
 
         /* 标签按钮紧凑化 */
-        .tag-btn { position: relative; height: 24px; padding: 0 8px; background: var(--bg-btn); color: var(--text-main); border: 1px solid var(--border-color); border-radius: var(--radius); font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; white-space: nowrap; transition: 0.1s; }
+        .tag-btn { position: relative; height: 25px; padding: 0 8px; background: var(--bg-btn); color: var(--btn-text, var(--text-main)); border: 1px solid var(--border-color); border-radius: var(--radius); font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; white-space: nowrap; transition: 0.1s; }
         .tag-btn:hover { background: var(--bg-btn-hover); border-color: var(--primary); color: var(--primary); }
         .tag-btn.s1 { background: var(--blue); color: #fff; border-color: transparent; } 
         .tag-btn.s2 { background: var(--red); color: #fff; border-color: transparent; } 
@@ -893,7 +902,10 @@ ageM: <= 7 d = modified last 7 days</div>
         <div class="modal-content" style="width: 420px;">
             <h4 style="margin:0 0 15px 0; color:var(--primary); font-size:15px; display:flex; justify-content:space-between; align-items:center;">
                 <div style="display:flex; gap:8px; align-items:center;"><span v-html="settings"></span> <span data-i18n="settings">系统设置</span></div>
-                <button class="tool-btn" style="width:24px; height:24px; color:var(--primary);" onclick="openManual()" data-i18n-title="manual_title" v-html="help"></button>
+                <div style="display:flex; gap:4px;">
+                    <button class="tool-btn" style="width:24px; height:24px; color:var(--primary);" onclick="openGithub()" data-i18n-title="project_url" v-html="info"></button>
+                    <button class="tool-btn" style="width:24px; height:24px; color:var(--primary);" onclick="openManual()" data-i18n-title="manual_title" v-html="help"></button>
+                </div>
             </h4>
             
             <div style="display:flex; gap:10px; margin-bottom:15px;">
@@ -925,6 +937,8 @@ ageM: <= 7 d = modified last 7 days</div>
                 <button class="settings-btn" onclick="exportConfig()"><span v-html="export"></span> <span data-i18n="export_config">导出软件配置</span></button>
                 <button class="settings-btn" onclick="document.getElementById('import-config-file').click()"><span v-html="importIco"></span> <span data-i18n="import_config">导入软件配置</span></button>
                 <input type="file" id="import-config-file" accept=".json" style="display:none;" onchange="importConfig(event)">
+                
+                <button class="settings-btn" style="grid-column: span 2;" onclick="checkUpdate()"><span v-html="info"></span> <span data-i18n="check_update">检查更新</span></button>
             </div>
 
             <div style="display:flex; justify-content:flex-end; gap:8px;">
@@ -987,6 +1001,7 @@ ageM: <= 7 d = modified last 7 days</div>
         function _h(str) { return String(str||'').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
         const SVGS = {
+            info: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`,
             help: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`,
             search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`,
             add: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`,
@@ -1015,6 +1030,8 @@ ageM: <= 7 d = modified last 7 days</div>
                 '重要': '重要', '紧急': '紧急', '待办': '待办', '搁置': '搁置', '完成': '完成',
                 '?*': '含标签', '""': '无标签',
                 
+                'checking_update': '检查中...',
+                'check_update': '检查更新', 'project_url': '项目开源主页', 'update_found': '发现新版本！', 'go_to_download': '是否前往 GitHub 下载？', 'is_latest': '当前已是最新版本', 'update_fail': '检查更新失败，请检查网络连接',
                 'search': '搜索', 'add_tag': '打标签', 'read_tag': '读标签', 'clear': '清空',
                 'tab_type': '类型', 'tab_path': '路径', 'tab_name': '文件名', 'tab_remark': '备注', 'tab_label': '标注', 'tab_rating': '评分', 'tab_size': '大小/日期',
                 'hint_type': '左键：包含 (OR) | 右键：排除 (NOT) | 拖拽排序', 'custom_ext': '自定义后缀名',
@@ -1060,6 +1077,8 @@ ageM: <= 7 d = modified last 7 days</div>
                 
                 '文本': '文字', '图像': '影像', '照片': '相片', '音频': '音訊', '视频': '視訊', '媒体': '媒體', '字体': '字型', '矢量图': '向量圖', '网页': '網頁', '文档': '文件', '压缩包': '壓縮檔', '可执行': '執行檔', '文件夹': '資料夾',
                 
+                'checking_update': '檢查中...',
+                'check_update': '檢查更新', 'project_url': '專案開源主頁', 'update_found': '發現新版本！', 'go_to_download': '是否前往 GitHub 下載？', 'is_latest': '當前已是最新版本', 'update_fail': '檢查更新失敗，請檢查網路連線',
                 'search': '搜尋', 'add_tag': '打標籤', 'read_tag': '讀標籤', 'clear': '清空',
                 'tab_type': '類型', 'tab_path': '路徑', 'tab_name': '檔名', 'tab_remark': '備註', 'tab_label': '標註', 'tab_rating': '評分', 'tab_size': '大小/日期',
                 'hint_type': '左鍵：包含 (OR) | 右鍵：排除 (NOT) | 拖曳排序', 'custom_ext': '自訂副檔名',
@@ -1105,6 +1124,8 @@ ageM: <= 7 d = modified last 7 days</div>
                 
                 '文本': 'Text', '图像': 'Image', '照片': 'Photo', '音频': 'Audio', '视频': 'Video', '媒体': 'Media', '字体': 'Font', '矢量图': 'Vector', '网页': 'Web', '文档': 'Document', '压缩包': 'Archive', '可执行': 'Executable', '文件夹': 'Folder',
                 
+                'checking_update': 'Checking...',
+                'check_update': 'Check for Updates', 'project_url': 'Project Homepage', 'update_found': 'New version available!', 'go_to_download': 'Go to GitHub to download?', 'is_latest': 'You are using the latest version', 'update_fail': 'Update check failed, please check network',
                 'search': 'Search', 'add_tag': 'Tag', 'read_tag': 'Read', 'clear': 'Clear',
                 'tab_type': 'Type', 'tab_path': 'Path', 'tab_name': 'Name', 'tab_remark': 'Remark', 'tab_label': 'Label', 'tab_rating': 'Rating', 'tab_size': 'Size/Date',
                 'hint_type': 'Left-click: Include (OR) | Right-click: Exclude (NOT) | Drag to sort', 'custom_ext': 'Custom Ext',
@@ -2232,7 +2253,9 @@ ageM: <= 7 d = modified last 7 days</div>
             let selfColor = node._bg_color; 
             let finalColor = isRoot ? (selfColor || 'transparent') : (selfColor || (node._parentBg && node._parentBg !== 'transparent' ? getLighterColor(node._parentBg) : 'transparent'));
             
-            let bgStyle = isRoot ? (selfColor ? `background: ${finalColor}; border-color: transparent;` : ``) : ``;
+            // 算法注入：动态判断文字与箭头的强对比颜色
+            let dynTextColor = (finalColor && finalColor !== 'transparent') ? getContrastColor(finalColor) : '';
+            let bgStyle = isRoot ? (selfColor ? `background: ${finalColor}; border-color: transparent; --group-text: ${dynTextColor}; --group-arrow: ${dynTextColor};` : ``) : ``;
             let html = `<div class="group ${isRoot ? 'group-root' : 'group-sub'} ${isExpanded ? '' : 'collapsed'}" data-path="${sp}" data-type="group" style="${bgStyle}">`;
             
             let arrowIcon = isExpanded ? 'arrowDown' : 'arrowRight';
@@ -2241,18 +2264,20 @@ ageM: <= 7 d = modified last 7 days</div>
             let headerAddBtn = !hasTags ? addBtnHtml : '';
 
             if (!isRoot) {
-                html += `<div class="group-sub-bar" style="background:${finalColor};" onclick="onGroupClick(event, '${sp}', '${sn}')">`;
+                let subBarStyle = `background:${finalColor};`;
+                if (dynTextColor) subBarStyle += ` --sub-arrow: ${dynTextColor};`;
+                html += `<div class="group-sub-bar" style="${subBarStyle}" onmouseup="onGroupClick(event, '${sp}', '${sn}')">`;
                 html += isExpandable ? `<span v-html="${arrowIcon}"></span>` : ``;
                 html += `</div>`;
                 html += `<div class="group-sub-main">`;
             }
 
             if (isRoot) {
-                html += `<div class="group-header" draggable="true" ondragstart="onDragStartTree(event, 'group', '${sp}', '${sn}')" ondragover="onDragOverTree(event)" ondragleave="onDragLeaveTree(event)" ondrop="onDropTree(event, '${sp}', '${sn}')" onclick="onGroupClick(event, '${sp}', '${sn}')" oncontextmenu="onGroupCtx(event, '${sp}', ${isRoot}, '${sn}')">`;
+                html += `<div class="group-header" draggable="true" ondragstart="onDragStartTree(event, 'group', '${sp}', '${sn}')" ondragover="onDragOverTree(event)" ondragleave="onDragLeaveTree(event)" ondrop="onDropTree(event, '${sp}', '${sn}')" onmouseup="onGroupClick(event, '${sp}', '${sn}')" oncontextmenu="onGroupCtx(event, '${sp}', ${isRoot}, '${sn}')">`;
                 html += isExpandable ? `<span class="group-arrow" v-html="${arrowIcon}"></span>` : `<span class="group-arrow" style="visibility:hidden;" v-html="arrowRight"></span>`;
                 html += `<span class="group-title" data-name="${_h(name)}">${dn}</span><span class="group-dot ${hasActive ? 'show' : ''}">●</span>${headerAddBtn}</div>`;
             } else {
-                html += `<div class="group-header" draggable="true" ondragstart="onDragStartTree(event, 'group', '${sp}', '${sn}')" ondragover="onDragOverTree(event)" ondragleave="onDragLeaveTree(event)" ondrop="onDropTree(event, '${sp}', '${sn}')" onclick="onGroupClick(event, '${sp}', '${sn}')" oncontextmenu="onGroupCtx(event, '${sp}', ${isRoot}, '${sn}')">`;
+                html += `<div class="group-header" draggable="true" ondragstart="onDragStartTree(event, 'group', '${sp}', '${sn}')" ondragover="onDragOverTree(event)" ondragleave="onDragLeaveTree(event)" ondrop="onDropTree(event, '${sp}', '${sn}')" onmouseup="onGroupClick(event, '${sp}', '${sn}')" oncontextmenu="onGroupCtx(event, '${sp}', ${isRoot}, '${sn}')">`;
                 html += `<span class="group-title" data-name="${_h(name)}">${dn}</span><span class="group-dot ${hasActive ? 'show' : ''}">●</span>${headerAddBtn}</div>`;
             }
 
@@ -2264,8 +2289,16 @@ ageM: <= 7 d = modified last 7 days</div>
                     let key = `${path}|${tagStr}`; 
                     let tState = state.tagStates[key] || 0; 
                     let cls = tState === 1 ? 's1' : (tState === 2 ? 's2' : (tState === 3 ? 's3' : ''));
+                    
+                    // 核心逻辑：如果是未激活状态，且父级色条有颜色，则将其作为局部 CSS 变量注入给该按钮
+                    let styleStr = '';
+                    if (tState === 0 && finalColor && finalColor !== 'transparent') {
+                        let textColor = getContrastColor(finalColor);
+                        styleStr = `style="--bg-btn: ${finalColor}; --border-color: ${finalColor}; --btn-text: ${textColor};"`;
+                    }
+
                     html += `
-                    <div class="tag-btn ${cls}" draggable="true" ondragstart="onDragStartTree(event, 'tag', '${sp}', '${st}')" ondragover="onDragOverTreeTag(event)" ondragleave="onDragLeaveTree(event)" ondrop="onDropTreeTag(event, '${sp}', '${st}')" onmouseup="onTagClick(event, '${sp}', '${st}')" oncontextmenu="event.preventDefault()">
+                    <div class="tag-btn ${cls}" ${styleStr} draggable="true" ondragstart="onDragStartTree(event, 'tag', '${sp}', '${st}')" ondragover="onDragOverTreeTag(event)" ondragleave="onDragLeaveTree(event)" ondrop="onDropTreeTag(event, '${sp}', '${st}')" onmouseup="onTagClick(event, '${sp}', '${st}')" oncontextmenu="event.preventDefault()">
                         ${ht}<div class="tag-del" onmousedown="event.stopPropagation();" onmouseup="delTagBtn(event, '${sp}', '${st}')" v-html="delete"></div>
                     </div>`;
                 });
@@ -2308,9 +2341,25 @@ ageM: <= 7 d = modified last 7 days</div>
             if (isDragAction(e)) return;
             if (e.target.closest && e.target.closest('.tag-del')) return;
             
+            // Alt + 中键 (e.button === 1)：重命名标签
+            if (e.altKey && e.button === 1) {
+                e.preventDefault(); e.stopPropagation();
+                openQuickEdit(e.clientX, e.clientY, tag, (val) => { 
+                    if (val && val !== tag) { 
+                        let node = getNodeByPath(path); 
+                        let idx = node._tags.indexOf(tag); 
+                        if (idx > -1) { 
+                            node._tags[idx] = val; 
+                            saveDataAndRenderAll(); 
+                        } 
+                    } 
+                });
+                return;
+            }
+
             if (state.editMode) { 
                 e.stopPropagation(); 
-                if (e.button === 0) { 
+                if (e.button === 0) {
                     openQuickEdit(e.clientX, e.clientY, tag, (val) => { 
                         if (val && val !== tag) { 
                             let node = getNodeByPath(path); 
@@ -2649,6 +2698,35 @@ ageM: <= 7 d = modified last 7 days</div>
 
         function onGroupClick(e, path, name) { 
             if (isDragAction(e)) return; 
+            
+            // Alt + 中键 (e.button === 1)：重命名
+            if (e.altKey && e.button === 1) {
+                e.preventDefault(); e.stopPropagation();
+                if (name === "未分类") return;
+                openQuickEdit(e.clientX, e.clientY, name, (val) => { 
+                    if (val && val !== name) { 
+                        let parent = getParentNode(path); let newObj = {}; 
+                        for (let k in parent) { if (k === name) newObj[val] = parent[name]; else newObj[k] = parent[k]; } 
+                        for (let k in parent) delete parent[k]; 
+                        for (let k in newObj) parent[k] = newObj[k]; 
+                        let newPath = path.substring(0, path.lastIndexOf('/') + 1) + val; 
+                        state.expandedGroups[newPath] = state.expandedGroups[path]; 
+                        saveDataAndRenderAll(); 
+                    } 
+                });
+                return;
+            }
+            
+            // Alt + 左键 (e.button === 0)：展开子组
+            if (e.altKey && e.button === 0) {
+                e.preventDefault(); e.stopPropagation();
+                ctxTarget = { path: path, name: name };
+                ctxAction('expand-all');
+                return;
+            }
+
+            if (e.button !== 0) return; // 仅放行普通的左键点击进入原逻辑
+            
             if (state.editMode) { 
                 e.stopPropagation(); if (name === "未分类") return; 
                 openQuickEdit(e.clientX, e.clientY, name, (val) => { 
@@ -2657,7 +2735,7 @@ ageM: <= 7 d = modified last 7 days</div>
                         for (let k in parent) { if (k === name) newObj[val] = parent[name]; else newObj[k] = parent[k]; } 
                         for (let k in parent) delete parent[k]; 
                         for (let k in newObj) parent[k] = newObj[k]; 
-                        let newPath = p.substring(0, p.lastIndexOf('/') + 1) + val; 
+                        let newPath = path.substring(0, path.lastIndexOf('/') + 1) + val; 
                         state.expandedGroups[newPath] = state.expandedGroups[path]; 
                         saveDataAndRenderAll(); 
                     } 
@@ -2699,6 +2777,14 @@ ageM: <= 7 d = modified last 7 days</div>
 
         const ctxMenu = document.getElementById('ctx-menu');
         function onGroupCtx(e, path, isRoot, name) { 
+            // Alt + 右键：折叠子组 (直接执行动作，不弹出菜单)
+            if (e.altKey) {
+                e.preventDefault(); e.stopPropagation();
+                ctxTarget = { path: path, name: name };
+                ctxAction('collapse-leaf');
+                return;
+            }
+
             e.preventDefault(); e.stopPropagation(); ctxTarget = { path, isRoot, name }; 
             let isUncat = (name === '未分类');
             document.getElementById('ctx-del').style.display = isUncat ? 'none' : 'flex'; 
@@ -3151,6 +3237,62 @@ ageM: <= 7 d = modified last 7 days</div>
             setTimeout(() => { qInput.focus(); qInput.select(); }, 50); 
         }
         function getLighterColor(hex) { if (!hex || hex === 'transparent') return '#00bcd4'; let r = parseInt(hex.slice(1,3), 16), g = parseInt(hex.slice(3,5), 16), b = parseInt(hex.slice(5,7), 16); r = Math.min(255, r + 40); g = Math.min(255, g + 40); b = Math.min(255, b + 40); return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1); }
+        function getContrastColor(hex) { if (!hex || hex === 'transparent') return ''; let c = hex.startsWith('#') ? hex.slice(1) : hex; if (c.length === 3) c = c.split('').map(x => x + x).join(''); let r = parseInt(c.slice(0, 2), 16), g = parseInt(c.slice(2, 4), 16), b = parseInt(c.slice(4, 6), 16); let yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000; return yiq >= 128 ? '#111111' : '#FFFFFF'; }
+
+        // ======= 版本更新与链接逻辑 =======
+        const CURRENT_VERSION = '1.2.2'; // 每次更新软件时，除了改 Python 里的 WINDOW_TITLE，也要顺手改这里
+        
+        function openGithub() {
+            pywebview.api.open_url('https://github.com/C21H21NO2S/XYplorerTagHelper');
+        }
+
+        // 版本号比对算法 (支持 1.2.2 与 1.2.10 的正确比对)
+        function cmpVer(v1, v2) {
+            let p1 = v1.split('.').map(Number), p2 = v2.split('.').map(Number);
+            for(let i = 0; i < Math.max(p1.length, p2.length); i++) {
+                let n1 = p1[i] || 0, n2 = p2[i] || 0;
+                if(n1 > n2) return 1;
+                if(n1 < n2) return -1;
+            }
+            return 0;
+        }
+
+        async function checkUpdate() {
+            let btn = document.querySelector('button[onclick="checkUpdate()"]');
+            // 核心修复：只获取带有文字的 span，绝对不触碰前面的 SVG 图标
+            let textSpan = btn.querySelector('span[data-i18n="check_update"]');
+            
+            // 保存原文字
+            let originalText = textSpan.innerText;
+            // 替换为本地化的“检查中...”
+            textSpan.innerText = t('checking_update');
+            btn.disabled = true;
+            
+            try {
+                let res = await fetch('https://api.github.com/repos/C21H21NO2S/XYplorerTagHelper/releases/latest');
+                if (!res.ok) throw new Error('Network response was not ok');
+                let data = await res.json();
+                
+                if (data.tag_name) {
+                    let latest = data.tag_name.replace('v', ''); // 将 'v1.2.3' 转为 '1.2.3'
+                    
+                    if (cmpVer(latest, CURRENT_VERSION) > 0) {
+                        showConfirmModal(`${t('update_found')} (v${latest})\n\n${t('go_to_download')}`, () => {
+                            pywebview.api.open_url('https://github.com/C21H21NO2S/XYplorerTagHelper/releases/latest');
+                        });
+                    } else {
+                        showToast(t('is_latest'), 'success');
+                    }
+                }
+            } catch (err) {
+                showToast(t('update_fail'), 'error');
+                sysLog(`检查更新异常: ${err.message}`, "ERROR");
+            } finally {
+                // 恢复原文字与按钮状态，无需重新调用 renderSVGs
+                textSpan.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
     </script>
 </body>
 </html>
