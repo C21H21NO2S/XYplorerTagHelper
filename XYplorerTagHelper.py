@@ -2283,6 +2283,9 @@ ageM: <= 7 d = modified last 7 days</div>
 
             html += `<div class="group-content"><div class="tags-area" ondragover="onDragOverTreeArea(event)" ondragleave="onDragLeaveTreeArea(event)" ondrop="onDropTreeArea(event, '${sp}')">`;
             if (hasTags) {
+                // 核心修复：如果当前是根组，标签颜色取“变浅一阶”的颜色，从而与子组色条对齐
+                let tagBgColor = (isRoot && finalColor && finalColor !== 'transparent') ? getLighterColor(finalColor) : finalColor;
+                
                 node._tags.forEach(tagStr => {
                     let st = _e(tagStr);
                     let ht = _h(t(tagStr));
@@ -2290,11 +2293,11 @@ ageM: <= 7 d = modified last 7 days</div>
                     let tState = state.tagStates[key] || 0; 
                     let cls = tState === 1 ? 's1' : (tState === 2 ? 's2' : (tState === 3 ? 's3' : ''));
                     
-                    // 核心逻辑：如果是未激活状态，且父级色条有颜色，则将其作为局部 CSS 变量注入给该按钮
+                    // 核心逻辑：注入计算好的 tagBgColor
                     let styleStr = '';
-                    if (tState === 0 && finalColor && finalColor !== 'transparent') {
-                        let textColor = getContrastColor(finalColor);
-                        styleStr = `style="--bg-btn: ${finalColor}; --border-color: ${finalColor}; --btn-text: ${textColor};"`;
+                    if (tState === 0 && tagBgColor && tagBgColor !== 'transparent') {
+                        let textColor = getContrastColor(tagBgColor);
+                        styleStr = `style="--bg-btn: ${tagBgColor}; --border-color: ${tagBgColor}; --btn-text: ${textColor};"`;
                     }
 
                     html += `
