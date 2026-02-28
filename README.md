@@ -1,6 +1,6 @@
 # XYplorerTagHelper 🏷️
 
-[English](README_en.md) | 简体中文
+[English](README_en.md) | 简体中文 | [使用指南](manual_zh-CN.md)
 
 一个专为强大文件管理器 **XYplorer** 量身定制的高级标签辅助与过滤工具。
 通过现代化的可视化界面，帮助你更高效地管理文件标签、生成复杂的搜索语法、并实现工作区的自由定制。
