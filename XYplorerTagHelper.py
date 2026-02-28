@@ -13,7 +13,7 @@ import webbrowser
 # ==========================================
 # 1. 基础配置与本地数据管理 (兼容 PyInstaller 打包)
 # ==========================================
-WINDOW_TITLE = 'XYplorerTagHelper 1.2.3'
+WINDOW_TITLE = 'XYplorerTagHelper 1.2.4'
 
 # 如果是被打包成 .exe 运行，则获取 .exe 所在目录；否则获取当前 .py 脚本所在目录
 if getattr(sys, 'frozen', False):
@@ -110,6 +110,7 @@ class Api:
         self.last_folder_open_time = 0
 
     # 新增：Python 端的多语言字典与获取方法
+    # 完整多语言字典
     def _t(self, key, *args):
         lang = self.get_config().get('lang', 'zh-CN')
         msgs = {
@@ -117,19 +118,73 @@ class Api:
                 'test_start': '测试 XYplorer 路径: {}',
                 'test_ok': 'XYplorer 连接测试成功。',
                 'test_fail': '无法启动 XYplorer: {}',
-                'test_not_found': '未在指定路径找到 XYplorer.exe。'
+                'test_not_found': '未在指定路径找到 XYplorer.exe。',
+                'log_search_cmd': '执行搜索命令: {} /feed="{}"',
+                'log_script_cmd': '执行脚本命令: {} /feed="{}"',
+                'log_exec_fail': '执行失败: 未找到 XYplorer.exe',
+                'log_exec_search_err': '执行搜索异常: {}',
+                'log_exec_script_err': '执行脚本异常: {}',
+                'log_clip_err': '安全读取剪贴板异常: {}',
+                'log_data_not_found': '找不到数据文件',
+                'log_tag_dat_err': '未在 tag.dat 中找到 Labels 配置',
+                'log_export_data_ok': '成功导出工作区数据至: {}',
+                'log_export_data_err': '导出数据异常: {}',
+                'log_export_cfg_ok': '成功导出软件设置至: {}',
+                'log_export_cfg_err': '导出设置异常: {}',
+                'log_open_dir_err': '无法打开输出目录: {}',
+                'log_focus_err': '窗口聚焦失败: {}',
+                'log_theme_err': '更改原生标题栏主题失败: {}',
+                'log_doc_not_found': '找不到说明文档: {}',
+                'log_doc_err': '打开文档失败: {}',
+                'log_url_err': '打开链接失败: {}'
             },
             'zh-TW': {
                 'test_start': '測試 XYplorer 路徑: {}',
                 'test_ok': 'XYplorer 連接測試成功。',
                 'test_fail': '無法啟動 XYplorer: {}',
-                'test_not_found': '未在指定路徑找到 XYplorer.exe。'
+                'test_not_found': '未在指定路徑找到 XYplorer.exe。',
+                'log_search_cmd': '執行搜尋命令: {} /feed="{}"',
+                'log_script_cmd': '執行腳本命令: {} /feed="{}"',
+                'log_exec_fail': '執行失敗: 未找到 XYplorer.exe',
+                'log_exec_search_err': '執行搜尋異常: {}',
+                'log_exec_script_err': '執行腳本異常: {}',
+                'log_clip_err': '安全讀取剪貼簿異常: {}',
+                'log_data_not_found': '找不到資料檔案',
+                'log_tag_dat_err': '未在 tag.dat 中找到 Labels 配置',
+                'log_export_data_ok': '成功匯出工作區資料至: {}',
+                'log_export_data_err': '匯出資料異常: {}',
+                'log_export_cfg_ok': '成功匯出軟體設定至: {}',
+                'log_export_cfg_err': '匯出設定異常: {}',
+                'log_open_dir_err': '無法開啟輸出目錄: {}',
+                'log_focus_err': '視窗聚焦失敗: {}',
+                'log_theme_err': '更改原生標題列主題失敗: {}',
+                'log_doc_not_found': '找不到說明文件: {}',
+                'log_doc_err': '開啟文件失敗: {}',
+                'log_url_err': '開啟連結失敗: {}'
             },
             'en': {
                 'test_start': 'Testing XYplorer path: {}',
                 'test_ok': 'XYplorer connection test successful.',
                 'test_fail': 'Failed to launch XYplorer: {}',
-                'test_not_found': 'XYplorer.exe not found at the specified path.'
+                'test_not_found': 'XYplorer.exe not found at the specified path.',
+                'log_search_cmd': 'Execute search command: {} /feed="{}"',
+                'log_script_cmd': 'Execute script command: {} /feed="{}"',
+                'log_exec_fail': 'Execution failed: XYplorer.exe not found',
+                'log_exec_search_err': 'Execute search exception: {}',
+                'log_exec_script_err': 'Execute script exception: {}',
+                'log_clip_err': 'Safe clipboard read exception: {}',
+                'log_data_not_found': 'Data file not found',
+                'log_tag_dat_err': 'Labels config not found in tag.dat',
+                'log_export_data_ok': 'Workspace data exported successfully to: {}',
+                'log_export_data_err': 'Export data exception: {}',
+                'log_export_cfg_ok': 'App config exported successfully to: {}',
+                'log_export_cfg_err': 'Export config exception: {}',
+                'log_open_dir_err': 'Cannot open output directory: {}',
+                'log_focus_err': 'Window focus failed: {}',
+                'log_theme_err': 'Failed to change native titlebar theme: {}',
+                'log_doc_not_found': 'Manual not found: {}',
+                'log_doc_err': 'Failed to open manual: {}',
+                'log_url_err': 'Failed to open URL: {}'
             }
         }
         text = msgs.get(lang, msgs['zh-CN']).get(key, msgs['zh-CN'].get(key, key))
@@ -141,14 +196,14 @@ class Api:
         print(f"[{level}] {msg}")
 
     # 新增：测试 XYplorer 路径接口
+    # 核心修复 1：去掉了这里的 shell=True
     def test_xy_path(self, xy_path):
         exe_path = self._normalize_xy_path(xy_path)
         self.log_message(self._t('test_start', exe_path), "INFO")
         
         if os.path.exists(exe_path):
             try:
-                # 发送一个状态栏提示命令作为测试
-                subprocess.Popen(f'"{exe_path}" /feed="::status \'XYplorerTagHelper Connected!\', \'00FF00\';"', shell=True)
+                subprocess.Popen(f'"{exe_path}" /feed="::status \'XYplorerTagHelper Connected!\', \'00FF00\';"')
                 self.log_message(self._t('test_ok'), "INFO")
                 return {"success": True}
             except Exception as e:
@@ -173,7 +228,7 @@ class Api:
                         ctypes.windll.user32.ShowWindow(hwnd, 9) # 9 = SW_RESTORE
                         ctypes.windll.user32.SetForegroundWindow(hwnd)
             except Exception as e:
-                self.log_message(f"窗口聚焦失败: {e}", "ERROR")
+                self.log_message(self._t('log_focus_err', str(e)), "ERROR")
         threading.Thread(target=_focus, daemon=True).start()
 
     def change_titlebar_theme(self, color_hex, is_dark):
@@ -211,7 +266,7 @@ class Api:
                             
                         ctypes.windll.user32.SetWindowPos(hwnd, 0, 0, 0, 0, 0, 0x0027)
             except Exception as e:
-                self.log_message(f"更改原生标题栏主题失败: {e}", "ERROR")
+                self.log_message(self._t('log_theme_err', str(e)), "ERROR")
                 
         threading.Thread(target=_apply, daemon=True).start()
 
@@ -228,7 +283,7 @@ class Api:
                 os.startfile(OUTPUT_DIR)
                 self.last_folder_open_time = current_time
             except Exception as e:
-                self.log_message(f"无法打开输出目录: {e}", "ERROR")
+                self.log_message(self._t('log_open_dir_err', str(e)), "ERROR")
 
     def get_data(self): return load_tags()
     def save_data(self, data): return save_tags(data)
@@ -242,11 +297,11 @@ class Api:
             save_path = os.path.join(OUTPUT_DIR, filename)
             with open(save_path, 'w', encoding='utf-8') as f:
                 json.dump(self.get_data(), f, ensure_ascii=False, indent=4)
-            self.log_message(f"成功导出工作区数据至: {save_path}", "INFO")
+            self.log_message(self._t('log_export_data_ok', save_path), "INFO")
             self._open_output_folder()
             return {"success": True, "msg": "数据导出成功"}
         except Exception as e:
-            self.log_message(f"导出数据异常: {e}", "ERROR")
+            self.log_message(self._t('log_export_data_err', str(e)), "ERROR")
             return {"success": False, "msg": str(e)}
 
     def export_config(self):
@@ -256,18 +311,17 @@ class Api:
             save_path = os.path.join(OUTPUT_DIR, filename)
             with open(save_path, 'w', encoding='utf-8') as f:
                 json.dump(self.get_config(), f, ensure_ascii=False, indent=4)
-            self.log_message(f"成功导出软件设置至: {save_path}", "INFO")
+            self.log_message(self._t('log_export_cfg_ok', save_path), "INFO")
             self._open_output_folder()
             return {"success": True, "msg": "设置导出成功"}
         except Exception as e:
-            self.log_message(f"导出设置异常: {e}", "ERROR")
+            self.log_message(self._t('log_export_cfg_err', str(e)), "ERROR")
             return {"success": False, "msg": str(e)}
 
     def execute_search(self, path, syntax, xy_path):
         path = path.strip() or "*"
         syntax = syntax.strip()
         
-        # 修复 Bug: 当仅有 /types= 等纯 switch 语法时，路径后只用 ?
         if syntax.startswith("/"):
             feed_script = f"::goto '{path}?{syntax}';"
         elif syntax:
@@ -276,26 +330,57 @@ class Api:
             feed_script = f"::goto '{path}?';"
             
         exe_path = self._normalize_xy_path(xy_path)
-        self.log_message(f"执行搜索命令: {exe_path} /feed=\"{feed_script}\"")
+        
+        # 这里的日志会受多语言字典硬编码影响，但这不影响实际执行
+        self.log_message(self._t('log_search_cmd', exe_path, feed_script))
         try:
             if os.path.exists(exe_path):
-                subprocess.Popen(f'"{exe_path}" /feed="{feed_script}"', shell=True)
+                import tempfile
+                temp_dir = tempfile.gettempdir()
+                script_file = os.path.join(temp_dir, "xy_taghelper_search.xys")
+                
+                # 写入 UTF-16-LE 编码文件，彻底绕过非中文系统的 ANSI 编码墙
+                with open(script_file, "w", encoding="utf-16-le") as f:
+                    f.write("\ufeff") # 写入 BOM
+                    f.write(feed_script)
+                
+                # 将路径中的单引号转义，防止路径中带单引号导致脚本报错
+                safe_script_file = script_file.replace("'", "''")
+                
+                # 核心修复：用 /feed 配合 XYplorer 的 load 命令来读取文件！
+                load_cmd = f"::load '{safe_script_file}';"
+                subprocess.Popen(f'"{exe_path}" /feed="{load_cmd}"')
             else:
-                self.log_message(f"执行失败: 未找到 XYplorer.exe", "ERROR")
+                self.log_message(self._t('log_exec_fail'), "ERROR")
         except Exception as e:
-            self.log_message(f"执行搜索异常: {e}", "ERROR")
+            self.log_message(self._t('log_exec_search_err', str(e)), "ERROR")
 
     def execute_script(self, script, xy_path):
         script = script.strip()
         exe_path = self._normalize_xy_path(xy_path)
-        self.log_message(f"执行脚本命令: {exe_path} /feed=\"{script}\"")
+        
+        self.log_message(self._t('log_script_cmd', exe_path, script))
         try:
             if os.path.exists(exe_path):
-                subprocess.Popen(f'"{exe_path}" /feed="{script}"', shell=True)
+                import tempfile
+                temp_dir = tempfile.gettempdir()
+                script_file = os.path.join(temp_dir, "xy_taghelper_temp.xys")
+                
+                # 写入 UTF-16-LE 编码文件，彻底绕过非中文系统的 ANSI 编码墙
+                with open(script_file, "w", encoding="utf-16-le") as f:
+                    f.write("\ufeff") # 写入 BOM
+                    f.write(script)
+                
+                # 将路径中的单引号转义
+                safe_script_file = script_file.replace("'", "''")
+                
+                # 核心修复：用 /feed 配合 XYplorer 的 load 命令来读取文件！
+                load_cmd = f"::load '{safe_script_file}';"
+                subprocess.Popen(f'"{exe_path}" /feed="{load_cmd}"')
             else:
-                self.log_message(f"执行失败: 未找到 XYplorer.exe", "ERROR")
+                self.log_message(self._t('log_exec_fail'), "ERROR")
         except Exception as e:
-            self.log_message(f"执行脚本异常: {e}", "ERROR")
+            self.log_message(self._t('log_exec_script_err', str(e)), "ERROR")
 
     def read_clipboard_safe(self):
         try:
@@ -304,7 +389,7 @@ class Api:
             result = subprocess.check_output(['powershell', '-NoProfile', '-command', 'Get-Clipboard'], startupinfo=startupinfo, text=True, timeout=3)
             return result.strip()
         except Exception as e:
-            self.log_message(f"安全读取剪贴板异常: {e}", "ERROR")
+            self.log_message(self._t('log_clip_err', str(e)), "ERROR")
             return ""
 
     def update_xy_labels(self, xy_path):
@@ -362,10 +447,10 @@ class Api:
                 os.startfile(filepath) # 自动调用系统默认浏览器打开
                 return {"success": True}
             else:
-                self.log_message(f"找不到说明文档: {filepath}", "ERROR")
+                self.log_message(self._t('log_doc_not_found', filepath), "ERROR")
                 return {"success": False}
         except Exception as e:
-            self.log_message(f"打开文档失败: {e}", "ERROR")
+            self.log_message(self._t('log_doc_err', str(e)), "ERROR")
             return {"success": False}
 
     def open_url(self, url):
@@ -373,7 +458,7 @@ class Api:
                 webbrowser.open(url)
                 return {"success": True}
             except Exception as e:
-                self.log_message(f"打开链接失败: {e}", "ERROR")
+                self.log_message(self._t('log_url_err', str(e)), "ERROR")
                 return {"success": False}
 
     def toggle_pin(self, current_state):
@@ -935,15 +1020,15 @@ ageM: <= 7 d = modified last 7 days</div>
         </div>
     </div>
 
-    <div id="confirm-modal" class="modal-overlay">
+    <div id="confirm-modal" class="modal-overlay" style="z-index: 10005;">
         <div class="modal-content" style="width: 320px;">
-            <h4 style="margin:0 0 10px 0; color:var(--red); font-size:15px; display:flex; gap:8px; align-items:center;">
-                <span v-html="delete"></span><span data-i18n="confirm_del_title">确认删除</span>
+            <h4 id="confirm-header" style="margin:0 0 10px 0; color:var(--red); font-size:15px; display:flex; gap:8px; align-items:center;">
+                <span id="confirm-title-icon" v-html="delete"></span><span id="confirm-title-text" data-i18n="confirm_del_title">确认删除</span>
             </h4>
-            <div id="confirm-msg" style="font-size:13px; color:var(--text-main); margin-bottom:15px; line-height: 1.5; word-break: break-all;"></div>
+            <div id="confirm-msg" style="font-size:13px; color:var(--text-main); margin-bottom:15px; line-height: 1.5; word-break: break-all; white-space: pre-wrap;"></div>
             <div style="display:flex; justify-content:flex-end; gap:8px;">
                 <button class="settings-btn" style="width:auto; padding:6px 16px;" onclick="closeConfirmModal()" data-i18n="cancel">取消</button>
-                <button class="action-btn" style="width:auto; padding:6px 16px; border:none; background:var(--red); color:white;" onclick="executeConfirm()" data-i18n="delete">删除</button>
+                <button id="confirm-btn" class="action-btn" style="width:auto; padding:6px 16px; border:none; background:var(--red); color:white;" onclick="executeConfirm()" data-i18n="delete">删除</button>
             </div>
         </div>
     </div>
@@ -1084,6 +1169,7 @@ ageM: <= 7 d = modified last 7 days</div>
                 '?*': '含标签', '""': '无标签',
                 
                 'checking_update': '检查中...',
+                'log_import_cfg_ok': '成功导入软件设置并重启', 'log_import_cfg_err': '导入软件设置失败: 解析错误', 'log_func_color_rst': '功能按钮颜色已恢复默认', 'log_sync_fail': '同步失败: ', 'log_ws_color_upd': '工作区颜色已更新', 'log_ws_color_rst': '工作区颜色已恢复默认', 'log_ws_keep_one': '至少需保留一个工作区！', 'log_tag_del': '标签 "{tag}" 已删除', 'log_grp_color_upd': '分组颜色已更新', 'log_grp_color_rst': '分组颜色已恢复默认', 'log_hist_del': '历史记录已删除', 'log_update_err': '检查更新异常: ',
                 'test_xy_path': '测试路径', 'toast_test_ok': 'XYplorer 连接成功！', 'toast_test_fail': '未找到 XYplorer 或调用失败，请检查路径',
                 'log_import_ok': '成功导入工作区数据', 'log_import_err': '导入数据失败: 解析错误', 'log_color_upd': '颜色已更新', 'log_color_rst': '颜色已恢复默认', 'log_sync_ok': 'XYplorer 批注同步成功', 'log_ws_del': '工作区已删除', 'log_uncat_rst': '未分类组已恢复默认标签',
                 'check_update': '检查更新', 'project_url': '项目开源主页', 'update_found': '发现新版本！', 'go_to_download': '是否前往 GitHub 下载？', 'is_latest': '当前已是最新版本', 'update_fail': '检查更新失败，请检查网络连接',
@@ -1133,6 +1219,7 @@ ageM: <= 7 d = modified last 7 days</div>
                 '文本': '文字', '图像': '影像', '照片': '相片', '音频': '音訊', '视频': '視訊', '媒体': '媒體', '字体': '字型', '矢量图': '向量圖', '网页': '網頁', '文档': '文件', '压缩包': '壓縮檔', '可执行': '執行檔', '文件夹': '資料夾',
                 
                 'checking_update': '檢查中...',
+                'log_import_cfg_ok': '成功匯入軟體設定並重啟', 'log_import_cfg_err': '匯入軟體設定失敗: 解析錯誤', 'log_func_color_rst': '功能按鈕顏色已恢復預設', 'log_sync_fail': '同步失敗: ', 'log_ws_color_upd': '工作區顏色已更新', 'log_ws_color_rst': '工作區顏色已恢復預設', 'log_ws_keep_one': '至少需保留一個工作區！', 'log_tag_del': '標籤 "{tag}" 已刪除', 'log_grp_color_upd': '群組顏色已更新', 'log_grp_color_rst': '群組顏色已恢復預設', 'log_hist_del': '歷史紀錄已刪除', 'log_update_err': '檢查更新異常: ',
                 'test_xy_path': '測試路徑', 'toast_test_ok': 'XYplorer 連接成功！', 'toast_test_fail': '未找到 XYplorer 或呼叫失敗，請檢查路徑',
                 'log_import_ok': '成功匯入工作區資料', 'log_import_err': '匯入資料失敗: 解析錯誤', 'log_color_upd': '顏色已更新', 'log_color_rst': '顏色已恢復預設', 'log_sync_ok': 'XYplorer 批註同步成功', 'log_ws_del': '工作區已刪除', 'log_uncat_rst': '未分類群組已恢復預設標籤',
                 'check_update': '檢查更新', 'project_url': '專案開源主頁', 'update_found': '發現新版本！', 'go_to_download': '是否前往 GitHub 下載？', 'is_latest': '當前已是最新版本', 'update_fail': '檢查更新失敗，請檢查網路連線',
@@ -1182,6 +1269,7 @@ ageM: <= 7 d = modified last 7 days</div>
                 '文本': 'Text', '图像': 'Image', '照片': 'Photo', '音频': 'Audio', '视频': 'Video', '媒体': 'Media', '字体': 'Font', '矢量图': 'Vector', '网页': 'Web', '文档': 'Document', '压缩包': 'Archive', '可执行': 'Executable', '文件夹': 'Folder',
                 
                 'checking_update': 'Checking...',
+                'log_import_cfg_ok': 'App config imported successfully, restarting', 'log_import_cfg_err': 'Failed to import app config: Parsing error', 'log_func_color_rst': 'Action button color restored to default', 'log_sync_fail': 'Sync failed: ', 'log_ws_color_upd': 'Workspace color updated', 'log_ws_color_rst': 'Workspace color restored to default', 'log_ws_keep_one': 'At least one workspace must be kept!', 'log_tag_del': 'Tag "{tag}" deleted', 'log_grp_color_upd': 'Group color updated', 'log_grp_color_rst': 'Group color restored to default', 'log_hist_del': 'History deleted', 'log_update_err': 'Update check exception: ',
                 'test_xy_path': 'Test Path', 'toast_test_ok': 'XYplorer connected successfully!', 'toast_test_fail': 'XYplorer not found or failed, check path',
                 'log_import_ok': 'Workspace data imported successfully', 'log_import_err': 'Import failed: Parsing error', 'log_color_upd': 'Color updated successfully', 'log_color_rst': 'Color restored to default', 'log_sync_ok': 'XYplorer labels synced successfully', 'log_ws_del': 'Workspace deleted', 'log_uncat_rst': 'Uncategorized group restored to default tags',
                 'check_update': 'Check for Updates', 'project_url': 'Project Homepage', 'update_found': 'New version available!', 'go_to_download': 'Go to GitHub to download?', 'is_latest': 'You are using the latest version', 'update_fail': 'Update check failed, please check network',
@@ -1239,6 +1327,21 @@ ageM: <= 7 d = modified last 7 days</div>
             let lang = configData.lang || 'zh-CN';
             if(I18N[lang] && I18N[lang][key]) return I18N[lang][key];
             return I18N['zh-CN'][key] || key;
+        }
+
+        // --- 新增：反向翻译引擎 ---
+        // 用于读取 XYplorer 标签时，将外部系统语言（如 "Important"）反推回底层 Key（"重要"）
+        function reverseT(val) {
+            let lang = configData.lang || 'zh-CN';
+            let dict = I18N[lang] || I18N['zh-CN'];
+            for (let k in dict) {
+                if (dict[k] === val) return k;
+            }
+            // 如果当前语言字典没找到，尝试在默认中文里找（兜底）
+            for (let k in I18N['zh-CN']) {
+                if (I18N['zh-CN'][k] === val) return k;
+            }
+            return val;
         }
 
         function updateI18n() {
@@ -1450,7 +1553,7 @@ ageM: <= 7 d = modified last 7 days</div>
                     saveDataAndRenderAll();
                     sysLog(t("log_import_ok"), "INFO");
                     showToast(t("toast_import_data_ok"), "success");
-                } catch(err) { sysLog("导入工作区数据失败: 解析错误", "ERROR"); showToast(t("toast_import_error"), "error"); }
+                } catch(err) { sysLog(t("log_import_err"), "ERROR"); showToast(t("toast_import_error"), "error"); }
             };
             reader.readAsText(file);
             e.target.value = '';
@@ -1463,8 +1566,8 @@ ageM: <= 7 d = modified last 7 days</div>
                 try {
                     configData = JSON.parse(evt.target.result);
                     pywebview.api.save_config(configData).then(() => { window.location.reload(); });
-                    sysLog("成功导入软件设置并重启", "INFO");
-                } catch(err) { sysLog("导入软件设置失败: 解析错误", "ERROR"); showToast(t("toast_import_error"), "error");}
+                    sysLog(t("log_import_cfg_ok"), "INFO");
+                } catch(err) { sysLog(t("log_import_cfg_err"), "ERROR"); showToast(t("toast_import_error"), "error");}
             };
             reader.readAsText(file);
             e.target.value = '';
@@ -1517,7 +1620,7 @@ ageM: <= 7 d = modified last 7 days</div>
             delete configData.actionBtnColors[id];
             debouncedSaveConfig();
             renderActionBtnColors();
-            sysLog("功能按钮颜色已恢复默认", "INFO");
+            sysLog(t("log_func_color_rst"), "INFO");
         }
 
         function initResizeObserver() {
@@ -1804,7 +1907,7 @@ ageM: <= 7 d = modified last 7 days</div>
                     sysLog(t("log_sync_ok"), "INFO");
                     showToast(t("toast_sync_ok"), "success");
                 } else {
-                    sysLog("同步失败：" + res.msg, "ERROR");
+                    sysLog(t("log_sync_fail") + res.msg, "ERROR");
                     showToast(t("toast_sync_fail"), "error");
                 }
             });
@@ -1969,7 +2072,7 @@ ageM: <= 7 d = modified last 7 days</div>
                 configData[arrKey] = configData[arrKey].filter(x => x !== val);
                 debouncedSaveConfig();
                 toggleHistory(null, stateKey, true);
-                sysLog("历史记录已删除", "INFO");
+                sysLog(t("log_hist_del"), "INFO");
             }
         }
         
@@ -2119,13 +2222,13 @@ ageM: <= 7 d = modified last 7 days</div>
                     configData.wsColors[ws] = hex;
                     debouncedSaveConfig();
                     renderWsBar();
-                    sysLog("工作区颜色已更新", "INFO");
+                    sysLog(t("log_ws_color_upd"), "INFO");
                 });
             } else if (action === 'color-reset') {
                 if(configData.wsColors) delete configData.wsColors[ws];
                 debouncedSaveConfig();
                 renderWsBar();
-                sysLog("工作区颜色已恢复默认", "INFO");
+                sysLog(t("log_ws_color_rst"), "INFO");
             } else if (action === 'rename') { 
                 openQuickEdit(gStartX, gStartY, ws, val => {
                     if (val && val !== ws && !allTreeData[val]) { 
@@ -2179,7 +2282,7 @@ ageM: <= 7 d = modified last 7 days</div>
             } else if (action === 'delete') { 
                 if (Object.keys(allTreeData).length <= 1) { 
                     showToast(t("toast_ws_keep_one"), "error"); 
-                    sysLog("至少需保留一个工作区！", "ERROR"); 
+                    sysLog(t("log_ws_keep_one"), "ERROR"); 
                     return; 
                 } 
                 showConfirmModal(t('confirm_del_ws').replace('{ws}', ws), () => {
@@ -2537,12 +2640,15 @@ ageM: <= 7 d = modified last 7 days</div>
                     return;
                 }
                 
+                // 核心修复：将内部存储的标签名翻译为当前语言名称，以匹配 XYplorer 中真实的标签名
+                let translatedTag = t(tag);
+                
                 if (stateVal === 2) {
-                    // 核心修改1：如果是排除(红色)，则丢入单独的排除数组
-                    excludeTags.push(tag);
+                    // 如果是排除(红色)，则丢入单独的排除数组
+                    excludeTags.push(translatedTag);
                 } else {
                     // 如果是包含/或者(绿色/蓝色)，正常拼接到包含链中
-                    let formattedTag = tag;
+                    let formattedTag = translatedTag;
                     if (actualTagsCount === 0) tagSyn += formattedTag; 
                     else { 
                         if (stateVal === 1) tagSyn += ` & ${formattedTag}`; 
@@ -2672,13 +2778,16 @@ ageM: <= 7 d = modified last 7 days</div>
             clickOrder.forEach(key => { 
                 let tag = key.split('|')[1];
                 if (tag !== '?*' && tag !== '""') {
+                    // 核心修复：打标签时，将内部中文 Key 翻译为当前的界面语言发送
+                    let translatedTag = t(tag);
+                    
                     if (state.tagStates[key] === 1) {
-                        activeTags.push(tag); 
+                        activeTags.push(translatedTag); 
                     } else if (state.tagStates[key] === 2) {
-                        removeTags.push(tag); 
+                        removeTags.push(translatedTag); 
                     }
                 }
-            }); 
+            });
             
             if (activeTags.length === 0 && removeTags.length === 0) {
                 return showToast(t("toast_no_tags_act"), "error"); 
@@ -2686,10 +2795,12 @@ ageM: <= 7 d = modified last 7 days</div>
             
             let cmd = ""; 
             if (removeTags.length > 0) {
-                cmd += `tag '${removeTags.join(',')}', , 1, 2; `;
+                // 修复：严格去除逗号之间的空格 (,,1,2)，防止英文/欧洲系统的系统区域格式(List Separator)导致解析失败
+                cmd += `tag '${removeTags.join(',')}',,1,2; `;
             }
             if (activeTags.length > 0) {
-                cmd += `tag '${activeTags.join(',')}', , 1; `;
+                // 修复：严格去除逗号之间的空格 (,,1)
+                cmd += `tag '${activeTags.join(',')}',,1; `;
             }
             cmd = "::" + cmd.trim();
             
@@ -2741,24 +2852,28 @@ ageM: <= 7 d = modified last 7 days</div>
         
         function activateTagsFromText(tags) { 
             let tree = currentTree(); let changed = false; 
-            tags.forEach(t => { 
-                if (!t || t.includes("Ctrl+V") || t.includes("剪贴板")) return; 
-                let foundPath = findTagPath(tree, "", t); 
+            tags.forEach(rawT => { 
+                if (!rawT || rawT.includes("Ctrl+V") || rawT.includes("剪贴板")) return; 
+                
+                // 核心修复：读取 XYplorer 的标签后，通过翻译字典反查它底层的原生 Key
+                let tKey = reverseT(rawT); 
+                
+                let foundPath = findTagPath(tree, "", tKey); 
                 if (foundPath) { 
-                    state.tagStates[`${foundPath}|${t}`] = 1; 
-                    if (!clickOrder.includes(`${foundPath}|${t}`)) clickOrder.push(`${foundPath}|${t}`); 
+                    state.tagStates[`${foundPath}|${tKey}`] = 1; 
+                    if (!clickOrder.includes(`${foundPath}|${tKey}`)) clickOrder.push(`${foundPath}|${tKey}`); 
                     let parts = foundPath.split('/'); let curP = ""; 
                     parts.forEach(p => { curP += (curP?"/":"")+p; state.expandedGroups[curP] = true; }); 
                     changed = true; 
                 } else { 
                     if (!tree["未分类"]) tree["未分类"] = { "_bg_color": "", "_tags": ["?*", '""'] }; 
-                    if (!tree["未分类"]._tags.includes(t)) tree["未分类"]._tags.push(t); 
-                    state.tagStates[`未分类|${t}`] = 1; 
-                    if (!clickOrder.includes(`未分类|${t}`)) clickOrder.push(`未分类|${t}`); 
+                    if (!tree["未分类"]._tags.includes(tKey)) tree["未分类"]._tags.push(tKey); 
+                    state.tagStates[`未分类|${tKey}`] = 1; 
+                    if (!clickOrder.includes(`未分类|${tKey}`)) clickOrder.push(`未分类|${tKey}`); 
                     state.expandedGroups["未分类"] = true; 
                     changed = true; 
                 } 
-            }); 
+            });
             
             if (changed) { 
                 state.activeOnly = true;
@@ -2852,7 +2967,7 @@ ageM: <= 7 d = modified last 7 days</div>
             delete state.tagStates[`${path}|${tag}`]; 
             clickOrder = clickOrder.filter(k => k !== `${path}|${tag}`); 
             saveDataAndRenderAll(); 
-            sysLog(`标签 "${tag}" 已删除`, "INFO"); 
+            sysLog(t("log_tag_del").replace('{tag}', tag), "INFO");
         }
 
         const ctxMenu = document.getElementById('ctx-menu');
@@ -2898,8 +3013,8 @@ ageM: <= 7 d = modified last 7 days</div>
         
         function ctxAction(action) { 
             ctxMenu.style.display = 'none'; let p = ctxTarget.path, n = ctxTarget.name; 
-            if (action === 'color') { let node = getNodeByPath(p); openColorModal(node._bg_color || "", (newHex) => { if (newHex) { node._bg_color = newHex; saveDataAndRenderAll(); sysLog("分组颜色已更新", "INFO"); } }); } 
-            else if (action === 'color-reset') { let node = getNodeByPath(p); delete node._bg_color; saveDataAndRenderAll(); sysLog("分组颜色已恢复默认", "INFO"); }
+            if (action === 'color') { let node = getNodeByPath(p); openColorModal(node._bg_color || "", (newHex) => { if (newHex) { node._bg_color = newHex; saveDataAndRenderAll(); sysLog(t("log_grp_color_upd"), "INFO"); } }); } 
+            else if (action === 'color-reset') { let node = getNodeByPath(p); delete node._bg_color; saveDataAndRenderAll(); sysLog(t("log_grp_color_rst"), "INFO"); }
             else if (action === 'reset-uncat') {
                 if (n !== "未分类") return;
                 let node = getNodeByPath(p);
@@ -2912,7 +3027,7 @@ ageM: <= 7 d = modified last 7 days</div>
                     }
                 });
                 saveDataAndRenderAll();
-                sysLog("未分类组已恢复默认标签", "INFO");
+                sysLog(t("log_uncat_rst"), "INFO");
             }
             else if (action === 'rename') {
                 if (n === "未分类") return; 
@@ -3100,29 +3215,41 @@ ageM: <= 7 d = modified last 7 days</div>
 
         let currentConfirmCallback = null;
 
-        function showConfirmModal(msg, callback) {
+        function showConfirmModal(msg, callback, type = 'delete') {
             document.getElementById('confirm-msg').innerText = msg;
             currentConfirmCallback = callback;
             
             const modal = document.getElementById('confirm-modal');
             const content = modal.querySelector('.modal-content');
+            let header = document.getElementById('confirm-header');
+            let titleIcon = document.getElementById('confirm-title-icon');
+            let titleText = document.getElementById('confirm-title-text');
+            let confirmBtn = document.getElementById('confirm-btn');
+            
+            // 动态改变弹窗主题颜色和文字
+            if (type === 'update') {
+                header.style.color = 'var(--primary)';
+                titleIcon.innerHTML = SVGS.info;
+                titleText.innerText = t('update_found');
+                confirmBtn.innerText = t('confirm');
+                confirmBtn.style.background = 'var(--primary)';
+            } else {
+                header.style.color = 'var(--red)';
+                titleIcon.innerHTML = SVGS.delete;
+                titleText.innerText = t('confirm_del_title');
+                confirmBtn.innerText = t('delete');
+                confirmBtn.style.background = 'var(--red)';
+            }
             
             modal.style.display = 'flex';
-            
             content.style.position = 'absolute';
             content.style.margin = '0';
             
-            let w = content.offsetWidth;
-            let h = content.offsetHeight;
-            
-            let x = (window.innerWidth - w) / 2;
-            let y = gStartY - h / 2;
-            
+            let w = content.offsetWidth; let h = content.offsetHeight;
+            let x = (window.innerWidth - w) / 2; let y = gStartY - h / 2;
             x = Math.max(10, x);
             y = Math.max(10, Math.min(y, window.innerHeight - h - 10));
-            
-            content.style.left = x + 'px';
-            content.style.top = y + 'px';
+            content.style.left = x + 'px'; content.style.top = y + 'px';
         }
 
         function closeConfirmModal() {
@@ -3253,7 +3380,7 @@ ageM: <= 7 d = modified last 7 days</div>
         function getContrastColor(hex) { if (!hex || hex === 'transparent') return ''; let c = hex.startsWith('#') ? hex.slice(1) : hex; if (c.length === 3) c = c.split('').map(x => x + x).join(''); let r = parseInt(c.slice(0, 2), 16), g = parseInt(c.slice(2, 4), 16), b = parseInt(c.slice(4, 6), 16); let yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000; return yiq >= 128 ? '#111111' : '#FFFFFF'; }
 
         // ======= 版本更新与链接逻辑 =======
-        const CURRENT_VERSION = '1.2.2'; // 每次更新软件时，除了改 Python 里的 WINDOW_TITLE，也要顺手改这里
+        const CURRENT_VERSION = '/*__INIT_VERSION__*/';
         
         function openGithub() {
             pywebview.api.open_url('https://github.com/C21H21NO2S/XYplorerTagHelper');
@@ -3290,16 +3417,17 @@ ageM: <= 7 d = modified last 7 days</div>
                     let latest = data.tag_name.replace('v', ''); // 将 'v1.2.3' 转为 '1.2.3'
                     
                     if (cmpVer(latest, CURRENT_VERSION) > 0) {
+                        // 注意这里结尾加了 'update' 标志
                         showConfirmModal(`${t('update_found')} (v${latest})\n\n${t('go_to_download')}`, () => {
                             pywebview.api.open_url('https://github.com/C21H21NO2S/XYplorerTagHelper/releases/latest');
-                        });
+                        }, 'update');
                     } else {
                         showToast(t('is_latest'), 'success');
                     }
                 }
             } catch (err) {
                 showToast(t('update_fail'), 'error');
-                sysLog(`检查更新异常: ${err.message}`, "ERROR");
+                sysLog(t("log_update_err") + err.message, "ERROR");
             } finally {
                 // 恢复原文字与按钮状态，无需重新调用 renderSVGs
                 textSpan.innerText = originalText;
@@ -3330,9 +3458,13 @@ if __name__ == '__main__':
     theme = cfg.get('theme', 'dark')
     startup_bg_color = '#1A1B1E' if theme == 'dark' else '#F4F5F7'
     
+    # === 核心修复：自动提取标题中的版本号并注入到前端 ===
+    curr_ver = WINDOW_TITLE.split(' ')[-1]
+    html_str = html_template.replace("/*__INIT_DATA__*/{}", initial_data).replace("/*__INIT_CONFIG__*/{}", initial_config).replace("/*__INIT_VERSION__*/", curr_ver)
+    
     window = webview.create_window(
         WINDOW_TITLE, 
-        html=html_template.replace("/*__INIT_DATA__*/{}", initial_data).replace("/*__INIT_CONFIG__*/{}", initial_config), 
+        html=html_str, # 使用替换后的 html_str
         js_api=api, 
         width=w_width, 
         height=w_height,
@@ -3395,7 +3527,7 @@ if __name__ == '__main__':
                     
             save_config(curr_cfg)
         except Exception as e:
-            write_log(f"保存窗口状态失败: {e}", "ERROR")
+            write_log(f"Failed to save window state: {e}", "ERROR")
         
     window.events.closing += on_closing
 
