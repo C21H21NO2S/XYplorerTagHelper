@@ -1,6 +1,6 @@
 # XYplorerTagHelper 🏷️
 
-English | [简体中文](README.md)
+English | [简体中文](README.md) | [Manual](manual_en.md)
 
 An advanced tag helper and filtering tool tailored specifically for the powerful file manager **XYplorer**. 
 Through a modern visual interface, it helps you manage file tags more efficiently, generate complex search syntaxes, and fully customize your workspaces.
