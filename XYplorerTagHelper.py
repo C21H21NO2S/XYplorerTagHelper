@@ -13,7 +13,7 @@ import webbrowser
 # ==========================================
 # 1. 基础配置与本地数据管理 (兼容 PyInstaller 打包)
 # ==========================================
-WINDOW_TITLE = 'XYplorerTagHelper 1.2.2'
+WINDOW_TITLE = 'XYplorerTagHelper 1.2.3'
 
 # 如果是被打包成 .exe 运行，则获取 .exe 所在目录；否则获取当前 .py 脚本所在目录
 if getattr(sys, 'frozen', False):
@@ -109,9 +109,54 @@ class Api:
     def __init__(self):
         self.last_folder_open_time = 0
 
+    # 新增：Python 端的多语言字典与获取方法
+    def _t(self, key, *args):
+        lang = self.get_config().get('lang', 'zh-CN')
+        msgs = {
+            'zh-CN': {
+                'test_start': '测试 XYplorer 路径: {}',
+                'test_ok': 'XYplorer 连接测试成功。',
+                'test_fail': '无法启动 XYplorer: {}',
+                'test_not_found': '未在指定路径找到 XYplorer.exe。'
+            },
+            'zh-TW': {
+                'test_start': '測試 XYplorer 路徑: {}',
+                'test_ok': 'XYplorer 連接測試成功。',
+                'test_fail': '無法啟動 XYplorer: {}',
+                'test_not_found': '未在指定路徑找到 XYplorer.exe。'
+            },
+            'en': {
+                'test_start': 'Testing XYplorer path: {}',
+                'test_ok': 'XYplorer connection test successful.',
+                'test_fail': 'Failed to launch XYplorer: {}',
+                'test_not_found': 'XYplorer.exe not found at the specified path.'
+            }
+        }
+        text = msgs.get(lang, msgs['zh-CN']).get(key, msgs['zh-CN'].get(key, key))
+        try: return text.format(*args) if args else text
+        except: return text
+
     def log_message(self, msg, level="INFO"):
         write_log(msg, level)
         print(f"[{level}] {msg}")
+
+    # 新增：测试 XYplorer 路径接口
+    def test_xy_path(self, xy_path):
+        exe_path = self._normalize_xy_path(xy_path)
+        self.log_message(self._t('test_start', exe_path), "INFO")
+        
+        if os.path.exists(exe_path):
+            try:
+                # 发送一个状态栏提示命令作为测试
+                subprocess.Popen(f'"{exe_path}" /feed="::status \'XYplorerTagHelper Connected!\', \'00FF00\';"', shell=True)
+                self.log_message(self._t('test_ok'), "INFO")
+                return {"success": True}
+            except Exception as e:
+                self.log_message(self._t('test_fail', str(e)), "ERROR")
+                return {"success": False, "msg": str(e)}
+        else:
+            self.log_message(self._t('test_not_found'), "ERROR")
+            return {"success": False, "msg": "Not found"}
 
     def focus_window(self):
         def _focus():
@@ -644,16 +689,21 @@ html_template = """
 
         <div class="comp-module" id="comp-module">
             <div class="comp-tabs" onclick="toggleCompModule()">
-                <div class="comp-tab active" onclick="event.stopPropagation(); switchCompTab('type')" data-i18n="tab_type">类型</div>
-                <div class="comp-tab" onclick="event.stopPropagation(); switchCompTab('path')" data-i18n="tab_path">路径</div>
-                <div class="comp-tab" onclick="event.stopPropagation(); switchCompTab('name')" data-i18n="tab_name">文件名</div>
-                <div class="comp-tab" onclick="event.stopPropagation(); switchCompTab('remark')" data-i18n="tab_remark">备注</div>
-                <div class="comp-tab" onclick="event.stopPropagation(); switchCompTab('label')" data-i18n="tab_label">标注</div>
-                <div class="comp-tab" onclick="event.stopPropagation(); switchCompTab('rating')" data-i18n="tab_rating">评分</div>
-                <div class="comp-tab" onclick="event.stopPropagation(); switchCompTab('size')" data-i18n="tab_size">大小/日期</div>
-                <div style="flex:1;"></div>
-                <button class="tool-btn" data-i18n-title="clear_filter" onclick="event.stopPropagation(); clearCompFilters()" v-html="clear"></button>
-                <button class="tool-btn" id="comp-collapse-btn" onclick="event.stopPropagation(); toggleCompModule()" v-html="arrowDown"></button>
+                <div class="comp-tabs-scroll" style="display: flex; flex: 1; height: 100%; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;">
+                    <style>.comp-tabs-scroll::-webkit-scrollbar { display: none; } .comp-tabs-scroll .comp-tab { white-space: nowrap; flex-shrink: 0; }</style>
+                    <div class="comp-tab active" onclick="event.stopPropagation(); switchCompTab('type')" data-i18n="tab_type">类型</div>
+                    <div class="comp-tab" onclick="event.stopPropagation(); switchCompTab('path')" data-i18n="tab_path">路径</div>
+                    <div class="comp-tab" onclick="event.stopPropagation(); switchCompTab('name')" data-i18n="tab_name">文件名</div>
+                    <div class="comp-tab" onclick="event.stopPropagation(); switchCompTab('remark')" data-i18n="tab_remark">备注</div>
+                    <div class="comp-tab" onclick="event.stopPropagation(); switchCompTab('label')" data-i18n="tab_label">标注</div>
+                    <div class="comp-tab" onclick="event.stopPropagation(); switchCompTab('rating')" data-i18n="tab_rating">评分</div>
+                    <div class="comp-tab" onclick="event.stopPropagation(); switchCompTab('size')" data-i18n="tab_size">大小/日期</div>
+                </div>
+                
+                <div style="display: flex; flex-shrink: 0; align-items: center; padding-right: 4px; gap: 2px;">
+                    <button class="tool-btn" data-i18n-title="clear_filter" onclick="event.stopPropagation(); clearCompFilters()" v-html="clear"></button>
+                    <button class="tool-btn" id="comp-collapse-btn" onclick="event.stopPropagation(); toggleCompModule()" v-html="arrowDown"></button>
+                </div>
             </div>
             
             <div class="comp-body active" id="comp-type">
@@ -927,7 +977,10 @@ ageM: <= 7 d = modified last 7 days</div>
             </div>
 
             <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;" data-i18n="xy_path_hint">XYplorer 路径 (支持填写exe或纯文件夹路径):</div>
-            <input type="text" id="cfg-xy-path" placeholder="E:\\XYplorer" style="width:100%; margin-bottom:20px; box-sizing:border-box;">
+            <div style="display:flex; gap:8px; margin-bottom:20px; align-items:center;">
+                <input type="text" id="cfg-xy-path" placeholder="E:\\XYplorer" style="flex:1; box-sizing:border-box; margin:0;">
+                <button class="settings-btn" style="width:auto; padding:5px 12px; height: 29px; white-space: nowrap;" onclick="testXYplorer()"><span v-html="check"></span> <span data-i18n="test_xy_path">测试路径</span></button>
+            </div>
             
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
                 <button class="settings-btn" onclick="exportData()"><span v-html="export"></span> <span data-i18n="export_data">导出工作区数据</span></button>
@@ -1031,6 +1084,8 @@ ageM: <= 7 d = modified last 7 days</div>
                 '?*': '含标签', '""': '无标签',
                 
                 'checking_update': '检查中...',
+                'test_xy_path': '测试路径', 'toast_test_ok': 'XYplorer 连接成功！', 'toast_test_fail': '未找到 XYplorer 或调用失败，请检查路径',
+                'log_import_ok': '成功导入工作区数据', 'log_import_err': '导入数据失败: 解析错误', 'log_color_upd': '颜色已更新', 'log_color_rst': '颜色已恢复默认', 'log_sync_ok': 'XYplorer 批注同步成功', 'log_ws_del': '工作区已删除', 'log_uncat_rst': '未分类组已恢复默认标签',
                 'check_update': '检查更新', 'project_url': '项目开源主页', 'update_found': '发现新版本！', 'go_to_download': '是否前往 GitHub 下载？', 'is_latest': '当前已是最新版本', 'update_fail': '检查更新失败，请检查网络连接',
                 'search': '搜索', 'add_tag': '打标签', 'read_tag': '读标签', 'clear': '清空',
                 'tab_type': '类型', 'tab_path': '路径', 'tab_name': '文件名', 'tab_remark': '备注', 'tab_label': '标注', 'tab_rating': '评分', 'tab_size': '大小/日期',
@@ -1078,6 +1133,8 @@ ageM: <= 7 d = modified last 7 days</div>
                 '文本': '文字', '图像': '影像', '照片': '相片', '音频': '音訊', '视频': '視訊', '媒体': '媒體', '字体': '字型', '矢量图': '向量圖', '网页': '網頁', '文档': '文件', '压缩包': '壓縮檔', '可执行': '執行檔', '文件夹': '資料夾',
                 
                 'checking_update': '檢查中...',
+                'test_xy_path': '測試路徑', 'toast_test_ok': 'XYplorer 連接成功！', 'toast_test_fail': '未找到 XYplorer 或呼叫失敗，請檢查路徑',
+                'log_import_ok': '成功匯入工作區資料', 'log_import_err': '匯入資料失敗: 解析錯誤', 'log_color_upd': '顏色已更新', 'log_color_rst': '顏色已恢復預設', 'log_sync_ok': 'XYplorer 批註同步成功', 'log_ws_del': '工作區已刪除', 'log_uncat_rst': '未分類群組已恢復預設標籤',
                 'check_update': '檢查更新', 'project_url': '專案開源主頁', 'update_found': '發現新版本！', 'go_to_download': '是否前往 GitHub 下載？', 'is_latest': '當前已是最新版本', 'update_fail': '檢查更新失敗，請檢查網路連線',
                 'search': '搜尋', 'add_tag': '打標籤', 'read_tag': '讀標籤', 'clear': '清空',
                 'tab_type': '類型', 'tab_path': '路徑', 'tab_name': '檔名', 'tab_remark': '備註', 'tab_label': '標註', 'tab_rating': '評分', 'tab_size': '大小/日期',
@@ -1125,6 +1182,8 @@ ageM: <= 7 d = modified last 7 days</div>
                 '文本': 'Text', '图像': 'Image', '照片': 'Photo', '音频': 'Audio', '视频': 'Video', '媒体': 'Media', '字体': 'Font', '矢量图': 'Vector', '网页': 'Web', '文档': 'Document', '压缩包': 'Archive', '可执行': 'Executable', '文件夹': 'Folder',
                 
                 'checking_update': 'Checking...',
+                'test_xy_path': 'Test Path', 'toast_test_ok': 'XYplorer connected successfully!', 'toast_test_fail': 'XYplorer not found or failed, check path',
+                'log_import_ok': 'Workspace data imported successfully', 'log_import_err': 'Import failed: Parsing error', 'log_color_upd': 'Color updated successfully', 'log_color_rst': 'Color restored to default', 'log_sync_ok': 'XYplorer labels synced successfully', 'log_ws_del': 'Workspace deleted', 'log_uncat_rst': 'Uncategorized group restored to default tags',
                 'check_update': 'Check for Updates', 'project_url': 'Project Homepage', 'update_found': 'New version available!', 'go_to_download': 'Go to GitHub to download?', 'is_latest': 'You are using the latest version', 'update_fail': 'Update check failed, please check network',
                 'search': 'Search', 'add_tag': 'Tag', 'read_tag': 'Read', 'clear': 'Clear',
                 'tab_type': 'Type', 'tab_path': 'Path', 'tab_name': 'Name', 'tab_remark': 'Remark', 'tab_label': 'Label', 'tab_rating': 'Rating', 'tab_size': 'Size/Date',
@@ -1389,7 +1448,7 @@ ageM: <= 7 d = modified last 7 days</div>
                 try {
                     allTreeData = JSON.parse(evt.target.result);
                     saveDataAndRenderAll();
-                    sysLog("成功导入工作区数据", "INFO");
+                    sysLog(t("log_import_ok"), "INFO");
                     showToast(t("toast_import_data_ok"), "success");
                 } catch(err) { sysLog("导入工作区数据失败: 解析错误", "ERROR"); showToast(t("toast_import_error"), "error"); }
             };
@@ -1447,7 +1506,7 @@ ageM: <= 7 d = modified last 7 days</div>
                 configData.actionBtnColors[id] = hex;
                 debouncedSaveConfig();
                 renderActionBtnColors();
-                sysLog("功能按钮颜色已更新", "INFO");
+                sysLog(t("log_color_upd"), "INFO");
             });
         }
         
@@ -1530,6 +1589,29 @@ ageM: <= 7 d = modified last 7 days</div>
             showToast(t("toast_save_ok"), "success");
         }
 
+        function testXYplorer() {
+            let pathInput = document.getElementById('cfg-xy-path').value.trim();
+            let pathToTest = pathInput || configData.xyPath || "";
+            
+            let btn = document.querySelector('button[onclick="testXYplorer()"]');
+            let textSpan = btn.querySelector('span[data-i18n="test_xy_path"]');
+            let originalText = textSpan.innerText;
+            
+            textSpan.innerText = t('checking_update'); // 复用"检查中"的翻译
+            btn.disabled = true;
+            
+            pywebview.api.test_xy_path(pathToTest).then(res => {
+                textSpan.innerText = originalText;
+                btn.disabled = false;
+                
+                if (res && res.success) {
+                    showToast(t("toast_test_ok"), "success");
+                } else {
+                    showToast(t("toast_test_fail"), "error");
+                }
+            });
+        }
+
         function toggleCompModule() {
             const m = document.getElementById('comp-module'); const b = document.getElementById('comp-collapse-btn');
             if (m.classList.contains('collapsed')) { m.classList.remove('collapsed'); b.innerHTML = SVGS.arrowDown; } 
@@ -1581,28 +1663,6 @@ ageM: <= 7 d = modified last 7 days</div>
 
         function switchCompTab(tabId) { document.querySelectorAll('.comp-tab').forEach(el => el.classList.remove('active')); document.querySelectorAll('.comp-body').forEach(el => el.classList.remove('active')); event.target.classList.add('active'); document.getElementById(`comp-${tabId}`).classList.add('active'); const m = document.getElementById('comp-module'); if (m.classList.contains('collapsed')) toggleCompModule(); }
         
-        function onCompTypeClick(e, tName) { 
-            if (isDragAction(e)) return; 
-            let now = Date.now(); if (now - (lastClickTime[`type_${tName}`] || 0) < 150) return; lastClickTime[`type_${tName}`] = now;
-            let cs = currentCompState(); let cur = cs.types[tName] || 0; 
-            
-            if (e.button === 0) {
-                let nextState = cur === 1 ? 0 : 1;
-                if (nextState === 1) {
-                    for (let k in cs.types) {
-                        if (cs.types[k] === 2) delete cs.types[k];
-                    }
-                }
-                cs.types[tName] = nextState;
-            } else if (e.button === 2) {
-                let nextState = cur === 2 ? 0 : 2;
-                if (nextState === 2) {
-                    cs.types = {};
-                }
-                cs.types[tName] = nextState;
-            }
-            refreshCompUI(); renderCustomExts(); saveCompState(); 
-        }
         
         function toggleExtEditMode() { extEditModeUI = !extEditModeUI; document.getElementById('comp-ext-container').classList.toggle('ext-edit-mode', extEditModeUI); renderCustomExts(); }
 
@@ -1655,18 +1715,34 @@ ageM: <= 7 d = modified last 7 days</div>
         function onCustomExtClick(e, ext) { 
             if (isDragAction(e)) return; 
             if (e.target.closest && e.target.closest('.custom-ext-del')) return;
-            let now = Date.now(); if (now - (lastClickTime[`ext_${ext}`] || 0) < 150) return; lastClickTime[`ext_${ext}`] = now;
             
             let cs = currentCompState();
             if (!cs.customExts) cs.customExts = [];
             if (!cs.orderExt) cs.orderExt = [];
-            
+
+            // 新增逻辑：Alt + 鼠标中键 重命名 (与标签组交互完全对齐)
+            if (e.altKey && e.button === 1) {
+                e.preventDefault(); e.stopPropagation();
+                openQuickEdit(e.clientX, e.clientY, ext, (val) => { 
+                    if (val && val !== ext) { 
+                        let idx = cs.customExts.indexOf(ext); if (idx > -1) cs.customExts[idx] = val; 
+                        let oIdx = cs.orderExt.indexOf(ext); if (oIdx > -1) cs.orderExt[oIdx] = val; 
+                        if(cs.types[ext] !== undefined) { cs.types[val] = cs.types[ext]; delete cs.types[ext]; } 
+                        saveCompState(); renderCustomExts(); 
+                    } 
+                });
+                return;
+            }
+
+            let now = Date.now(); if (now - (lastClickTime[`ext_${ext}`] || 0) < 150) return; lastClickTime[`ext_${ext}`] = now;
+
+            // 笔形按钮的常规编辑模式逻辑
             if (extEditModeUI && e.button === 0) { 
                 openQuickEdit(e.clientX, e.clientY, ext, (val) => { 
                     if (val && val !== ext) { 
-                        let idx = cs.customExts.indexOf(ext); cs.customExts[idx] = val; 
-                        let oIdx = cs.orderExt.indexOf(ext); cs.orderExt[oIdx] = val; 
-                        if(cs.types[ext]) { cs.types[val] = cs.types[ext]; delete cs.types[ext]; } 
+                        let idx = cs.customExts.indexOf(ext); if (idx > -1) cs.customExts[idx] = val; 
+                        let oIdx = cs.orderExt.indexOf(ext); if (oIdx > -1) cs.orderExt[oIdx] = val; 
+                        if(cs.types[ext] !== undefined) { cs.types[val] = cs.types[ext]; delete cs.types[ext]; } 
                         saveCompState(); renderCustomExts(); 
                     } 
                 }); 
@@ -1675,6 +1751,7 @@ ageM: <= 7 d = modified last 7 days</div>
             
             let cur = cs.types[ext] || 0; 
             
+            // 左键/右键切换包含与排除状态的常规逻辑
             if (e.button === 0) {
                 let nextState = cur === 1 ? 0 : 1;
                 if (nextState === 1) {
@@ -1724,7 +1801,7 @@ ageM: <= 7 d = modified last 7 days</div>
                     configData.orderLabel = res.labels.map(x => x.n); 
                     debouncedSaveConfig();
                     initCompModule(); 
-                    sysLog("XYplorer 批注同步成功", "INFO");
+                    sysLog(t("log_sync_ok"), "INFO");
                     showToast(t("toast_sync_ok"), "success");
                 } else {
                     sysLog("同步失败：" + res.msg, "ERROR");
@@ -2119,7 +2196,7 @@ ageM: <= 7 d = modified last 7 days</div>
                     debouncedSaveConfig();
                     if (configData.currentWs === ws) { state.tagStates = {}; clickOrder = []; initExpandedState(currentTree(), ""); } 
                     saveDataAndRenderAll(); 
-                    sysLog("工作区已删除", "INFO");
+                    sysLog(t("log_ws_del"), "INFO");
                     showToast(t("toast_ws_deleted"), "success");
                 });
             }
@@ -3161,73 +3238,6 @@ ageM: <= 7 d = modified last 7 days</div>
             saveCompState();
             renderCustomExts();
             showToast(t("toast_batch_add_ok"), "success");
-        }
-
-        function onCompTypeClick(e, tName) { 
-            if (isDragAction(e)) return; 
-            let now = Date.now(); if (now - (lastClickTime[`type_${tName}`] || 0) < 150) return; lastClickTime[`type_${tName}`] = now;
-            let cs = currentCompState(); let cur = cs.types[tName] || 0; 
-            
-            if (e.button === 0) {
-                let nextState = cur === 1 ? 0 : 1;
-                if (nextState === 1) {
-                    for (let k in cs.types) {
-                        if (cs.types[k] === 2) delete cs.types[k];
-                    }
-                }
-                cs.types[tName] = nextState;
-            } else if (e.button === 2) {
-                let nextState = cur === 2 ? 0 : 2;
-                if (nextState === 2) {
-                    cs.types = {};
-                }
-                cs.types[tName] = nextState;
-            }
-            refreshCompUI(); renderCustomExts(); saveCompState(); 
-        }
-
-        function onCustomExtClick(e, ext) { 
-            if (isDragAction(e)) return; 
-            if (e.target.closest && e.target.closest('.custom-ext-del')) return;
-            let now = Date.now(); if (now - (lastClickTime[`ext_${ext}`] || 0) < 150) return; lastClickTime[`ext_${ext}`] = now;
-            
-            if (extEditModeUI && e.button === 0) { 
-                openQuickEdit(e.clientX, e.clientY, ext, (val) => { 
-                    if (val && val !== ext) { 
-                        let idx = configData.customExts.indexOf(ext); configData.customExts[idx] = val; 
-                        let oIdx = configData.orderExt.indexOf(ext); configData.orderExt[oIdx] = val; 
-                        let cs = currentCompState(); 
-                        if(cs.types[ext]) { cs.types[val] = cs.types[ext]; delete cs.types[ext]; } 
-                        debouncedSaveConfig(); renderCustomExts(); saveCompState(); 
-                    } 
-                }); 
-                return; 
-            } 
-            
-            let cs = currentCompState(); let cur = cs.types[ext] || 0; 
-            
-            if (e.button === 0) {
-                let nextState = cur === 1 ? 0 : 1;
-                if (nextState === 1) {
-                    for (let k in cs.types) {
-                        if (cs.types[k] === 2) delete cs.types[k];
-                    }
-                }
-                cs.types[ext] = nextState;
-            } else if (e.button === 2) {
-                let nextState = cur === 2 ? 0 : 2;
-                if (nextState === 2) {
-                    for (let k in cs.types) {
-                        if (presetTypesMap[k] && k !== '文件夹') {
-                            delete cs.types[k];
-                        } else if (cs.types[k] === 1) {
-                            delete cs.types[k];
-                        }
-                    }
-                }
-                cs.types[ext] = nextState;
-            }
-            renderCustomExts(); refreshCompUI(); saveCompState(); 
         }
         
         function openQuickEdit(x, y, defVal, cb) { 
