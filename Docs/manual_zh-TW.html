@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XYplorerTagHelper 使用指南</title>
+    <style>
+        :root {
+            --bg-color: #f5f5f7;
+            --card-bg: #ffffff;
+            --text-main: #1d1d1f;
+            --text-muted: #86868b;
+            --accent-color: #0066cc;
+            --accent-hover: #0077ed;
+            --border-color: #d2d2d7;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+            --radius-large: 18px;
+            --radius-small: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 頁面主體佈局：左側導覽 + 右側置中內容 */
+        .layout-container {
+            display: flex;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            gap: 40px;
+            align-items: flex-start;
+        }
+
+        /* 左側跟隨導覽列 */
+        .sidebar {
+            flex: 0 0 280px;
+            position: sticky;
+            top: 40px;
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: var(--radius-large);
+            box-shadow: var(--shadow);
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+        }
+
+        .sidebar-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        /* 導覽一級 (對應正文 H2) */
+        .sidebar > ul > li {
+            margin-bottom: 6px;
+        }
+
+        .sidebar a {
+            display: block;
+            text-decoration: none;
+            color: var(--text-main);
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: var(--radius-small);
+            transition: all 0.2s ease;
+            line-height: 1.4;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar a:hover {
+            background-color: var(--bg-color);
+            color: var(--accent-color);
+        }
+
+        .sidebar a.active {
+            background-color: #e8f0fe;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        /* 導覽二級 (對應正文 H3) */
+        .sidebar ul ul {
+            margin-top: 4px;
+            margin-bottom: 8px;
+            margin-left: 16px;
+            padding-left: 8px;
+            border-left: 1px solid var(--border-color); /* 左側引導線 */
+        }
+
+        .sidebar ul ul li {
+            margin-bottom: 2px;
+        }
+
+        .sidebar ul ul a {
+            font-size: 13px;
+            color: var(--text-muted);
+            padding: 6px 10px;
+        }
+
+        /* 三級標題處於啟用狀態時，覆蓋左側邊框以突顯 */
+        .sidebar ul ul a.active {
+            background-color: transparent;
+            color: var(--accent-color);
+            position: relative;
+        }
+        
+        .sidebar ul ul a.active::before {
+            content: '';
+            position: absolute;
+            left: -9px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: var(--accent-color);
+            border-radius: 2px;
+        }
+
+        /* 自訂導覽列捲動條 */
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        /* 右側正文區域 */
+        .content {
+            flex: 1;
+            background: var(--card-bg);
+            padding: 48px 64px;
+            border-radius: var(--radius-large);
+            box-shadow: var(--shadow);
+            min-width: 0;
+        }
+
+        /* 正文排版細節 */
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .intro-text {
+            font-size: 1.1rem;
+            color: #424245;
+            margin-bottom: 40px;
+            text-align: justify;
+        }
+        
+        .intro-text a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+        .intro-text a:hover {
+            text-decoration: underline;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-top: 48px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            scroll-margin-top: 40px;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 32px;
+            margin-bottom: 16px;
+            color: #1d1d1f;
+            scroll-margin-top: 40px; /* 增加 H3 錨點跳轉時的頂部留白 */
+        }
+
+        p {
+            margin-bottom: 16px;
+        }
+
+        ul {
+            margin-bottom: 16px;
+            padding-left: 24px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        li > p {
+            margin-bottom: 8px;
+        }
+
+        strong {
+            font-weight: 600;
+            color: #000;
+        }
+
+        code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            background-color: var(--bg-color);
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            color: #d12e65;
+        }
+
+        hr {
+            border: none;
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 40px 0;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 900px) {
+            .layout-container {
+                flex-direction: column;
+                padding: 20px;
+            }
+            .sidebar {
+                position: static;
+                width: 100%;
+                max-height: 250px; /* 手機端限制高度避免佔據過多首屏 */
+                flex: none;
+            }
+            .content {
+                padding: 32px 24px;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout-container">
+    <nav class="sidebar">
+        <div class="sidebar-title">目錄導覽</div>
+        <ul id="nav-links">
+            <li><a href="#sec-1">一、 軟體架構與底層邏輯</a></li>
+            <li>
+                <a href="#sec-2">二、 初始設定與工作區管理</a>
+                <ul>
+                    <li><a href="#sec-2-1">1. 基礎設定</a></li>
+                    <li><a href="#sec-2-2">2. 工作區的精細操作</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#sec-3">三、 四大核心動作按鈕</a>
+                <ul>
+                    <li><a href="#sec-3-1">1. 🔍 搜尋</a></li>
+                    <li><a href="#sec-3-2">2. 🏷️ 上標籤 / 刪標籤</a></li>
+                    <li><a href="#sec-3-3">3. 📖 讀標籤</a></li>
+                    <li><a href="#sec-3-4">4. 🗑️ 清空</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#sec-4">四、 複合篩選區</a>
+                <ul>
+                    <li><a href="#sec-4-1">1. 按鈕狀態與左右鍵互斥邏輯</a></li>
+                    <li><a href="#sec-4-2">2. 拖曳排序 (自由自訂 UI)</a></li>
+                    <li><a href="#sec-4-3">3. 自訂副檔名的深度編輯</a></li>
+                    <li><a href="#sec-4-4">4. 智慧文字輸入</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#sec-5">五、 標籤樹與視覺化管理</a>
+                <ul>
+                    <li><a href="#sec-5-1">1. 標籤的進階點選邏輯</a></li>
+                    <li><a href="#sec-5-2">2. 強大的拖曳重組機制</a></li>
+                    <li><a href="#sec-5-3">3. 標籤群組右側「工具列」詳解</a></li>
+                    <li><a href="#sec-5-4">4. 無處不在的右鍵選單</a></li>
+                </ul>
+            </li>
+            <li><a href="#sec-6">六、 核心操作注意事項</a></li>
+        </ul>
+    </nav>
+
+    <main class="content">
+        <h1>XYplorerTagHelper 使用指南</h1>
+        
+        <p class="intro-text"><a href="https://github.com/C21H21NO2S/XYplorerTagHelper"><strong>XYplorerTagHelper</strong></a> 表面上是一個在 Github 開源的標籤輔助工具，實際上是一個<strong>全功能的 XYplorer 複合搜尋視覺化建構器 (Visual Search Builder)</strong>。它將複雜的檔案類型、路徑、備註、多重標籤邏輯，轉化為直覺的「點選與拖曳」，並即時編譯為 XYplorer 的進階搜尋語法。</p>
+
+        <h2 id="sec-1">🏗️ 一、 軟體架構與底層邏輯</h2>
+        <ul>
+            <li><strong>技術架構：</strong> 採用輕量級 <code>pywebview</code> 架構。前端為純 HTML/CSS/JS 建構的現代 UI（支援平滑的深色/淺色雙主題），後端為 Python。全程無第三方龐大框架依賴，啟動極快，記憶體占用低。</li>
+            <li><strong>狀態機邏輯：</strong> 你的每一次點擊（左鍵/右鍵）、輸入、拖曳，都會被存入一個全域狀態樹。引擎會即時解析這個樹，編譯出如 <code>tags:A &amp; !B /types={:Image}</code> 的布林搜尋語法。</li>
+            <li><strong>通訊執行：</strong> 編譯好的語法透過 Python 以命令列形式（<code>/feed="::goto..."</code>）靜默發送給 <code>XYplorer.exe</code> 執行。讀寫標籤功能則透過呼叫內部指令碼與系統剪貼簿實現雙向通訊。</li>
+        </ul>
+
+        <hr>
+
+        <h2 id="sec-2">⚙️ 二、 初始設定與工作區管理 (Workspace)</h2>
+        <p>軟體支援多工作區管理，不同工作區之間的資料、標籤樹結構、篩選狀態<strong>完全獨立，互不干擾</strong>。</p>
+        
+        <h3 id="sec-2-1">1. 基礎設定</h3>
+        <ul>
+            <li>點擊介面右上角的 <strong>「⚙️ (齒輪)」</strong> 圖示進入系統設定。</li>
+            <li><strong>XYplorer 路徑：</strong> 必須準確填寫 XYplorer 的路徑（可以是 <code>.exe</code> 檔案路徑或所在資料夾），否則無法傳送搜尋指令。</li>
+            <li><strong>介面語言與主題：</strong> 支援中/英/繁體及深色/淺色主題無縫切換。</li>
+        </ul>
+
+        <h3 id="sec-2-2">2. 工作區的精細操作</h3>
+        <ul>
+            <li><strong>拖曳排序：</strong> 頂部的工作區頁籤（Tab）支援直接按住<strong>左鍵左右拖曳</strong>，隨心調整工作區排列順序。</li>
+            <li><strong>右鍵選單 (核心)：</strong> 在任意工作區頁籤上 <strong>點擊右鍵</strong>，可喚出進階選單：
+                <ul>
+                    <li><strong>修改頁籤顏色：</strong> 為不同工作區設定專屬的主題色塊，方便視覺隔離。</li>
+                    <li><strong>重新命名 / 刪除：</strong> 刪除時會有防誤觸確認。注意：系統強制要求至少保留一個工作區。</li>
+                    <li><strong>複製工作區：</strong> 完美複製目前工作區的所有標籤群組結構和顏色設定，非常適合做為新專案的初始化範本。</li>
+                </ul>
+            </li>
+        </ul>
+
+        <hr>
+
+        <h2 id="sec-3">🎛️ 三、四大核心動作按鈕 (Top Action Buttons)</h2>
+        <p>位於介面頂部的四個大按鈕是整個工具的「執行引擎」。它們負責將你在下方現代 UI 面板中建構的視覺化狀態，轉化為 XYplorer 能聽懂的真實指令。</p>
+
+        <h3 id="sec-3-1">1. <strong>🔍 搜尋 (Search)</strong></h3>
+        <ul>
+            <li><strong>功能：</strong> 將面板上所有處於啟用狀態的過濾條件（包含檔案類型、自訂副檔名、路徑、進階複合標籤等）自動編譯成 XYplorer 的進階搜尋語法，並下發執行全碟或指定目錄搜尋。</li>
+            <li><strong>注意事項：</strong> 搜尋邏輯嚴格遵循你在面板上的點擊狀態：左鍵（綠色）代表包含或 OR，右鍵（紅色）代表排除。每次成功執行搜尋後，系統會自動儲存你輸入的路徑、名稱和備註到歷史紀錄下拉選單中。</li>
+        </ul>
+
+        <h3 id="sec-3-2">2. <strong>🏷️ 上標籤 / 刪標籤 (Tag)</strong></h3>
+        <ul>
+            <li><strong>功能：</strong> 批次修改 XYplorer 中目前選中檔案的標籤。<strong>支援在一次點擊中同時完成「新增標籤」和「精準抹除舊標籤」</strong>。</li>
+            <li><strong>核心操作邏輯：</strong>
+                <ul>
+                    <li><strong>左鍵標示 (藍色🔵)：</strong> 標記為<strong>新增</strong>。該標籤將被寫入選中檔案。</li>
+                    <li><strong>右鍵標示 (紅色🔴)：</strong> 標記為<strong>移除</strong>。如果選中檔案目前包含該標籤，將被精準抹除。</li>
+                </ul>
+            </li>
+            <li><strong>注意事項：</strong> 
+                <ul>
+                    <li>底層引擎會智慧優先執行「移除」指令，隨後執行「新增」指令。</li>
+                    <li>點擊前，<strong>必須確保 XYplorer 處於作用中視窗狀態，且至少選中了一個檔案</strong>。如果未選中任何檔案，或介面上沒有啟用任何藍色/紅色標籤 (如僅有滑鼠中鍵高亮標示的綠色🟢)，系統會攔截操作並彈出錯誤提示。</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3 id="sec-3-3">3. <strong>📖 讀標籤 (Read)</strong></h3>
+        <ul>
+            <li><strong>功能：</strong> 擷取 XYplorer 中目前選中檔案的既有標籤，並在助手面板中自動標示、分類並展開對應的標籤樹階層。</li>
+            <li><strong>注意事項：</strong> 此功能透過系統剪貼簿做為資料中繼。如果讀取的標籤文字極其龐雜（例如超過 500 個字元或包含多行異常文字），為防止誤觸發大面積錯誤啟用，系統會彈出一個安全確認視窗，供你預覽並手動確認後再寫入 UI。</li>
+        </ul>
+
+        <h3 id="sec-3-4">4. <strong>🗑️ 清空 (Clear)</strong></h3>
+        <ul>
+            <li><strong>功能：</strong> 一鍵狀態重設。瞬間清除複合篩選區和標籤樹的所有標示狀態（綠、紅、藍），清空所有文字輸入框，將工作區恢復到初始待命狀態。</li>
+            <li><strong>注意事項：</strong> 此操作僅僅是清空**目前介面的搜尋篩選條件**，絕對不會刪除你的任何群組名稱、標籤設定、工作區歷史資料，更不會影響 XYplorer 裡的真實檔案標籤。</li>
+        </ul>
+
+        <hr>
+
+        <h2 id="sec-4">🎛️ 四、 複合篩選區 (頂部模組)</h2>
+        <p>這裡是建構檔案類型、路徑、名稱、備註等篩選條件的核心區域。</p>
+
+        <h3 id="sec-4-1">1. 按鈕狀態與左右鍵互斥邏輯</h3>
+        <p>在「類型」、「自訂副檔名」、「評分」等面板中，按鈕的操作邏輯非常嚴密：</p>
+        <ul>
+            <li><strong>左鍵點擊 (包含 / OR)：</strong> 按鈕變<strong>綠色</strong>🟢。表示搜尋時包含該條件。<em>注意：左鍵啟用會智慧互斥，自動取消同一分類下的所有排除（紅色）狀態。</em></li>
+            <li><strong>右鍵點擊 (排除 / NOT)：</strong> 按鈕變<strong>紅色</strong>🔴。表示搜尋時剔除該條件。<em>注意：右鍵排除會強制清空該分類下的所有啟用（綠色）狀態。</em></li>
+        </ul>
+
+        <h3 id="sec-4-2">2. 拖曳排序 (自由自訂 UI)</h3>
+        <p>複合區面板高度支援自訂：</p>
+        <ul>
+            <li><strong>類型與副檔名排序：</strong> 按住「文字」、「影像」等預設類型按鈕，或者你自己新增的自訂副檔名按鈕，<strong>左右拖曳</strong>即可調整它們在介面上的排列順序。</li>
+            <li><strong>標註 (Labels) 排序：</strong> 點擊「同步 XYplorer 標註」抓取設定後，同樣支援左右拖曳來重排標註顏色的順序。</li>
+        </ul>
+
+        <h3 id="sec-4-3">3. 自訂副檔名的深度編輯</h3>
+        <ul>
+            <li><strong>批次新增 (右鍵)：</strong> 在自訂副檔名區域右側的 <strong>「➕ (加號)」 按鈕上點擊右鍵</strong>，可喚出批次新增選單，一鍵匯入常見副檔名（如影像類、文件類），或貼上自訂清單。</li>
+            <li><strong>編輯模式：</strong> 點擊面板內的 <strong>「✏️ (鉛筆)」</strong> 圖示進入副檔名編輯模式。
+                <ul>
+                    <li><strong>重新命名：</strong> <strong>左鍵點擊</strong>任意副檔名按鈕，彈出輸入框，修改後按下 Enter 鍵即可。</li>
+                    <li><strong>刪除：</strong> 點擊按鈕右上角的紅色 <strong>「X」</strong> 即可刪除。</li>
+                    <li><em>(註：修改完畢後請再次點擊鉛筆圖示退出，否則無法進行正常的左/右鍵篩選操作)</em></li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3 id="sec-4-4">4. 智慧文字輸入</h3>
+        <ul>
+            <li><strong>路徑/名稱/備註：</strong> 支援智慧複合邏輯。在輸入框輸入 <code>A+B,C-D</code>，引擎會自動將其轉換為嚴謹的 XYplorer 語法：<code>(A 且 B) 或 (C 且 非D)</code>。</li>
+        </ul>
+
+        <hr>
+
+        <h2 id="sec-5">🌳 五、 標籤樹與視覺化管理 (底部模組)</h2>
+        <p>這裡是管理標籤分類、上標籤、讀標籤的核心工作流程區域。</p>
+
+        <h3 id="sec-5-1">1. 標籤的進階點選邏輯</h3>
+        <ul>
+            <li><strong>左鍵點擊：</strong> 變<strong>藍色</strong>🔵（必須包含該標籤）。</li>
+            <li><strong>右鍵點擊：</strong> 變<strong>紅色</strong>🔴（必須排除該標籤）。</li>
+            <li><strong>滑鼠中鍵：</strong> 變<strong>綠色</strong>🟢（OR 邏輯，只要包含多個藍色標籤中的任意一個即可）。</li>
+        </ul>
+
+        <h3 id="sec-5-2">2. 強大的拖曳重組機制 (Drag & Drop)</h3>
+        <p>整個標籤樹支援如同檔案管理員一般自由的拖曳重排和階層修改：</p>
+        <ul>
+            <li><strong>標籤按鈕拖曳：</strong> 按住某個標籤按鈕，拖動到另一個群組的虛線框區域內鬆開，即可<strong>將標籤轉移到新群組</strong>。</li>
+            <li><strong>群組重排與父子階層轉換：</strong> 按住某個群組的「群組名稱」區域（Header）進行拖曳，注意觀察目標群組的<strong>標示提示線</strong>：
+                <ul>
+                    <li><strong>上方黃色實線 (Top)：</strong> 放置為目標群組的<strong>上一個同層級兄弟群組</strong>。</li>
+                    <li><strong>下方黃色實線 (Bottom)：</strong> 放置為目標群組的<strong>下一個同層級兄弟群組</strong>。</li>
+                    <li><strong>整行背景標示 (Center)：</strong> 放置到目標群組的<strong>內部</strong>，使其成為目標群組的<strong>子群組 (Subgroup)</strong>。</li>
+                    <li><em>(註：根目錄的「未分類」群組受系統保護，不允許被拖曳轉化為子群組)</em></li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3 id="sec-5-3">3. 標籤群組右側「工具列」詳解</h3>
+        <p>在「🏷️ 標籤群組」文字右側，有一排檢視控制神器：</p>
+        <ul>
+            <li><strong>🧹 清空 (Clear)：</strong> 一鍵清除樹狀圖中所有標籤的標示啟用狀態。</li>
+            <li><strong>↕️ 展開/摺疊全部：</strong> 一鍵控制標籤樹的整體摺疊狀態。</li>
+            <li><strong>⏺ 實心圓 (僅展開啟用群組)：</strong> 智慧摺疊無關群組，強制展開並<strong>追蹤定位</strong>到目前有標籤被標示啟用的群組路徑。</li>
+            <li><strong>⭕ 空心圓 (專注模式)：</strong> 直接<strong>隱藏</strong>所有未啟用的群組，讓介面瞬間清爽，僅顯示正在操作的上下文。</li>
+            <li><strong>✏️ 鉛筆 (編輯模式)：</strong> 進入後，<strong>左鍵點擊</strong>群組名稱或標籤可直接重新命名；點擊紅 X 刪除。</li>
+            <li><strong>➕ 加號 (新增根群組)：</strong> 左鍵點擊新增單一個根群組；<strong>右鍵點擊</strong>可貼上多行文字批次產生多個根群組。</li>
+            <li><strong>⌨ 滑鼠鍵盤互動：</strong> <strong>Alt + 左鍵點擊</strong>群組名稱：展開子群組；<strong>Alt + 右鍵點擊</strong>群組名稱：摺疊子群組；<strong>Alt + 滑鼠中鍵點擊</strong>群組名稱或標籤：重新命名。</li>
+        </ul>
+
+        <h3 id="sec-5-4">4. 無處不在的右鍵選單</h3>
+        <ul>
+            <li><strong>頂部四大操作按鈕 (搜尋/上標籤/讀標籤/清空)：</strong> <strong>點擊右鍵</strong> 可自訂這四個核心按鈕的背景色，打造你習慣的視覺焦點。</li>
+            <li><strong>群組名稱右鍵選單：</strong> 在任意群組名稱上點擊右鍵：
+                <ul>
+                    <li><strong>修改分類顏色：</strong> 為該群組設定背景色。</li>
+                    <li><strong>批次新增子群組：</strong> 貼上多行文字，一鍵產生樹狀子節點。</li>
+                    <li><strong>跨區轉移：</strong> 選擇「移動到工作區」或「複製到工作區」，將該群組及其所有子群組、標籤連根拔起，傳送到另一個工作區中。</li>
+                </ul>
+            </li>
+        </ul>
+
+        <hr>
+
+        <h2 id="sec-6">⚠️ 六、 核心操作注意事項</h2>
+        <ol>
+            <li><strong>上標籤的前提：</strong> 使用「上標籤」功能前，請確保 XYplorer 處於作用中狀態，且<strong>至少選中了一個檔案</strong>。如果未選中檔案，XYplorer 將忽略該標籤指令。</li>
+            <li><strong>讀標籤的剪貼簿限制：</strong> 「讀標籤」功能透過複製檔案的標籤到剪貼簿來實現。如果一次性讀取的檔案極多、標籤極為龐雜（超過 500 字元），軟體為防止誤操作，會彈出「批次確認視窗」，讓你手動確認讀取到的標籤明細後再執行啟用。</li>
+            <li><strong>系統資料安全：</strong> 所有的設定和標籤資料均以 <code>.json</code> 格式儲存在軟體目錄的 <code>Data</code> 資料夾下。雖然軟體內建了防連續觸發自動儲存機制，但在進行大規模結構重排（大範圍拖曳、批次重新命名）前，建議在「⚙️ 設定」中使用<strong>「匯出工作區資料」</strong>進行手動備份。</li>
+        </ol>
+
+    </main>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const headings = document.querySelectorAll('h2[id], h3[id]');
+        const navLinks = document.querySelectorAll('.sidebar a');
+
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px 0px -70% 0px', 
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    navLinks.forEach(link => link.classList.remove('active'));
+                    const activeLink = document.querySelector(`.sidebar a[href="#${entry.target.id}"]`);
+                    if (activeLink) {
+                        activeLink.classList.add('active');
+                    }
+                }
+            });
+        }, observerOptions);
+
+        headings.forEach(heading => {
+            observer.observe(heading);
+        });
+    });
+</script>
+
+</body>
+</html>

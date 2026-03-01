@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XYplorerTagHelper 使用指南</title>
+    <style>
+        :root {
+            --bg-color: #f5f5f7;
+            --card-bg: #ffffff;
+            --text-main: #1d1d1f;
+            --text-muted: #86868b;
+            --accent-color: #0066cc;
+            --accent-hover: #0077ed;
+            --border-color: #d2d2d7;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+            --radius-large: 18px;
+            --radius-small: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 页面主体布局：左侧导航 + 右侧居中内容 */
+        .layout-container {
+            display: flex;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            gap: 40px;
+            align-items: flex-start;
+        }
+
+        /* 左侧跟随导航栏 */
+        .sidebar {
+            flex: 0 0 280px;
+            position: sticky;
+            top: 40px;
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: var(--radius-large);
+            box-shadow: var(--shadow);
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+        }
+
+        .sidebar-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        /* 导航一级 (对应正文 H2) */
+        .sidebar > ul > li {
+            margin-bottom: 6px;
+        }
+
+        .sidebar a {
+            display: block;
+            text-decoration: none;
+            color: var(--text-main);
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: var(--radius-small);
+            transition: all 0.2s ease;
+            line-height: 1.4;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar a:hover {
+            background-color: var(--bg-color);
+            color: var(--accent-color);
+        }
+
+        .sidebar a.active {
+            background-color: #e8f0fe;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        /* 导航二级 (对应正文 H3) */
+        .sidebar ul ul {
+            margin-top: 4px;
+            margin-bottom: 8px;
+            margin-left: 16px;
+            padding-left: 8px;
+            border-left: 1px solid var(--border-color); /* 左侧引导线 */
+        }
+
+        .sidebar ul ul li {
+            margin-bottom: 2px;
+        }
+
+        .sidebar ul ul a {
+            font-size: 13px;
+            color: var(--text-muted);
+            padding: 6px 10px;
+        }
+
+        /* 三级标题处于激活状态时，覆盖左侧边框以突出显示 */
+        .sidebar ul ul a.active {
+            background-color: transparent;
+            color: var(--accent-color);
+            position: relative;
+        }
+        
+        .sidebar ul ul a.active::before {
+            content: '';
+            position: absolute;
+            left: -9px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: var(--accent-color);
+            border-radius: 2px;
+        }
+
+        /* 自定义导航栏滚动条 */
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        /* 右侧正文区域 */
+        .content {
+            flex: 1;
+            background: var(--card-bg);
+            padding: 48px 64px;
+            border-radius: var(--radius-large);
+            box-shadow: var(--shadow);
+            min-width: 0;
+        }
+
+        /* 正文排版细节 */
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .intro-text {
+            font-size: 1.1rem;
+            color: #424245;
+            margin-bottom: 40px;
+            text-align: justify;
+        }
+        
+        /* 链接基础样式 */
+        .intro-text a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+        .intro-text a:hover {
+            text-decoration: underline;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-top: 48px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            scroll-margin-top: 40px;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 32px;
+            margin-bottom: 16px;
+            color: #1d1d1f;
+            scroll-margin-top: 40px; /* 增加 H3 锚点跳转时的顶部留白 */
+        }
+
+        p {
+            margin-bottom: 16px;
+        }
+
+        ul {
+            margin-bottom: 16px;
+            padding-left: 24px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        li > p {
+            margin-bottom: 8px;
+        }
+
+        strong {
+            font-weight: 600;
+            color: #000;
+        }
+
+        code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            background-color: var(--bg-color);
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            color: #d12e65;
+        }
+
+        hr {
+            border: none;
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 40px 0;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 900px) {
+            .layout-container {
+                flex-direction: column;
+                padding: 20px;
+            }
+            .sidebar {
+                position: static;
+                width: 100%;
+                max-height: 250px; /* 手机端限制高度避免占据过多首屏 */
+                flex: none;
+            }
+            .content {
+                padding: 32px 24px;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout-container">
+    <nav class="sidebar">
+        <div class="sidebar-title">目录导航</div>
+        <ul id="nav-links">
+            <li><a href="#sec-1">一、 软件架构与底层逻辑</a></li>
+            <li>
+                <a href="#sec-2">二、 初始配置与工作区管理</a>
+                <ul>
+                    <li><a href="#sec-2-1">1. 基础设置</a></li>
+                    <li><a href="#sec-2-2">2. 工作区的精细操作</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#sec-3">三、 四大核心动作按钮</a>
+                <ul>
+                    <li><a href="#sec-3-1">1. 🔍 搜索</a></li>
+                    <li><a href="#sec-3-2">2. 🏷️ 打标签 / 删标签</a></li>
+                    <li><a href="#sec-3-3">3. 📖 读标签</a></li>
+                    <li><a href="#sec-3-4">4. 🗑️ 清空</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#sec-4">四、 复合筛选区</a>
+                <ul>
+                    <li><a href="#sec-4-1">1. 按钮状态与左右键互斥逻辑</a></li>
+                    <li><a href="#sec-4-2">2. 拖拽排序 (自由定制 UI)</a></li>
+                    <li><a href="#sec-4-3">3. 自定义后缀的深度编辑</a></li>
+                    <li><a href="#sec-4-4">4. 智能文本输入</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#sec-5">五、 标签树与可视化管理</a>
+                <ul>
+                    <li><a href="#sec-5-1">1. 标签的高级点选逻辑</a></li>
+                    <li><a href="#sec-5-2">2. 强大的拖拽重组机制</a></li>
+                    <li><a href="#sec-5-3">3. 标签组右侧“工具栏”详解</a></li>
+                    <li><a href="#sec-5-4">4. 无处不在的右键菜单</a></li>
+                </ul>
+            </li>
+            <li><a href="#sec-6">六、 核心操作注意事项</a></li>
+        </ul>
+    </nav>
+
+    <main class="content">
+        <h1>XYplorerTagHelper 使用指南</h1>
+        
+        <p class="intro-text"><a href="https://github.com/C21H21NO2S/XYplorerTagHelper"><strong>XYplorerTagHelper</strong></a> 表面上是一个在Github开源的标签辅助工具，实际上是一个<strong>全功能的 XYplorer 复合搜索可视化构建器 (Visual Search Builder)</strong>。它将复杂的文件类型、路径、备注、多重标签逻辑，转化为直观的“点选与拖拽”，并实时编译为 XYplorer 的高级搜索语法。</p>
+
+        <h2 id="sec-1">🏗️ 一、 软件架构与底层逻辑</h2>
+        <ul>
+            <li><strong>技术架构：</strong> 采用轻量级 <code>pywebview</code> 架构。前端为纯 HTML/CSS/JS 构建的现代 UI（支持平滑的暗黑/浅色双主题），后端为 Python。全程无第三方庞大框架依赖，启动极快，内存占用低。</li>
+            <li><strong>状态机逻辑：</strong> 你的每一次点击（左键/右键）、输入、拖拽，都会被存入一个全局状态树。引擎会实时解析这个树，编译出如 <code>tags:A &amp; !B /types={:Image}</code> 的布尔搜索语法。</li>
+            <li><strong>通信执行：</strong> 编译好的语法通过 Python 以命令行形式（<code>/feed="::goto..."</code>）静默发送给 <code>XYplorer.exe</code> 执行。读写标签功能则通过调用内部脚本与系统剪贴板实现双向通信。</li>
+        </ul>
+
+        <hr>
+
+        <h2 id="sec-2">⚙️ 二、 初始配置与工作区管理 (Workspace)</h2>
+        <p>软件支持多工作区管理，不同工作区之间的数据、标签树结构、筛选状态<strong>完全独立，互不干扰</strong>。</p>
+        
+        <h3 id="sec-2-1">1. 基础设置</h3>
+        <ul>
+            <li>点击界面右上角的 <strong>“⚙️ (齿轮)”</strong> 图标进入系统设置。</li>
+            <li><strong>XYplorer 路径：</strong> 必须准确填写 XYplorer 的路径（可以是 <code>.exe</code> 文件路径或所在文件夹），否则无法发送搜索指令。</li>
+            <li><strong>界面语言与主题：</strong> 支持中/英/繁体及亮/暗主题无缝切换。</li>
+        </ul>
+
+        <h3 id="sec-2-2">2. 工作区的精细操作</h3>
+        <ul>
+            <li><strong>拖拽排序：</strong> 顶部的工作区选项卡（Tab）支持直接按住<strong>左键左右拖拽</strong>，随心调整工作区排列顺序。</li>
+            <li><strong>右键菜单 (核心)：</strong> 在任意工作区选项卡上 <strong>右键点击</strong>，可唤出高级菜单：
+                <ul>
+                    <li><strong>修改选项卡颜色：</strong> 为不同工作区设定专属的主题色块，方便视觉隔离。</li>
+                    <li><strong>重命名 / 删除：</strong> 删除时会有防误触确认。注意：系统强制要求至少保留一个工作区。</li>
+                    <li><strong>重复工作区：</strong> 完美克隆当前工作区的所有标签组结构和颜色配置，非常适合作为新项目的初始化模板。</li>
+                </ul>
+            </li>
+        </ul>
+
+        <hr>
+
+        <h2 id="sec-3">🎛️ 三、四大核心动作按钮 (Top Action Buttons)</h2>
+        <p>位于界面顶部的四个大按钮是整个工具的“执行引擎”。它们负责将你在下方现代 UI 面板中构建的可视化状态，转化为 XYplorer 能听懂的真实指令。</p>
+
+        <h3 id="sec-3-1">1. <strong>🔍 搜索 (Search)</strong></h3>
+        <ul>
+            <li><strong>功能：</strong> 将面板上所有处于激活状态的过滤条件（包括文件类型、自定义后缀、路径、高级复合标签等）自动编译成 XYplorer 的高级搜索语法，并下发执行全盘或指定目录搜索。</li>
+            <li><strong>注意事项：</strong> 搜索逻辑严格遵循你在面板上的点击状态：左键（绿色）代表或者包含，右键（红色）代表排除。每次成功执行搜索后，系统会自动保存你输入的路径、名称和备注到历史记录下拉菜单中。</li>
+        </ul>
+
+        <h3 id="sec-3-2">2. <strong>🏷️ 打标签 / 删标签 (Tag)</strong></h3>
+        <ul>
+            <li><strong>功能：</strong> 批量修改 XYplorer 中当前选中文件的标签。<strong>支持在一次点击中同时完成“添加新标签”和“精准擦除旧标签”</strong>。</li>
+            <li><strong>核心操作逻辑：</strong>
+                <ul>
+                    <li><strong>左键高亮 (蓝色🔵)：</strong> 标记为<strong>添加</strong>。该标签将被写入选中文件。</li>
+                    <li><strong>右键高亮 (红色🔴)：</strong> 标记为<strong>移除</strong>。如果选中文件当前包含该标签，将被精准擦除。</li>
+                </ul>
+            </li>
+            <li><strong>注意事项：</strong> 
+                <ul>
+                    <li>底层引擎会智能优先执行“移除”指令，随后执行“添加”指令。</li>
+                    <li>点击前，<strong>必须确保 XYplorer 处于活动窗口状态，且至少选中了一个文件</strong>。如果未选中任何文件，或界面上没有激活任何蓝色/红色标签 (如仅有中键高亮的绿色🟢)，系统会拦截操作并弹出错误提示。</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3 id="sec-3-3">3. <strong>📖 读标签 (Read)</strong></h3>
+        <ul>
+            <li><strong>功能：</strong> 提取 XYplorer 中当前选中文件的已有标签，并在助手面板中自动高亮、分类并展开对应的标签树层级。</li>
+            <li><strong>注意事项：</strong> 此功能通过系统剪贴板作为数据中转。如果读取的标签文本极其庞杂（例如超过 500 个字符或包含多行异常文本），为防止误触发大面积错误激活，系统会弹出一个安全确认窗口，供你预览并手动确认后再写入 UI。</li>
+        </ul>
+
+        <h3 id="sec-3-4">4. <strong>🗑️ 清空 (Clear)</strong></h3>
+        <ul>
+            <li><strong>功能：</strong> 一键状态重置。瞬间清除复合筛选区和标签树的所有高亮状态（绿、红、蓝），清空所有文本输入框，将工作区恢复到初始待命状态。</li>
+            <li><strong>注意事项：</strong> 此操作仅仅是清空**当前界面的搜索筛选条件**，绝对不会删除你的任何组名、标签配置、工作区历史数据，更不会影响 XYplorer 里的真实文件标签。</li>
+        </ul>
+
+        <hr>
+
+        <h2 id="sec-4">🎛️ 四、 复合筛选区 (顶部模块)</h2>
+        <p>这里是构建文件类型、路径、名字、备注等筛选条件的核心区域。</p>
+
+        <h3 id="sec-4-1">1. 按钮状态与左右键互斥逻辑</h3>
+        <p>在“类型”、“自定义后缀”、“评分”等面板中，按钮的操作逻辑非常严密：</p>
+        <ul>
+            <li><strong>左键单击 (包含 / OR)：</strong> 按钮变<strong>绿色</strong>🟢。表示搜索时包含该条件。<em>注意：左键激活会智能互斥，自动取消同一分类下的所有排除（红色）状态。</em></li>
+            <li><strong>右键单击 (排除 / NOT)：</strong> 按钮变<strong>红色</strong>🔴。表示搜索时剔除该条件。<em>注意：右键排除会强制清空该分类下的所有激活（绿色）状态。</em></li>
+        </ul>
+
+        <h3 id="sec-4-2">2. 拖拽排序 (自由定制 UI)</h3>
+        <p>复合区面板高度支持自定义：</p>
+        <ul>
+            <li><strong>类型与后缀排序：</strong> 按住“文本”、“图像”等预设类型按钮，或者你自己添加的自定义后缀按钮，<strong>左右拖拽</strong>即可调整它们在界面上的排列顺序。</li>
+            <li><strong>标注 (Labels) 排序：</strong> 点击“同步 XYplorer 批注”抓取配置后，同样支持左右拖拽来重排标注颜色的顺序。</li>
+        </ul>
+
+        <h3 id="sec-4-3">3. 自定义后缀的深度编辑</h3>
+        <ul>
+            <li><strong>批量添加 (右键)：</strong> 在自定义后缀区域右侧的 <strong>“➕ (加号)” 按钮上右键</strong>，可唤出批量添加菜单，一键导入常见扩展名（如图像类、文档类），或粘贴自定义列表。</li>
+            <li><strong>编辑模式：</strong> 点击面板内的 <strong>“✏️ (铅笔)”</strong> 图标进入后缀编辑模式。
+                <ul>
+                    <li><strong>重命名：</strong> <strong>左键点击</strong>任意后缀按钮，弹出输入框，修改后回车即可。</li>
+                    <li><strong>删除：</strong> 点击按钮右上角的红色 <strong>“X”</strong> 即可删除。</li>
+                    <li><em>(注：修改完毕后请再次点击铅笔图标退出，否则无法进行正常的左/右键筛选操作)</em></li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3 id="sec-4-4">4. 智能文本输入</h3>
+        <ul>
+            <li><strong>路径/名字/备注：</strong> 支持智能复合逻辑。在输入框键入 <code>A+B,C-D</code>，引擎会自动将其转换为严谨的 XYplorer 语法：<code>(A 且 B) 或 (C 且 非D)</code>。</li>
+        </ul>
+
+        <hr>
+
+        <h2 id="sec-5">🌳 五、 标签树与可视化管理 (底部模块)</h2>
+        <p>这里是管理标签分类、打标签、读标签的核心工作流区域。</p>
+
+        <h3 id="sec-5-1">1. 标签的高级点选逻辑</h3>
+        <ul>
+            <li><strong>左键单击：</strong> 变<strong>蓝色</strong>🔵（必须包含该标签）。</li>
+            <li><strong>右键单击：</strong> 变<strong>红色</strong>🔴（必须排除该标签）。</li>
+            <li><strong>鼠标中键：</strong> 变<strong>绿色</strong>🟢（OR 逻辑，只要包含多个蓝色标签中的任意一个即可）。</li>
+        </ul>
+
+        <h3 id="sec-5-2">2. 强大的拖拽重组机制 (Drag & Drop)</h3>
+        <p>整个标签树支持如同文件管理器一般自由的拖拽重排和层级修改：</p>
+        <ul>
+            <li><strong>标签按钮拖拽：</strong> 按住某个标签按钮，拖动到另一个分组的虚线框区域内松开，即可<strong>将标签转移到新分组</strong>。</li>
+            <li><strong>分组重排与父子层级转换：</strong> 按住某个组的“组名”区域（Header）进行拖拽，注意观察目标分组的<strong>高亮提示线</strong>：
+                <ul>
+                    <li><strong>上方黄色实线 (Top)：</strong> 放置为目标分组的<strong>上一个同级兄弟组</strong>。</li>
+                    <li><strong>下方黄色实线 (Bottom)：</strong> 放置为目标分组的<strong>下一个同级兄弟组</strong>。</li>
+                    <li><strong>整行背景高亮 (Center)：</strong> 放置到目标分组的<strong>内部</strong>，使其成为目标分组的<strong>子组 (Subgroup)</strong>。</li>
+                    <li><em>(注：根目录的“未分类”组受系统保护，不允许被拖拽转化为子组)</em></li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3 id="sec-5-3">3. 标签组右侧“工具栏”详解</h3>
+        <p>在“🏷️ 标签组”文字右侧，有一排视图控制神器：</p>
+        <ul>
+            <li><strong>🧹 清空 (Clear)：</strong> 一键清除树状图中所有标签的高亮激活状态。</li>
+            <li><strong>↕️ 展开/折叠全部：</strong> 一键控制标签树的整体折叠状态。</li>
+            <li><strong>⏺ 实心圆 (仅展开激活组)：</strong> 智能折叠无关分组，强制展开并<strong>追踪定位</strong>到当前有标签被高亮激活的分组路径。</li>
+            <li><strong>⭕ 空心圆 (专注模式)：</strong> 直接<strong>隐藏</strong>所有未激活的分组，让界面瞬间清爽，仅显示正在操作的上下文。</li>
+            <li><strong>✏️ 铅笔 (编辑模式)：</strong> 进入后，<strong>左键点击</strong>组名或标签可直接重命名；点击红 X 删除。</li>
+            <li><strong>➕ 加号 (新建根组)：</strong> 左键单击新建单个根分组；<strong>右键单击</strong>可粘贴多行文本批量生成多个根分组。</li>
+            <li><strong>⌨ 鼠键交互：</strong> <strong>Alt + 左键单击</strong>组名：展开子组；<strong>Alt + 右键单击</strong>组名：折叠子组；<strong>Alt + 中键单击</strong>组名或标签：重命名。</li>
+        </ul>
+
+        <h3 id="sec-5-4">4. 无处不在的右键菜单</h3>
+        <ul>
+            <li><strong>顶部四大操作按钮 (搜索/打标签/读标签/清空)：</strong> <strong>右键点击</strong> 可自定义这四个核心按钮的背景色，打造你习惯的视觉焦点。</li>
+            <li><strong>组名右键菜单：</strong> 在任意组名上右键：
+                <ul>
+                    <li><strong>修改分类颜色：</strong> 为该分组设置背景色。</li>
+                    <li><strong>批量新建子组：</strong> 贴入多行文本，一键生成树状子节点。</li>
+                    <li><strong>跨区流转：</strong> 选择“移动到工作区”或“复制到工作区”，将该组及其所有子组、标签连根拔起，输送到另一个工作区中。</li>
+                </ul>
+            </li>
+        </ul>
+
+        <hr>
+
+        <h2 id="sec-6">⚠️ 六、 核心操作注意事项</h2>
+        <ol>
+            <li><strong>打标签的前提：</strong> 使用“打标签”功能前，请确保 XYplorer 处于活动状态，且<strong>至少选中了一个文件</strong>。如果未选中文件，XYplorer 将忽略该标签指令。</li>
+            <li><strong>读标签的剪贴板限制：</strong> “读标签”功能通过复制文件的标签到剪贴板来实现。如果一次性读取的文件极多、标签极为庞杂（超过 500 字符），软件为防止误操作，会弹出“批量确认窗口”，让你手动确认读取到的标签明细后再执行激活。</li>
+            <li><strong>系统数据安全：</strong> 所有的配置和标签数据均以 <code>.json</code> 格式保存在软件目录的 <code>Data</code> 文件夹下。虽然软件内置了防抖动自动保存机制，但在进行大规模结构重排（大范围拖拽、批量重命名）前，建议在“⚙️ 设置”中使用<strong>“导出工作区数据”</strong>进行手动备份。</li>
+        </ol>
+
+    </main>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // 现在同时监听 H2 和 H3
+        const headings = document.querySelectorAll('h2[id], h3[id]');
+        const navLinks = document.querySelectorAll('.sidebar a');
+
+        // 设置 Intersection Observer
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px 0px -70% 0px', // 提前触发高亮
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // 移除所有激活状态
+                    navLinks.forEach(link => link.classList.remove('active'));
+                    
+                    // 为当前可见的章节对应的导航链接添加激活状态
+                    const activeLink = document.querySelector(`.sidebar a[href="#${entry.target.id}"]`);
+                    if (activeLink) {
+                        activeLink.classList.add('active');
+                        
+                        // 可选增强：如果是三级标题被激活，让其父级的二级标题也保持一定的视觉联系
+                        // (在这个设计中，我们只高亮最具体的锚点，保持界面清爽)
+                    }
+                }
+            });
+        }, observerOptions);
+
+        headings.forEach(heading => {
+            observer.observe(heading);
+        });
+    });
+</script>
+
+</body>
+</html>
