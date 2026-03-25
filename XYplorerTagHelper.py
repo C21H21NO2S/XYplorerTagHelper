@@ -9,11 +9,13 @@ import time
 import sys
 import ctypes
 import webbrowser
+import urllib.request
+import urllib.error
 
 # ==========================================
 # 1. 基础配置与本地数据管理 (兼容 PyInstaller 打包)
 # ==========================================
-WINDOW_TITLE = 'XYplorerTagHelper 1.2.4'
+WINDOW_TITLE = 'XYplorerTagHelper 1.2.5'
 
 # 如果是被打包成 .exe 运行，则获取 .exe 所在目录；否则获取当前 .py 脚本所在目录
 if getattr(sys, 'frozen', False):
@@ -73,7 +75,9 @@ def load_config():
         "customExts": [], "xyPath": r"C:\XYplorer\XYplorer.exe",
         "orderType": [], "orderLabel": [], "orderRating": [], "orderExt": [],
         "xyLabels": [], "actionBtnColors": {}, "wsColors": {},
-        "theme": "dark", "lang": "zh-CN"
+        "theme": "dark", "lang": "zh-CN",
+        "ai_api": "http://localhost:11434/api/generate",
+        "ai_model": "qwen2.5:0.5b"
     }
 
 def save_config(cfg_data):
@@ -108,9 +112,20 @@ def write_log(msg, level="INFO"):
 class Api:
     def __init__(self):
         self.last_folder_open_time = 0
+        self._cancel_flag = False  # 批量操作中断标志位
 
-    # 新增：Python 端的多语言字典与获取方法
-    # 完整多语言字典
+    def cancel_batch(self):
+        self._cancel_flag = True
+
+    def _update_progress(self, sent, total, mode='cmd'):
+        try:
+            if webview.windows:
+                if mode == 'cmd':
+                    webview.windows[0].evaluate_js(f"updateBatchProgress({sent}, {total})")
+                else:
+                    webview.windows[0].evaluate_js(f"updateAiProgress({sent}, {total})")
+        except: pass
+
     def _t(self, key, *args):
         lang = self.get_config().get('lang', 'zh-CN')
         msgs = {
@@ -136,7 +151,31 @@ class Api:
                 'log_theme_err': '更改原生标题栏主题失败: {}',
                 'log_doc_not_found': '找不到说明文档: {}',
                 'log_doc_err': '打开文档失败: {}',
-                'log_url_err': '打开链接失败: {}'
+                'log_url_err': '打开链接失败: {}',
+                'fn_data': 'XYplorerTagHelper-数据_{}.json',
+                'fn_config': 'XYplorerTagHelper-软件设置_{}.json',
+                'fn_ws': 'XYplorerTagHelper-工作区({})_{}.json',
+                # --- 新增的批量UCS多语言支持 ---
+                'err_xy_not_found': '未找到 XYplorer.exe',
+                'err_dict_not_found': '未在 Data 目录下找到 {}',
+                'err_timeout': '获取选中文件超时，请确保在 XYplorer 中有选中项',
+                'info_no_sel': '未选中任何文件或文件夹',
+                'err_no_valid': '选中范围内没有有效文件',
+                'info_no_match_cat': '没有文件的 CatID 在字典中找到匹配项',
+                'info_no_match_name': '没有任何文件名的片段匹配到同义词字典',
+                'log_ucs_start': '开始执行 批量UCS标签...',
+                'log_ucs_fail': '批量UCS标签失败：{}',
+                'log_ucs_cancel': '批量UCS标签取消：{}',
+                'log_ucs_ok': '批量UCS标签成功执行！共为 {} 个文件追加了标签。',
+                'log_ucs_err': '批量UCS标签发生异常: {}',
+                'log_ucs_name_start': '开始执行 批量文件名转UCS标签...',
+                'log_ucs_name_fail': '批量文件名转UCS标签失败：{}',
+                'log_ucs_name_cancel': '批量文件名转UCS标签取消：{}',
+                'log_ucs_name_ok': '批量文件名转UCS标签成功执行！共为 {} 个文件追加了标签。',
+                'log_ucs_name_err': '批量文件名转UCS标签发生异常: {}',
+                'log_ai_start': '开始执行 AI智能打标签 ({})', 'log_ai_fail': 'AI 智能打标签失败: {}', 'log_ai_ok': 'AI 智能打标签执行成功！', 'log_ai_err': 'AI 智能打标签发生异常: {}',
+                'err_ollama': '无法连接到本地 AI 接口 (Ollama)。请确保已安装并在后台运行。',
+                'batch_cancelled': '已手动取消批量操作。'
             },
             'zh-TW': {
                 'test_start': '測試 XYplorer 路徑: {}',
@@ -160,7 +199,31 @@ class Api:
                 'log_theme_err': '更改原生標題列主題失敗: {}',
                 'log_doc_not_found': '找不到說明文件: {}',
                 'log_doc_err': '開啟文件失敗: {}',
-                'log_url_err': '開啟連結失敗: {}'
+                'log_url_err': '開啟連結失敗: {}',
+                'fn_data': 'XYplorerTagHelper-資料_{}.json',
+                'fn_config': 'XYplorerTagHelper-軟體設定_{}.json',
+                'fn_ws': 'XYplorerTagHelper-工作區({})_{}.json',
+                # --- 新增的批量UCS多语言支持 ---
+                'err_xy_not_found': '未找到 XYplorer.exe',
+                'err_dict_not_found': '未在 Data 目錄下找到 {}',
+                'err_timeout': '取得選取檔案超時，請確保在 XYplorer 中有選取項目',
+                'info_no_sel': '未選取任何檔案或資料夾',
+                'err_no_valid': '選取範圍內沒有有效檔案',
+                'info_no_match_cat': '沒有檔案的 CatID 在字典中找到匹配項',
+                'info_no_match_name': '沒有任何檔名的片段匹配到同義詞字典',
+                'log_ucs_start': '開始執行 批次打UCS標籤...',
+                'log_ucs_fail': '批次打UCS標籤失敗：{}',
+                'log_ucs_cancel': '批次打UCS標籤取消：{}',
+                'log_ucs_ok': '批次打UCS標籤成功執行！共為 {} 個檔案追加了標籤。',
+                'log_ucs_err': '批次打UCS標籤發生異常: {}',
+                'log_ucs_name_start': '開始執行 批次檔名轉UCS標籤...',
+                'log_ucs_name_fail': '批次檔名轉UCS標籤失敗：{}',
+                'log_ucs_name_cancel': '批次檔名轉UCS標籤取消：{}',
+                'log_ucs_name_ok': '批次檔名轉UCS標籤成功執行！共為 {} 個檔案追加了標籤。',
+                'log_ucs_name_err': '批次檔名轉UCS標籤發生異常: {}',
+                'log_ai_start': '開始執行 AI智慧打標籤 ({})', 'log_ai_fail': 'AI 智慧打標籤失敗: {}', 'log_ai_ok': 'AI 智慧打標籤執行成功！', 'log_ai_err': 'AI 智慧打標籤發生異常: {}',
+                'err_ollama': '無法連接到本地 AI 介面 (Ollama)。請確保已安裝並在後台運行。',
+                'batch_cancelled': '已手動取消批次操作。'
             },
             'en': {
                 'test_start': 'Testing XYplorer path: {}',
@@ -184,7 +247,31 @@ class Api:
                 'log_theme_err': 'Failed to change native titlebar theme: {}',
                 'log_doc_not_found': 'Manual not found: {}',
                 'log_doc_err': 'Failed to open manual: {}',
-                'log_url_err': 'Failed to open URL: {}'
+                'log_url_err': 'Failed to open URL: {}',
+                'fn_data': 'XYplorerTagHelper-Data_{}.json',
+                'fn_config': 'XYplorerTagHelper-Config_{}.json',
+                'fn_ws': 'XYplorerTagHelper-Workspace({})_{}.json',
+                # --- 新增的批量UCS多语言支持 ---
+                'err_xy_not_found': 'XYplorer.exe not found',
+                'err_dict_not_found': '{} not found in Data directory',
+                'err_timeout': 'Timeout getting selected files, please ensure items are selected in XYplorer',
+                'info_no_sel': 'No files or folders selected',
+                'err_no_valid': 'No valid files in selection',
+                'info_no_match_cat': 'No files matched CatID in dictionary',
+                'info_no_match_name': 'No filename segments matched the synonym dictionary',
+                'log_ucs_start': 'Starting Batch UCS Tags...',
+                'log_ucs_fail': 'Batch UCS Tags failed: {}',
+                'log_ucs_cancel': 'Batch UCS Tags cancelled: {}',
+                'log_ucs_ok': 'Batch UCS Tags successful! Appended tags to {} files.',
+                'log_ucs_err': 'Batch UCS Tags exception: {}',
+                'log_ucs_name_start': 'Starting Batch Filename to UCS Tags...',
+                'log_ucs_name_fail': 'Batch Filename to UCS Tags failed: {}',
+                'log_ucs_name_cancel': 'Batch Filename to UCS Tags cancelled: {}',
+                'log_ucs_name_ok': 'Batch Filename to UCS Tags successful! Appended tags to {} files.',
+                'log_ucs_name_err': 'Batch Filename to UCS Tags exception: {}',
+                'log_ai_start': 'Starting AI Tagging ({})', 'log_ai_fail': 'AI Tagging failed: {}', 'log_ai_ok': 'AI Tagging successful!', 'log_ai_err': 'AI Tagging exception: {}',
+                'err_ollama': 'Cannot connect to local AI (Ollama). Please ensure it is installed and running.',
+                'batch_cancelled': 'Batch operation cancelled manually.'
             }
         }
         text = msgs.get(lang, msgs['zh-CN']).get(key, msgs['zh-CN'].get(key, key))
@@ -195,8 +282,6 @@ class Api:
         write_log(msg, level)
         print(f"[{level}] {msg}")
 
-    # 新增：测试 XYplorer 路径接口
-    # 核心修复 1：去掉了这里的 shell=True
     def test_xy_path(self, xy_path):
         exe_path = self._normalize_xy_path(xy_path)
         self.log_message(self._t('test_start', exe_path), "INFO")
@@ -233,10 +318,11 @@ class Api:
 
     def change_titlebar_theme(self, color_hex, is_dark):
         def _apply():
-            time.sleep(0.2) 
+            time.sleep(0.1) 
             try:
                 if os.name == 'nt':
                     import ctypes
+                    from ctypes import wintypes
                     
                     hwnd = ctypes.windll.user32.FindWindowW(None, WINDOW_TITLE)
                     if not hwnd:
@@ -254,7 +340,8 @@ class Api:
                                 ctypes.windll.user32.SendMessageW(hwnd, WM_SETICON, 1, hicon) 
 
                         build = sys.getwindowsversion().build
-                        attr_dark = 20 if build >= 22000 else 19
+                        # Win10 2004 (Build 19041) 及以上使用 20 开启暗黑模式，之前使用 19
+                        attr_dark = 20 if build >= 19041 else 19
                         val_dark = ctypes.c_int(1 if is_dark else 0)
                         ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, attr_dark, ctypes.byref(val_dark), ctypes.sizeof(val_dark))
                         
@@ -264,7 +351,17 @@ class Api:
                             color_ref = ctypes.c_int(r | (g << 8) | (b << 16))
                             ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, 35, ctypes.byref(color_ref), ctypes.sizeof(color_ref))
                             
-                        ctypes.windll.user32.SetWindowPos(hwnd, 0, 0, 0, 0, 0, 0x0027)
+                        # 【高维绝杀：像素级物理抖动】
+                        # DWM 经常跨线程装死，只有物理改变窗口大小才会触发边框重绘
+                        rect = wintypes.RECT()
+                        ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(rect))
+                        width = rect.right - rect.left
+                        height = rect.bottom - rect.top
+                        
+                        # 1. 悄悄增加 1 像素高度，并且禁止画面重绘 (0x401E = ASYNC | NOACTIVATE | NOZORDER | NOMOVE | NOREDRAW)
+                        ctypes.windll.user32.SetWindowPos(hwnd, 0, 0, 0, width, height + 1, 0x401E)
+                        # 2. 瞬间恢复高度，并挂上强制边框重绘标志 (0x4036 = ASYNC | FRAMECHANGED | NOACTIVATE | NOZORDER | NOMOVE)
+                        ctypes.windll.user32.SetWindowPos(hwnd, 0, 0, 0, width, height, 0x4036)
             except Exception as e:
                 self.log_message(self._t('log_theme_err', str(e)), "ERROR")
                 
@@ -293,13 +390,15 @@ class Api:
     def export_data(self):
         try:
             now_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"XYplorerTagHelper-数据_{now_str}.json"
+            filename = self._t('fn_data', now_str)
             save_path = os.path.join(OUTPUT_DIR, filename)
+            
             with open(save_path, 'w', encoding='utf-8') as f:
                 json.dump(self.get_data(), f, ensure_ascii=False, indent=4)
+                
             self.log_message(self._t('log_export_data_ok', save_path), "INFO")
             self._open_output_folder()
-            return {"success": True, "msg": "数据导出成功"}
+            return {"success": True}
         except Exception as e:
             self.log_message(self._t('log_export_data_err', str(e)), "ERROR")
             return {"success": False, "msg": str(e)}
@@ -307,49 +406,66 @@ class Api:
     def export_config(self):
         try:
             now_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"XYplorerTagHelper-软件设置_{now_str}.json"
+            filename = self._t('fn_config', now_str)
             save_path = os.path.join(OUTPUT_DIR, filename)
+            
             with open(save_path, 'w', encoding='utf-8') as f:
                 json.dump(self.get_config(), f, ensure_ascii=False, indent=4)
+                
             self.log_message(self._t('log_export_cfg_ok', save_path), "INFO")
             self._open_output_folder()
-            return {"success": True, "msg": "设置导出成功"}
+            return {"success": True}
         except Exception as e:
             self.log_message(self._t('log_export_cfg_err', str(e)), "ERROR")
+            return {"success": False, "msg": str(e)}
+
+    def export_workspace(self, ws_data_str, ws_name):
+        try:
+            safe_ws_name = "".join([c for c in ws_name if c not in r'\/:*?"<>|'])
+            now_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = self._t('fn_ws', safe_ws_name, now_str)
+            save_path = os.path.join(OUTPUT_DIR, filename)
+            
+            with open(save_path, 'w', encoding='utf-8') as f:
+                f.write(ws_data_str)
+                
+            self.log_message(self._t('log_export_data_ok', save_path), "INFO")
+            self._open_output_folder()
+            return {"success": True}
+        except Exception as e:
+            self.log_message(self._t('log_export_data_err', str(e)), "ERROR")
             return {"success": False, "msg": str(e)}
 
     def execute_search(self, path, syntax, xy_path):
         path = path.strip() or "*"
         syntax = syntax.strip()
         
-        if syntax.startswith("/"):
-            feed_script = f"::goto '{path}?{syntax}';"
-        elif syntax:
-            feed_script = f"::goto '{path}?:{syntax}';"
+        path_safe = path.replace("'", "''")
+        syntax_safe = syntax.replace("'", "''")
+        
+        if syntax_safe.startswith("/"):
+            script_content = f"goto '{path_safe}?{syntax_safe}';"
+        elif syntax_safe:
+            script_content = f"goto '{path_safe}?:{syntax_safe}';"
         else:
-            feed_script = f"::goto '{path}?';"
+            script_content = f"goto '{path_safe}?';"
             
         exe_path = self._normalize_xy_path(xy_path)
         
-        # 这里的日志会受多语言字典硬编码影响，但这不影响实际执行
-        self.log_message(self._t('log_search_cmd', exe_path, feed_script))
+        self.log_message(self._t('log_search_cmd', exe_path, f"load temp.xys -> {script_content}"))
         try:
             if os.path.exists(exe_path):
                 import tempfile
-                temp_dir = tempfile.gettempdir()
-                script_file = os.path.join(temp_dir, "xy_taghelper_search.xys")
+                # 写入临时文件，彻底规避 XYplorer 命令行遇到双引号和管道符就崩溃的黑洞
+                temp_script = os.path.join(tempfile.gettempdir(), "xy_helper_search.xys")
+                with open(temp_script, "w", encoding="utf-16") as f:
+                    f.write(script_content)
                 
-                # 写入 UTF-16-LE 编码文件，彻底绕过非中文系统的 ANSI 编码墙
-                with open(script_file, "w", encoding="utf-16-le") as f:
-                    f.write("\ufeff") # 写入 BOM
-                    f.write(feed_script)
-                
-                # 将路径中的单引号转义，防止路径中带单引号导致脚本报错
-                safe_script_file = script_file.replace("'", "''")
-                
-                # 核心修复：用 /feed 配合 XYplorer 的 load 命令来读取文件！
-                load_cmd = f"::load '{safe_script_file}';"
-                subprocess.Popen(f'"{exe_path}" /feed="{load_cmd}"')
+                # 核心杀招：依然使用 /feed 保证在当前页签瞬时执行
+                # 但不直接传递含有 R&B 的代码，而是传达一个极其干净的 load 指令！
+                temp_safe = temp_script.replace("'", "''")
+                cmd_str = f'"{exe_path}" /feed="::load \'{temp_safe}\';"'
+                subprocess.Popen(cmd_str)
             else:
                 self.log_message(self._t('log_exec_fail'), "ERROR")
         except Exception as e:
@@ -359,29 +475,826 @@ class Api:
         script = script.strip()
         exe_path = self._normalize_xy_path(xy_path)
         
-        self.log_message(self._t('log_script_cmd', exe_path, script))
+        self.log_message(self._t('log_script_cmd', exe_path, f"load temp.xys -> {script}"))
         try:
             if os.path.exists(exe_path):
                 import tempfile
-                temp_dir = tempfile.gettempdir()
-                script_file = os.path.join(temp_dir, "xy_taghelper_temp.xys")
+                temp_script = os.path.join(tempfile.gettempdir(), "xy_helper_script.xys")
+                with open(temp_script, "w", encoding="utf-16") as f:
+                    # 移除前导 :: 防止独立文件加载时报错
+                    s = script[2:].strip() if script.startswith("::") else script
+                    f.write(s)
                 
-                # 写入 UTF-16-LE 编码文件，彻底绕过非中文系统的 ANSI 编码墙
-                with open(script_file, "w", encoding="utf-16-le") as f:
-                    f.write("\ufeff") # 写入 BOM
-                    f.write(script)
-                
-                # 将路径中的单引号转义
-                safe_script_file = script_file.replace("'", "''")
-                
-                # 核心修复：用 /feed 配合 XYplorer 的 load 命令来读取文件！
-                load_cmd = f"::load '{safe_script_file}';"
-                subprocess.Popen(f'"{exe_path}" /feed="{load_cmd}"')
+                # 同样使用 load 指令，保护你的其他所有操作
+                temp_safe = temp_script.replace("'", "''")
+                cmd_str = f'"{exe_path}" /feed="::load \'{temp_safe}\';"'
+                subprocess.Popen(cmd_str)
             else:
                 self.log_message(self._t('log_exec_fail'), "ERROR")
         except Exception as e:
             self.log_message(self._t('log_exec_script_err', str(e)), "ERROR")
 
+    def execute_script(self, script, xy_path):
+        script = script.strip()
+        exe_path = self._normalize_xy_path(xy_path)
+        
+        self.log_message(self._t('log_script_cmd', exe_path, script))
+        try:
+            if os.path.exists(exe_path):
+                subprocess.Popen(f'"{exe_path}" /feed="{script}"')
+            else:
+                self.log_message(self._t('log_exec_fail'), "ERROR")
+        except Exception as e:
+            self.log_message(self._t('log_exec_script_err', str(e)), "ERROR")
+    
+    def batch_ucs_tags(self, xy_path):
+        import tempfile
+        import time
+        import os
+        import json
+        import subprocess
+        
+        self.log_message(self._t('log_ucs_start'), "INFO")
+        try:
+            exe_path = self._normalize_xy_path(xy_path)
+            if not os.path.exists(exe_path):
+                msg = self._t('err_xy_not_found')
+                self.log_message(self._t('log_ucs_fail', msg), "ERROR")
+                return {"success": False, "msg": msg}
+
+            lang = self.get_config().get('lang', 'zh-CN')
+            dict_filename = "ucs_dict_en.json"  # [修改] 强制读取英文字典
+            ucs_file = os.path.join(DATA_DIR, dict_filename)
+            
+            if not os.path.exists(ucs_file):
+                msg = self._t('err_dict_not_found', dict_filename)
+                self.log_message(self._t('log_ucs_fail', msg), "ERROR")
+                return {"success": False, "msg": msg}
+            
+            with open(ucs_file, 'r', encoding='utf-8') as f:
+                ucs_dict = json.load(f)
+            
+            lower_ucs_dict = {k.lower(): v for k, v in ucs_dict.items()}
+            
+            temp_dir = tempfile.gettempdir()
+            unique_id = str(int(time.time() * 1000)) 
+            sel_file = os.path.join(temp_dir, f"xy_sel_ucs_{unique_id}.txt")
+            
+            safe_sel_file = sel_file.replace("'", "''")
+            cmd_get_sel = f"::writefile('{safe_sel_file}', get('SelectedItemsPathNames', '|'), 'o', 'tu');"
+            subprocess.Popen(f'"{exe_path}" /feed="{cmd_get_sel}"')
+            
+            wait_time = 0
+            read_success = False
+            sel_content = ""
+            
+            while wait_time < 30: 
+                if os.path.exists(sel_file):
+                    try:
+                        with open(sel_file, 'r', encoding='utf-16', errors='ignore') as f:
+                            sel_content = f.read().strip()
+                        if sel_content or wait_time > 10:
+                            read_success = True
+                            break 
+                    except PermissionError:
+                        pass 
+                    except Exception:
+                        pass
+                time.sleep(0.1)
+                wait_time += 1
+                
+            if not read_success:
+                msg = self._t('err_timeout')
+                self.log_message(self._t('log_ucs_fail', msg), "ERROR")
+                return {"success": False, "msg": msg}
+                
+            if not sel_content:
+                msg = self._t('info_no_sel')
+                self.log_message(self._t('log_ucs_cancel', msg), "INFO")
+                return {"success": False, "msg": msg}
+                
+            sel_items = sel_content.split('|')
+            all_files = []
+            
+            for item in sel_items:
+                clean_item = item.strip().strip('"').strip("'").strip('\x00')
+                if not clean_item:
+                    continue
+                if os.path.isfile(clean_item):
+                    all_files.append(clean_item)
+                elif os.path.isdir(clean_item):
+                    for root, _, files in os.walk(clean_item):
+                        for file in files:
+                            all_files.append(os.path.join(root, file))
+                            
+            if not all_files:
+                msg = self._t('err_no_valid')
+                self.log_message(self._t('log_ucs_fail', msg), "ERROR")
+                return {"success": False, "msg": msg}
+                
+            self._cancel_flag = False
+            total_files = len(all_files)
+            self._update_progress(0, total_files)
+                
+            tag_to_files = {}
+            tagged_count = 0
+            
+            for file_path in all_files:
+                basename = os.path.basename(file_path)
+                if "_" in basename:
+                    cat_id = basename.split('_')[0]
+                    target_subcat = lower_ucs_dict.get(cat_id.lower())
+                                
+                    if target_subcat:
+                        final_tag = target_subcat.title() 
+                        if final_tag not in tag_to_files:
+                            tag_to_files[final_tag] = []
+                        tag_to_files[final_tag].append(file_path)
+                        tagged_count += 1
+                        
+            if tagged_count == 0:
+                msg = self._t('info_no_match_cat')
+                self.log_message(self._t('log_ucs_cancel', msg), "INFO")
+                return {"success": False, "msg": msg}
+                
+            MAX_CHUNK_LEN = 6000
+            sent_cmds = 0
+            for tag, file_list in tag_to_files.items():
+                if self._cancel_flag: break
+                current_chunk = []
+                current_len = 0
+                
+                for fp in file_list:
+                    current_chunk.append(fp)
+                    current_len += len(fp) + 1 
+                    
+                    if current_len >= MAX_CHUNK_LEN:
+                        file_list_str = "|".join(current_chunk)
+                        safe_tag = tag.replace("'", "''")
+                        safe_file_list_str = file_list_str.replace("'", "''")
+                        tag_cmd = f"::tag '{safe_tag}', '{safe_file_list_str}', 1, 0;"
+                        subprocess.Popen(f'"{exe_path}" /feed="{tag_cmd}"')
+                        sent_cmds += 1
+                        self._update_progress(sent_cmds, total_files)
+                        time.sleep(0.05) 
+                        if self._cancel_flag: break
+                        current_chunk = []
+                        current_len = 0
+                
+                if self._cancel_flag: break
+                if current_chunk:
+                    file_list_str = "|".join(current_chunk)
+                    safe_tag = tag.replace("'", "''")
+                    safe_file_list_str = file_list_str.replace("'", "''")
+                    tag_cmd = f"::tag '{safe_tag}', '{safe_file_list_str}', 1, 0;"
+                    subprocess.Popen(f'"{exe_path}" /feed="{tag_cmd}"')
+                    sent_cmds += 1
+                    self._update_progress(sent_cmds, total_files)
+                    time.sleep(0.05)
+            
+            if getattr(self, '_cancel_flag', False):
+                return {"success": False, "msg": self._t('batch_cancelled')}
+            
+            try:
+                if os.path.exists(sel_file): os.remove(sel_file)
+            except: pass
+            
+            self.log_message(self._t('log_ucs_ok', tagged_count), "INFO")
+            return {"success": True, "count": tagged_count}
+            
+        except Exception as e:
+            self.log_message(self._t('log_ucs_err', str(e)), "ERROR")
+            return {"success": False, "msg": str(e)}
+
+    def batch_ucs_name_tags(self, xy_path):
+        import tempfile
+        import time
+        import os
+        import json
+        import subprocess
+        import re
+        
+        self.log_message(self._t('log_ucs_name_start'), "INFO")
+        try:
+            exe_path = self._normalize_xy_path(xy_path)
+            if not os.path.exists(exe_path):
+                msg = self._t('err_xy_not_found')
+                self.log_message(self._t('log_ucs_name_fail', msg), "ERROR")
+                return {"success": False, "msg": msg}
+
+            lang = self.get_config().get('lang', 'zh-CN')
+            
+            # ================= 修改点 1：固定读取合并后的字典 =================
+            dict_filename = "ucs_synonyms_merged.json"
+            ucs_file = os.path.join(DATA_DIR, dict_filename)
+            
+            if not os.path.exists(ucs_file):
+                msg = self._t('err_dict_not_found', dict_filename)
+                self.log_message(self._t('log_ucs_name_fail', msg), "ERROR")
+                return {"success": False, "msg": msg}
+            
+            with open(ucs_file, 'r', encoding='utf-8') as f:
+                ucs_syn_dict = json.load(f)
+
+            def normalize_string(s):
+                s = re.sub(r'([a-z])([A-Z])', r'\1 \2', s)
+                s = re.sub(r'([A-Z])([A-Z][a-z])', r'\1 \2', s)
+                s = re.sub(r'[\W_]+', ' ', s)
+                return f" {s.lower().strip()} "
+
+            STOP_WORDS = {
+                "a", "an", "the", "and", "or", "of", "in", "on", "at", "by", "to", "for", 
+                "with", "your", "my", "his", "her", "its", "their", "our", "this", "that", 
+                "these", "those", "is", "are", "am", "it", "be", "as"
+            }
+
+            # ================= 高维机制 1：通用词豁免名单 =================
+            # 当这些词作为分类的次级修饰词时，不强制要求它们必须出现在文件名中
+            GENERIC_WORDS = {"general", "misc", "other", "various", "通用", "其它", "其他", "杂项", "各类", "常规", "综合"}
+
+            compiled_syn_dict = {}
+            for raw_tag_key, syn_list in ucs_syn_dict.items():
+                if '|' in raw_tag_key:
+                    en_tag, zh_tag = raw_tag_key.split('|', 1)
+                    target_tag = en_tag.strip()  # [修改] 摒弃界面语言判断，强制截取英文标签
+                else:
+                    target_tag = raw_tag_key.strip()
+                    
+                if not target_tag: continue
+                if target_tag not in compiled_syn_dict:
+                    compiled_syn_dict[target_tag] = []
+                
+                for syn in syn_list:
+                    parts = re.split(r'[-_]', syn)
+                    if not parts: continue
+                    
+                    primary_raw = parts[-1]
+                    secondary_raws = parts[:-1]
+                    
+                    def get_sig(raw_str):
+                        sig = []
+                        for w in normalize_string(raw_str).split():
+                            if not w or w.isdigit() or w in STOP_WORDS: continue
+                            if len(w) == 1 and w.isascii() and w.isalpha(): continue
+                            sig.append(f" {w} ")
+                        return frozenset(sig)
+                    
+                    primary_sig = get_sig(primary_raw)
+                    if not primary_sig: continue 
+                    
+                    valid_secondary_sigs = []
+                    
+                    for sec in secondary_raws:
+                        sec_sig = get_sig(sec)
+                        if not sec_sig: continue
+                        
+                        # ================= 高维机制 2：同义词嵌套免疫 =================
+                        # 如果副词和主词的有效单词完全重合（例如 Rain_Cloth_Rain 中的前置 Rain），则忽略该副词校验
+                        if sec_sig.issubset(primary_sig):
+                            continue
+                            
+                        # 如果是纯通用修饰词（如 General / 其它），则将其剥离，豁免其硬性匹配规则
+                        is_generic = True
+                        for w in sec_sig:
+                            clean_w = w.strip()
+                            if clean_w not in GENERIC_WORDS:
+                                is_generic = False
+                                break
+                        if is_generic:
+                            continue
+                            
+                        valid_secondary_sigs.append(sec_sig)
+                    
+                    compiled_syn_dict[target_tag].append({
+                        "primary": primary_sig,
+                        "valid_secondaries": valid_secondary_sigs
+                    })
+            
+            temp_dir = tempfile.gettempdir()
+            unique_id = str(int(time.time() * 1000)) 
+            sel_file = os.path.join(temp_dir, f"xy_sel_ucs_{unique_id}.txt")
+            
+            safe_sel_file = sel_file.replace("'", "''")
+            cmd_get_sel = f"::writefile('{safe_sel_file}', get('SelectedItemsPathNames', '|'), 'o', 'tu');"
+            subprocess.Popen(f'"{exe_path}" /feed="{cmd_get_sel}"')
+            
+            wait_time = 0
+            read_success = False
+            sel_content = ""
+            
+            while wait_time < 30: 
+                if os.path.exists(sel_file):
+                    try:
+                        with open(sel_file, 'r', encoding='utf-16', errors='ignore') as f:
+                            sel_content = f.read().strip()
+                        if sel_content or wait_time > 10:
+                            read_success = True
+                            break 
+                    except PermissionError: pass 
+                    except Exception: pass
+                time.sleep(0.1)
+                wait_time += 1
+                
+            if not read_success:
+                msg = self._t('err_timeout')
+                self.log_message(self._t('log_ucs_name_fail', msg), "ERROR")
+                return {"success": False, "msg": msg}
+                
+            if not sel_content:
+                msg = self._t('info_no_sel')
+                self.log_message(self._t('log_ucs_name_cancel', msg), "INFO")
+                return {"success": False, "msg": msg}
+                
+            sel_items = sel_content.split('|')
+            all_files = []
+            
+            for item in sel_items:
+                clean_item = item.strip().strip('"').strip("'").strip('\x00')
+                if not clean_item: continue
+                if os.path.isfile(clean_item):
+                    all_files.append(clean_item)
+                elif os.path.isdir(clean_item):
+                    for root, _, files in os.walk(clean_item):
+                        for file in files:
+                            all_files.append(os.path.join(root, file))
+                            
+            if not all_files:
+                msg = self._t('err_no_valid')
+                self.log_message(self._t('log_ucs_name_fail', msg), "ERROR")
+                return {"success": False, "msg": msg}
+                
+            self._cancel_flag = False
+            total_files = len(all_files)
+            self._update_progress(0, total_files)
+                
+            # 【高维优化 1：放弃单标签散装，改为标签组合聚类字典】
+            tag_combo_to_files = {}
+            tagged_count = 0
+            
+            # 【新增辅助探测函数】：精准识别泛用/杂项标签 (Misc)
+            def is_generic_tag(t):
+                tl = t.lower()
+                return any(tl.endswith(x) for x in ['_misc', '_general', '_other', '_various', '_通用', '_其它', '_其他', '_杂项'])
+            
+            for file_path in all_files:
+                if getattr(self, '_cancel_flag', False): break
+                basename = os.path.basename(file_path)
+                base_norm = normalize_string(basename)
+                file_matches = []
+                
+                for target_tag, syn_patterns in compiled_syn_dict.items():
+                    for pat in syn_patterns:
+                        primary_sig = pat["primary"]
+                        valid_secondaries = pat["valid_secondaries"]
+                        
+                        if not all(word in base_norm for word in primary_sig):
+                            continue
+                            
+                        matched_words = set(primary_sig)
+                        
+                        if valid_secondaries:
+                            sec_matched = False
+                            for sec_sig in valid_secondaries:
+                                if all(word in base_norm for word in sec_sig):
+                                    sec_matched = True
+                                    matched_words.update(sec_sig)
+                            
+                            if not sec_matched:
+                                continue 
+                                
+                        file_matches.append((target_tag, frozenset(matched_words)))
+                        
+                if file_matches:
+                    final_tags = set()
+                    for tag, words in file_matches:
+                        is_subset = False
+                        for other_tag, other_words in file_matches:
+                            if tag != other_tag and words < other_words:
+                                is_subset = True
+                                break
+                        if not is_subset:
+                            final_tags.add(tag)
+                    
+                    prefix_groups = {}
+                    for tag in final_tags:
+                        prefix = tag.split('_')[0] if '_' in tag else tag
+                        if prefix not in prefix_groups:
+                            prefix_groups[prefix] = []
+                        prefix_groups[prefix].append(tag)
+                        
+                    limited_final_tags = set()
+                    for prefix, tags in prefix_groups.items():
+                        tags.sort(key=lambda x: (-len(x), x))
+                        limited_final_tags.update(tags[:3])
+                
+                    if limited_final_tags:
+                        specific_tags = {t for t in limited_final_tags if not is_generic_tag(t)}
+                        generic_tags = {t for t in limited_final_tags if is_generic_tag(t)}
+                        
+                        final_tags_to_apply = set()
+                        if specific_tags:
+                            # 只要有任何具体标签，就彻底抛弃 _Misc 等兜底标签
+                            final_tags_to_apply = specific_tags
+                        else:
+                            # 实在匹配不到具体标签时，才使用 _Misc 标签进行兜底
+                            final_tags_to_apply = generic_tags
+                            
+                        if final_tags_to_apply:
+                            combo_key = ", ".join(sorted(final_tags_to_apply))
+                            if combo_key not in tag_combo_to_files:
+                                tag_combo_to_files[combo_key] = []
+                            tag_combo_to_files[combo_key].append(file_path)
+                            tagged_count += 1
+                        
+            if getattr(self, '_cancel_flag', False):
+                return {"success": False, "msg": self._t('batch_cancelled')}
+                        
+            if tagged_count == 0:
+                msg = self._t('info_no_match_name')
+                self.log_message(self._t('log_ucs_name_cancel', msg), "INFO")
+                return {"success": False, "msg": msg}
+                
+            # 【高维优化 2：生成智能批处理指令】
+            all_commands = []
+            MAX_CHUNK_LEN = 4000
+            for combo_tags, file_list in tag_combo_to_files.items():
+                current_chunk = []
+                current_len = 0
+                for fp in file_list:
+                    current_chunk.append(fp)
+                    current_len += len(fp) + 1 
+                    
+                    if current_len >= MAX_CHUNK_LEN:
+                        file_list_str = "|".join(current_chunk)
+                        safe_tags = combo_tags.replace("'", "''")
+                        safe_file_list_str = file_list_str.replace("'", "''")
+                        all_commands.append(f"    tag '{safe_tags}', '{safe_file_list_str}', 1, ',';")
+                        current_chunk = []
+                        current_len = 0
+                
+                if current_chunk:
+                    file_list_str = "|".join(current_chunk)
+                    safe_tags = combo_tags.replace("'", "''")
+                    safe_file_list_str = file_list_str.replace("'", "''")
+                    all_commands.append(f"    tag '{safe_tags}', '{safe_file_list_str}', 1, ',';")
+            
+            # 【高维优化 3：量子分批与呼吸缓冲，彻底告别卡死】
+            BATCH_SIZE = 15
+            sent_cmds = 0
+            for i in range(0, len(all_commands), BATCH_SIZE):
+                if getattr(self, '_cancel_flag', False): break
+                batch_cmds = all_commands[i : i + BATCH_SIZE]
+                
+                script_content = '"AutoRun"\n' + "\n".join(batch_cmds)
+                
+                temp_script = os.path.join(tempfile.gettempdir(), f"xy_helper_batch_ucs_{i}.xys")
+                with open(temp_script, "w", encoding="utf-16") as f:
+                    f.write(script_content)
+                
+                temp_safe = temp_script.replace("'", "''")
+                cmd_str = f'"{exe_path}" /feed="::load \'{temp_safe}\', \'AutoRun\';"'
+                subprocess.Popen(cmd_str)
+                
+                sent_cmds += len(batch_cmds)
+                self._update_progress(sent_cmds, total_files)
+                time.sleep(0.3)
+                
+            if getattr(self, '_cancel_flag', False):
+                return {"success": False, "msg": self._t('batch_cancelled')}
+            
+            try:
+                if os.path.exists(sel_file): os.remove(sel_file)
+            except: pass
+            
+            self.log_message(self._t('log_ucs_name_ok', tagged_count), "INFO")
+            return {"success": True, "count": tagged_count}
+            
+        except Exception as e:
+            self.log_message(self._t('log_ucs_name_err', str(e)), "ERROR")
+            return {"success": False, "msg": str(e)}
+      
+    # ==========================================
+    # --- AI 大模型通信模块 (调用本地 Ollama) ---
+    # ==========================================
+    def _call_ollama(self, prompt, system_prompt=""):
+        cfg = self.get_config()
+        api_url = cfg.get('ai_api', 'http://localhost:11434/api/generate')
+        model = cfg.get('ai_model', 'qwen2.5:0.5b')
+        
+        payload = {
+            "model": model,
+            "prompt": prompt,
+            "stream": False,
+            "options": {
+                "temperature": 0.1,
+                "num_ctx": 16384
+            }
+        }
+        
+        if system_prompt:
+            payload["system"] = system_prompt
+            
+        data = json.dumps(payload).encode('utf-8')
+        req = urllib.request.Request(api_url, data=data, headers={'Content-Type': 'application/json'})
+        try:
+            with urllib.request.urlopen(req, timeout=60) as res:
+                return json.loads(res.read().decode('utf-8')).get('response', '').strip()
+        except Exception as e:
+            return None
+
+    def ai_batch_process(self, xy_path, mode, domain="通用"):
+        import tempfile
+        import time
+        import re
+        import os
+        import json
+        import subprocess
+        
+        self.log_message(self._t('log_ai_start', mode), "INFO")
+        try:
+            exe_path = self._normalize_xy_path(xy_path)
+            if not os.path.exists(exe_path): return {"success": False, "msg": self._t('err_xy_not_found')}
+            
+            lang = self.get_config().get('lang', 'zh-CN')
+            is_zh = False  # [修改] 强制关闭中文模式，这会自动触发后续所有AI系统提示词和机器翻译的回退保护机制采用英文
+            
+            if is_zh:
+                lang_instruction = "简体中文（中国大陆习惯，绝对禁止保留英文原词）"
+            else:
+                lang_instruction = "English (Strictly output English words ONLY)"
+            
+            temp_dir = tempfile.gettempdir()
+            unique_id = str(int(time.time() * 1000))
+            sel_file = os.path.join(temp_dir, f"xy_sel_{unique_id}.txt")
+            safe_sel_file = sel_file.replace("'", "''")
+            subprocess.Popen(f'"{exe_path}" /feed="::writefile(\'{safe_sel_file}\', get(\'SelectedItemsPathNames\', \'|\'), \'o\', \'tu\');"')
+            
+            wait_time, sel_content = 0, ""
+            while wait_time < 30: 
+                if os.path.exists(sel_file):
+                    try:
+                        with open(sel_file, 'r', encoding='utf-16', errors='ignore') as f: sel_content = f.read().strip()
+                        if sel_content or wait_time > 10: break 
+                    except: pass
+                time.sleep(0.1); wait_time += 1
+            try:
+                if os.path.exists(sel_file): os.remove(sel_file)
+            except: pass
+            
+            if not sel_content: return {"success": False, "msg": self._t('err_no_valid')}
+            # [修改] 将 isfile 更改为 exists，这样无论是文件还是文件夹都能被提取名称并被成功打上标签
+            all_files = [i for item in sel_content.split('|') if (i := item.strip().strip('"').strip("'").strip('\x00')) and os.path.exists(i)]
+            if not all_files: return {"success": False, "msg": self._t('err_no_valid')}
+                
+            self._cancel_flag = False
+            total_files = len(all_files)
+            self._update_progress(0, total_files, mode='ai')
+            
+            merged_dict = {}
+            tag_map = {} 
+            
+            if mode == 'dict_name':
+                merged_file = os.path.join(DATA_DIR, "ucs_dict_merged.json")
+                if os.path.exists(merged_file):
+                    try:
+                        with open(merged_file, 'r', encoding='utf-8') as f:
+                            merged_dict = json.load(f)
+                            
+                            for cat, pairs in merged_dict.items():
+                                for pair in pairs:
+                                    en_t, zh_t = pair.split('|', 1)
+                                    en_t, zh_t = en_t.strip(), zh_t.strip()
+                                    target_t = zh_t if is_zh else en_t
+                                    
+                                    tag_map[en_t] = target_t
+                                    tag_map[zh_t] = target_t
+                                    tag_map[en_t.lower()] = target_t
+                                    tag_map[zh_t.lower()] = target_t
+                                    tag_map[en_t.replace('_', '').replace(' ', '').lower()] = target_t
+                                    tag_map[zh_t.replace('_', '').replace(' ', '').lower()] = target_t
+                    except Exception: pass
+                if not tag_map:
+                    return {"success": False, "msg": "未找到 ucs_dict_merged.json 字典文件，或格式不正确"}
+
+            FORBIDDEN_TAGS = {
+                "音", "声音", "录音", "文本", "图像", "照片", "音频", "视频", 
+                "媒体", "宇体", "字体", "矢量图", "网页", "文档", "压缩包", 
+                "可执行", "文件夹", "失聪", "失聪声", "底噪", "听力丧失", "标签", "音乐", "音效",
+                "聲音", "錄音", "圖像", "音訊", "視訊", "媒體", "宇體", "字體", "字型", "向量圖", 
+                "網頁", "文件", "壓縮檔", "執行檔", "資料夾", "失聰", "失聰聲", "聽力喪失", "標籤", "音樂",
+                "sound", "audio", "video", "media", "text", "image", "photo", "font", "vector", "web", 
+                "document", "archive", "executable", "folder", "deaf", "hearing loss", "tag", "tags", 
+                "music", "sfx", "sound effect", "noise"
+            }
+            forbidden_str = "、".join(FORBIDDEN_TAGS)
+
+            static_sys_prompt = ""
+            if mode == 'auto_name':
+                static_sys_prompt = f"你是一个专业的【{domain}】领域的打标签专家。必须将提取出的核心标签【全部彻底翻译为{lang_instruction}】！\n\n【严格规则】：\n1. 绝不允许保留原文件中的扩展名。\n2. 翻译必须符合“{domain}”的行业语境，禁止生硬机翻。\n3. 只输出2到4个精简的标签词，必须严格用英文逗号(,)分隔。\n4. 绝对禁止生成类似“第一章”、“第8集”、“01”等无意义的数字或序号标签。\n5. 绝对禁止输出以下无意义的大类或错译标签：{forbidden_str}。"
+            elif mode == 'auto_name_en_zh':
+                static_sys_prompt = f"你是一个专业的【{domain}】领域的打标签专家。你必须提取出代表核心概念的标签，并同时提供准确的【英文】和【简体中文】。绝对禁止保留原文件中的扩展名。\n\n【极其严格的格式规则】：\n1. 格式必须严格为：英文词@@中文词\n2. 只输出 2 到 4 个组合，必须用英文逗号(,)分隔。\n3. 示例输出：Rain@@雨声, Heavy@@沉重"
+            elif mode == 'auto_content':
+                static_sys_prompt = f"你是一个冷酷无情的关键词提取机器。你必须将提取的核心标签【全部彻底翻译为{lang_instruction}】！\n\n【极度严格规则，违背将被毁灭】：\n1. 词汇必须极度精简！必须是【短名词】（如“工作区”、“标签树”），绝对禁止拼接长句、动宾短语或造词（如“可视化状态转换”是严重错误的）。\n2. 标签字数限制：中文必须在 2 到 4 个汉字之间。\n3. 只输出 3 到 5 个词，必须严格用英文逗号(,)分隔，绝不能连写，不要任何解释。\n4. 绝对禁止输出以下标签：{forbidden_str}。"
+
+            tag_to_files, tagged_count, all_applied_tags = {}, 0, set()
+
+            for file_path in all_files:
+                if getattr(self, '_cancel_flag', False): break
+                basename = os.path.basename(file_path)
+                basename_no_ext = os.path.splitext(basename)[0] 
+                
+                prompt = ""
+                file_sys_prompt = static_sys_prompt
+                
+                if mode == 'dict_name':
+                    categories_list = list(merged_dict.keys())
+                    cat_sys_prompt = f"你是一个专业的【音效素材】分类路由器。你需要根据给定的【音效文件名】，推断该声音的来源或发声主体。请从以下音效大类列表中挑选出 1 到 3 个最相关的类别：\n{', '.join(categories_list)}\n\n【严格规则】：只输出大类名称的英文，用英文逗号(,)分隔，绝对禁止输出其他任何多余文字或解释。"
+                    cat_prompt = f"音效文件名：【{basename_no_ext}】\n匹配的音效大类："
+                    
+                    cat_response = self._call_ollama(cat_prompt, cat_sys_prompt)
+                    if not cat_response: return {"success": False, "msg": self._t('err_ollama')}
+                    
+                    selected_cats = []
+                    cat_lower_map = {k.lower(): k for k in categories_list}
+                    for c in cat_response.split(','):
+                        c_clean = c.strip(' \n\r\t。，.,\'"[]*').lower()
+                        if c_clean in cat_lower_map and cat_lower_map[c_clean] not in selected_cats:
+                            selected_cats.append(cat_lower_map[c_clean])
+                            
+                    if not selected_cats:
+                        tagged_count += 1
+                        self._update_progress(tagged_count, total_files, mode='ai')
+                        continue
+                        
+                    mini_dict_lines = []
+                    for cat in selected_cats:
+                        tags_in_cat = [f"{p.split('|')[0].strip()}({p.split('|')[1].strip()})" for p in merged_dict[cat]]
+                        mini_dict_lines.append(f"[{cat}]: {', '.join(tags_in_cat)}")
+                    mini_dict_str = "\n".join(mini_dict_lines)
+                    
+                    file_sys_prompt = f"""你是一个极其严谨的【音效素材】标签匹配专家。请记住：你正在处理的是【声音/音效文件】，请务必从发声源、动作、材质等听觉维度去理解文件名。
+请阅读以下动态提取的【双语音效字典库】，为给定的音效寻找最契合的标签。
+
+【双语音效字典库】(格式为 英文(中文))：
+{mini_dict_str}
+
+【极度严格匹配规则】（违背将被重罚）：
+1. 必须有发声证据，严禁脑补：必须基于文件名中实际存在的【发声体/名词】进行匹配。绝对禁止挑选文件名中不存在的细分场景词条（例如：文件名仅为"Rain"，绝对不能瞎猜它打在塑料上而匹配"Rain_Plastic"）。
+2. 发声修饰词辅助：文件名中的修饰词（如具体的发声动作、撞击的材质、发声体表面）必须与词条细分项严格对应时，才能提取具体细分标签。
+3. 宁泛勿错（兜底机制）：如果文件名只有基础发声物，没有具体的发声细节与修饰词，请【强制优先】匹配带有“_Misc”、“_其它”、“_General”、“_通用”后缀的泛用音效词条，或者只匹配基础词。
+4. 宁缺毋滥：最多提取 1 到 3 个核心标签。如果字典中完全没有合理的匹配项，请直接输出“无”。
+5. 格式规范：绝对禁止自己发明新词！必须严格原样摘取上述字典库中存在的词条，输出【英文部分】或【中文部分】均可，并用英文逗号(,)分隔。"""
+
+                    prompt = f"当前仅处理这 1 个音效文件。\n音效文件名：【{basename_no_ext}】\n请输出匹配的标签(用英文逗号分隔)："
+                    
+                elif mode == 'auto_name':
+                    prompt = f"当前仅对这 1 个文件进行打标。\n输入: 【{basename_no_ext}】\n输出纯标签:"
+                elif mode == 'auto_name_en_zh':
+                    prompt = f"当前仅对这 1 个文件进行打标。\n输入: 【{basename_no_ext}】\n输出:"
+                elif mode == 'auto_content':
+                    try:
+                        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f: 
+                            full_text = f.read()
+                            import re
+                            clean_text = re.sub(r'\s+', ' ', full_text).strip()
+                            if len(clean_text) <= 2300:
+                                content = clean_text
+                            else:
+                                content = clean_text[:1500] + "\n...[中间部分已折叠]...\n" + clean_text[-800:]
+                        prompt = f"请阅读以下经过压缩的文档片段，直接提取出 3 到 5 个最能代表核心概念的【简短名词】（请原样摘取，不要自己造长词）。\n内容片段：\n{content}\n\n请直接输出纯标签(用英文逗号分隔)："
+                    except: 
+                        tagged_count += 1
+                        self._update_progress(tagged_count, total_files, mode='ai')
+                        continue
+                else: continue
+                
+                ai_response = self._call_ollama(prompt, file_sys_prompt)
+                if not ai_response: return {"success": False, "msg": self._t('err_ollama')}
+                
+                if mode in ['auto_name', 'auto_content']:
+                    if is_zh:
+                        if re.search(r'[a-zA-Z]{3,}', ai_response):
+                            trans_prompt = f"请把以下文字中的英文单词全部翻译为{lang_instruction}，已经是中文的保持不变。只输出最终的纯中文标签，严格用英文逗号(,)分隔，绝不能加任何多余废话：\n{ai_response}"
+                            sys_role = f"你是一个无情的翻译机器，只输出逗号分隔的中文词语，绝对禁止输出任何英文字母或解释性对话。"
+                            trans_res = self._call_ollama(trans_prompt, sys_role)
+                            if trans_res: ai_response = trans_res
+                    else:
+                        if re.search(r'[\u4e00-\u9fa5]', ai_response):
+                            trans_prompt = f"Translate the following text strictly into English. Keep the comma separation format:\n{ai_response}"
+                            sys_role = f"You are a strict translator. Output ONLY English words separated by commas. Absolutely NO Chinese characters."
+                            trans_res = self._call_ollama(trans_prompt, sys_role)
+                            if trans_res: ai_response = trans_res
+                
+                normalized_response = re.sub(r'[，、；;\n|:：]|(\s*-\s*)', ',', ai_response)
+                filler_words = ["翻译", "如下", "以下", "标签是", "这里是", "这些是", "these are", "here are", "translated", "输出", "分类", "大类"]
+                
+                current_file_tags = []
+                
+                for t in normalized_response.split(','):
+                    raw_tag = t.strip(' \n\r\t。，.,\'"[]*')
+                    if not raw_tag: continue
+                    
+                    clean_tag = raw_tag.strip(' -_()（）')
+                    if clean_tag.lower() in ["无", "none", "null", "no", "n/a"]: continue
+                    
+                    if mode == 'dict_name':
+                        resolved_tag = None
+                        if '|' in clean_tag:
+                            try:
+                                clean_tag = clean_tag.split('|')[1 if is_zh else 0].strip()
+                            except: pass
+                            
+                        match = re.search(r'([^\(（]+)[\(（]([^\)）]+)[\)）]?', raw_tag)
+                        test_tags = [match.group(1).strip(), match.group(2).strip()] if match else [raw_tag, clean_tag]
+                        
+                        for test_t in test_tags:
+                            test_t_c = test_t.strip(' -_()（）')
+                            if not test_t_c: continue
+                            if test_t_c in tag_map: resolved_tag = tag_map[test_t_c]; break
+                            if test_t_c.lower() in tag_map: resolved_tag = tag_map[test_t_c.lower()]; break
+                            no_u = test_t_c.replace('_', '').replace(' ', '').lower()
+                            if no_u in tag_map: resolved_tag = tag_map[no_u]; break
+                        
+                        if not resolved_tag: continue 
+                        clean_tag = resolved_tag
+                    else:
+                        if not clean_tag: continue
+                        if is_zh and len(clean_tag) > 5: continue
+                        if not is_zh and len(clean_tag) > 20: continue
+                        if re.fullmatch(r'[0-9\.\-\_]+', clean_tag): continue
+                        if re.fullmatch(r'第?[0-9一二三四五六七八九十百千万]+[章回节部分集季]', clean_tag): continue
+                        if re.fullmatch(r'第[0-9一二三四五六七八九十百千万]+', clean_tag): continue
+                        if any(fw in clean_tag.lower() for fw in filler_words): continue
+                        if clean_tag.lower() in FORBIDDEN_TAGS: continue
+                        
+                        if mode != 'auto_name_en_zh': 
+                            if is_zh:
+                                if re.search(r'[a-zA-Z]{3,}', clean_tag) and not re.search(r'[\u4e00-\u9fa5]', clean_tag): continue 
+                                if re.fullmatch(r'[a-zA-Z0-9\s\-_!@#$%^&*()]+', clean_tag): continue 
+                            else:
+                                if re.search(r'[\u4e00-\u9fa5]', clean_tag): continue
+                    
+                    if clean_tag not in current_file_tags:
+                        current_file_tags.append(clean_tag)
+                
+                for clean_tag in current_file_tags[:5]:
+                    if clean_tag not in tag_to_files: tag_to_files[clean_tag] = []
+                    tag_to_files[clean_tag].append(file_path)
+                    all_applied_tags.add(clean_tag)
+                
+                tagged_count += 1
+                self._update_progress(tagged_count, total_files, mode='ai')
+                time.sleep(0.1) 
+
+            if getattr(self, '_cancel_flag', False):
+                return {"success": False, "msg": self._t('batch_cancelled')}
+
+            if not tag_to_files: return {"success": False, "msg": "AI 未能生成有效的标签（或已被系统过滤机制拦截）"}
+                
+            MAX_CHUNK_LEN = 6000
+            sent_cmds = 0
+            for tag, file_list in tag_to_files.items():
+                if getattr(self, '_cancel_flag', False): break
+                current_chunk = []
+                current_len = 0
+                for fp in file_list:
+                    current_chunk.append(fp)
+                    current_len += len(fp) + 1 
+                    if current_len >= MAX_CHUNK_LEN:
+                        file_list_str = "|".join(current_chunk)
+                        xy_tag = tag.split('@@')[0] if '@@' in tag else tag
+                        safe_tag = xy_tag.replace("'", "''")
+                        safe_file_list_str = file_list_str.replace("'", "''")
+                        tag_cmd = f"::tag '{safe_tag}', '{safe_file_list_str}', 1, 0;"
+                        subprocess.Popen(f'"{exe_path}" /feed="{tag_cmd}"')
+                        sent_cmds += 1
+                        self._update_progress(sent_cmds, total_files, mode='cmd')
+                        time.sleep(0.05) 
+                        if getattr(self, '_cancel_flag', False): break
+                        current_chunk = []
+                        current_len = 0
+                
+                if getattr(self, '_cancel_flag', False): break
+                if current_chunk:
+                    file_list_str = "|".join(current_chunk)
+                    xy_tag = tag.split('@@')[0] if '@@' in tag else tag
+                    safe_tag = xy_tag.replace("'", "''")
+                    safe_file_list_str = file_list_str.replace("'", "''")
+                    tag_cmd = f"::tag '{safe_tag}', '{safe_file_list_str}', 1, 0;"
+                    subprocess.Popen(f'"{exe_path}" /feed="{tag_cmd}"')
+                    sent_cmds += 1
+                    self._update_progress(sent_cmds, total_files, mode='cmd')
+                    time.sleep(0.05)
+            
+            if getattr(self, '_cancel_flag', False):
+                return {"success": False, "msg": self._t('batch_cancelled')}
+            
+            self.log_message(self._t('log_ai_ok'), "INFO")
+            return {"success": True, "count": len(all_files), "tags": list(all_applied_tags), "mode": mode}
+        except Exception as e:
+            self.log_message(self._t('log_ai_err', str(e)), "ERROR")
+            return {"success": False, "msg": str(e)}
+    
     def read_clipboard_safe(self):
         try:
             startupinfo = subprocess.STARTUPINFO()
@@ -396,11 +1309,11 @@ class Api:
         try:
             exe_path = self._normalize_xy_path(xy_path)
             if not exe_path or not os.path.exists(exe_path):
-                return {"success": False, "msg": "未找到 XYplorer.exe"}
+                return {"success": False, "msg": self._t('err_xy_not_found')}
             data_dir = os.path.join(os.path.dirname(exe_path), "Data")
             tag_file = os.path.join(data_dir, "tag.dat")
             if not os.path.exists(tag_file):
-                return {"success": False, "msg": f"找不到数据文件"}
+                return {"success": False, "msg": self._t('log_data_not_found')}
             content = ""
             try:
                 with open(tag_file, 'r', encoding='utf-16') as f: content = f.read()
@@ -427,12 +1340,11 @@ class Api:
                             labels.append({"n": name, "c": bg_color})
                     break 
             if labels: return {"success": True, "labels": labels}
-            else: return {"success": False, "msg": "未在 tag.dat 中找到 Labels 配置"}
+            else: return {"success": False, "msg": self._t('log_tag_dat_err')}
         except Exception as e:
             return {"success": False, "msg": str(e)}
 
     def open_manual(self, lang):
-        # 根据前端传来的语言标识，寻找对应的 html
         docs_dir = os.path.join(BASE_DIR, "Docs")
         if lang == "zh-TW":
             filename = "manual_zh-TW.html"
@@ -444,7 +1356,7 @@ class Api:
         filepath = os.path.join(docs_dir, filename)
         try:
             if os.path.exists(filepath):
-                os.startfile(filepath) # 自动调用系统默认浏览器打开
+                os.startfile(filepath) 
                 return {"success": True}
             else:
                 self.log_message(self._t('log_doc_not_found', filepath), "ERROR")
@@ -499,9 +1411,22 @@ html_template = """
             --btn-add-bg: #064E3B; --btn-add-border: #065F46; --btn-add-text: #34D399;
             --btn-read-bg: #451A03; --btn-read-border: #78350F; --btn-read-text: #FBBF24;
             --btn-clear-bg: #450A0A; --btn-clear-border: #7F1D1D; --btn-clear-text: #FCA5A5;
-        }
 
-        body[data-theme="light"] {
+            /* --- 搜索与悬浮主题色 (Dark) --- */
+        --hl-tag: #FFD700;
+        --hl-tag-hover: #FFF200;
+        --hl-remark: #84CC16;
+        --hl-remark-hover: #BEF264;
+        --hl-desc: #38BDF8;
+        --hl-desc-hover: #7DD3FC;
+
+        /* --- 标签激活状态映射 (Dark) --- */
+        --bg-and: #3B82F6; --text-and: #FFFFFF; --hover-and: #60A5FA;
+        --bg-or: #10B981; --text-or: #FFFFFF; --hover-or: #34D399;
+        --bg-not: #EF4444; --text-not: #FFFFFF; --hover-not: #F87171;
+    }
+
+    body[data-theme="light"] {
             --primary: #2563EB; --green: #059669; --orange: #D97706; --red: #DC2626; --blue: #2563EB;
             
             /* Light Theme Variables - Soft off-whites, avoiding pure white for backgrounds */
@@ -521,9 +1446,23 @@ html_template = """
             --btn-add-bg: #ECFDF5; --btn-add-border: #A7F3D0; --btn-add-text: #059669;
             --btn-read-bg: #FFFBEB; --btn-read-border: #FDE68A; --btn-read-text: #D97706;
             --btn-clear-bg: #FEF2F2; --btn-clear-border: #FECACA; --btn-clear-text: #DC2626;
-        }
+
+            /* --- 搜索与悬浮主题色 (Light) --- */
+            --hl-tag: #D97706;       /* 深琥珀金，保证白底高对比度 */
+            --hl-tag-hover: #B45309;
+            --hl-remark: #65A30D;    /* 深黄绿色 */
+            --hl-remark-hover: #4D7C0F;
+            --hl-desc: #0284C7;      /* 深天蓝色 */
+            --hl-desc-hover: #0369A1;
+
+            /* --- 标签激活状态映射 (Light 恢复高饱和度 + 悬浮提亮变色) --- */
+            /* 悬浮时不仅恢复 1.0 透明度，还将 RGB 映射为与 Dark 模式同款的“明亮发光色” */
+            --bg-and: rgba(59, 130, 246, 0.85); --text-and: #FFFFFF; --hover-and: rgba(96, 165, 250, 1.0);
+            --bg-or: rgba(16, 185, 129, 0.85); --text-or: #FFFFFF; --hover-or: rgba(52, 211, 153, 1.0);
+            --bg-not: rgba(239, 68, 68, 0.85); --text-not: #FFFFFF; --hover-not: rgba(248, 113, 113, 1.0);
+            }
         
-        body { margin: 0; padding: 0; background: var(--bg-main); color: var(--text-main); font-family: "Segoe UI", "Microsoft YaHei", sans-serif; font-size: 13px; height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; user-select: none; }
+        body { margin: 0; padding: 0; background: var(--bg-main); color: var(--text-main); font-family: "Segoe UI", "Microsoft YaHei", sans-serif; font-size: 13px; height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; user-select: none; -webkit-user-select: none; }
         
         /* Modern Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; display: none; }
@@ -531,6 +1470,108 @@ html_template = """
         ::-webkit-scrollbar-track { background: transparent; border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* --- 搜索栏增强样式 --- */
+        #tag-search-results {
+            max-height: 320px; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 4px; /* 【修复】增加行距 */
+            padding-right: 4px;
+        }
+        
+        /* 强制覆盖为现代滚动条，告别原生白条 */
+        #tag-search-results::-webkit-scrollbar { width: 6px; display: block !important; }
+        #tag-search-results::-webkit-scrollbar-track { background: transparent; border-radius: 6px; }
+        #tag-search-results::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 6px; }
+        #tag-search-results::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+        
+        .search-result-item {
+            padding: 8px 12px;     /* 【修复】左右加宽，上下撑开 */
+            min-height: 32px;      /* 【修复】强制最小高度，彻底杜绝文字被裁切 */
+            box-sizing: border-box;
+            cursor: pointer;
+            border-radius: var(--radius);
+            /* 核心修复：开启 Flex 弹性排版 */
+            display: flex; 
+            align-items: center;
+            justify-content: flex-start;
+            font-size: 13px;
+            color: var(--text-main);
+            transition: background 0.1s;
+        }
+        
+        /* 左侧：标签路径（当空间不足时自动收缩并显示省略号） */
+        .search-path-col {
+            opacity: 0.55;
+            margin-right: 6px;
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-shrink: 1; /* 允许被压缩 */
+            min-width: 0;   /* 必须属性，防止 Flex 子元素撑破父级 */
+            line-height: 1.2;
+        }
+        
+        /* 右侧：标签主体（享有最高显示优先级，绝不压缩） */
+        .search-tag-col {
+            white-space: nowrap;
+            flex-shrink: 0; /* 绝对禁止压缩 */
+            line-height: 1.2;
+        }
+
+        /* 斑马纹 */
+        .search-result-item:nth-child(even) { background-color: rgba(128, 128, 128, 0.05); }
+        
+        /* 鼠标悬浮与键盘选中状态 */
+        .search-result-item:hover, .search-result-item.selected {
+            background-color: var(--primary) !important;
+            color: #fff !important;
+        }
+        
+        /* --- 搜索匹配动态高亮系统 --- */
+        .hl-match { font-weight: bold; color: var(--hl-tag) !important; }
+        .search-result-item:hover .hl-match, .search-result-item.selected .hl-match { color: var(--hl-tag-hover) !important; text-shadow: none; }
+        
+        .hl-remark { font-weight: bold; color: var(--hl-remark) !important; }
+        .search-result-item:hover .hl-remark, .search-result-item.selected .hl-remark { color: var(--hl-remark-hover) !important; }
+        
+        .hl-desc { font-weight: bold; color: var(--hl-desc) !important; }
+        .search-result-item:hover .hl-desc, .search-result-item.selected .hl-desc { color: var(--hl-desc-hover) !important; }
+
+        /* --- 恢复标签按钮与分组的默认悬浮效果 (主题蓝) --- */
+        .tag-btn:hover { border-color: var(--primary) !important; color: var(--primary) !important; box-shadow: none; }
+        .group-header:hover .group-title, .group-header:hover .group-arrow { color: inherit !important; }
+        
+        .search-result-item {
+            padding: 6px 10px;
+            cursor: pointer;
+            border-radius: var(--radius);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 13px;
+            color: var(--text-main);
+            transition: background 0.1s;
+        }
+        /* 斑马纹 */
+        .search-result-item:nth-child(even) { background-color: rgba(128, 128, 128, 0.05); }
+        
+        /* 鼠标悬浮与键盘选中状态 */
+        .search-result-item:hover, .search-result-item.selected {
+            background-color: var(--primary) !important;
+            color: #fff !important;
+        }
+        
+        /* 匹配高亮：默认主色，被选中时变白并发光 */
+        .hl-match { font-weight: bold; color: var(--primary); }
+        .search-result-item:hover .hl-match, .search-result-item.selected .hl-match { color: #fff !important; text-shadow: 0 0 3px rgba(255,255,255,0.6); }
+        
+        /* 备注高亮：默认橙黄，被选中时保持金黄 */
+        .hl-remark { color: var(--orange); font-weight: bold; }
+        .search-result-item:hover .hl-remark, .search-result-item.selected .hl-remark { color: #FFD700 !important; }
 
         #app-loader { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--loader-bg); z-index: 9999999; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 16px; font-weight: bold; letter-spacing: 2px; transition: opacity 0.4s; }
         .main-content { padding: 8px 12px; display: flex; flex-direction: column; flex: 1; overflow: hidden; opacity: 0; transition: opacity 0.5s ease-out; gap: 8px;}
@@ -571,10 +1612,14 @@ html_template = """
         .comp-body.active { display: flex; }
         
         .comp-btn-group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-        .comp-btn { background: var(--bg-btn); color: var(--text-main); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: var(--radius); font-size: 12px; font-weight: bold; position: relative; }
+        .comp-btn { background: var(--bg-btn); color: var(--text-main); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: var(--radius); font-size: 12px; font-weight: bold; position: relative; transition: 0.1s; }
         .comp-btn:hover { background: var(--bg-btn-hover); color: var(--primary); border-color: var(--primary); }
-        .comp-btn.s1 { background: var(--green); color: #fff; border-color: transparent; } 
-        .comp-btn.s2 { background: var(--red); color: #fff; border-color: transparent; } 
+        
+        /* 面板的包含(s1)映射为绿色，排除(s2)映射为红色 */
+        .comp-btn.s1 { background: var(--bg-or) !important; color: var(--text-or) !important; border-color: var(--bg-or) !important; } 
+        .comp-btn.s2 { background: var(--bg-not) !important; color: var(--text-not) !important; border-color: var(--bg-not) !important; } 
+        .comp-btn.s1:hover { background: var(--hover-or) !important; border-color: var(--hover-or) !important; color: var(--text-or) !important; }
+        .comp-btn.s2:hover { background: var(--hover-not) !important; border-color: var(--hover-not) !important; color: var(--text-not) !important; }
         
         .comp-lbl-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--bg-btn); color: var(--text-main); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: var(--radius); font-size: 12px; }
         .comp-lbl-btn.active { border-color: var(--primary); background: var(--bg-btn-hover); color: var(--primary); }
@@ -641,7 +1686,7 @@ html_template = """
         .group-header:hover { background-color: rgba(128, 128, 128, 0.08) !important; }
         .group-arrow { width: 16px; font-weight: bold; color: var(--group-arrow, var(--text-muted)); display: flex; align-items: center; }
         .group-arrow svg { width: 14px; height: 14px; }
-        .group-title { font-weight: bold; font-size: 13px; pointer-events: none;}
+        .group-title { font-weight: bold; font-size: 13px; }
         .group-dot { color: var(--green); font-size: 10px; margin-left: 6px; display: none; }
         .group-dot.show { display: inline; }
 
@@ -658,12 +1703,24 @@ html_template = """
         
         .subgroups-area { display: flex; flex-direction: column; width: 100%; }
 
+        /* --- 核心修复：彻底封杀所有交互元素的双击选中文本（幽灵蓝影）现象 --- */
+        .tag-btn, .comp-btn, .group-header, .tool-btn, .ws-tab, .action-btn { 
+            -webkit-user-select: none; 
+            user-select: none; 
+        }
+
         /* 标签按钮紧凑化 */
         .tag-btn { position: relative; height: 25px; padding: 0 8px; background: var(--bg-btn); color: var(--btn-text, var(--text-main)); border: 1px solid var(--border-color); border-radius: var(--radius); font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; white-space: nowrap; transition: 0.1s; }
         .tag-btn:hover { background: var(--bg-btn-hover); border-color: var(--primary); color: var(--primary); }
-        .tag-btn.s1 { background: var(--blue); color: #fff; border-color: transparent; } 
-        .tag-btn.s2 { background: var(--red); color: #fff; border-color: transparent; } 
-        .tag-btn.s3 { background: var(--green); color: #fff; border-color: transparent; } 
+        
+        .tag-btn.s1 { background: var(--bg-and) !important; color: var(--text-and) !important; border-color: var(--bg-and) !important; } 
+        .tag-btn.s2 { background: var(--bg-not) !important; color: var(--text-not) !important; border-color: var(--bg-not) !important; } 
+        .tag-btn.s3 { background: var(--bg-or) !important; color: var(--text-or) !important; border-color: var(--bg-or) !important; } 
+        
+        /* 独立且具有绝对优先权的悬浮修复 */
+        .tag-btn.s1:hover { background: var(--hover-and) !important; border-color: var(--hover-and) !important; color: var(--text-and) !important; }
+        .tag-btn.s2:hover { background: var(--hover-not) !important; border-color: var(--hover-not) !important; color: var(--text-not) !important; }
+        .tag-btn.s3:hover { background: var(--hover-or) !important; border-color: var(--hover-or) !important; color: var(--text-or) !important; }
         
         .tag-del, .custom-ext-del { position: absolute; width: 16px; height: 16px; background: var(--red); color: white; border-radius: 50%; display: none; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.3); z-index: 2; transition: 0.2s;}
         .tag-del { right: -6px; top: -6px; }
@@ -733,11 +1790,46 @@ html_template = """
         .toast.error { border-left-color: var(--red); }
         .toast.success { border-left-color: var(--green); }
         .toast.info { border-left-color: var(--blue); }
+        
+        /* [修复] 增加 width: max-content 强制由内容撑开，避免边缘挤压 */
+        #float-tooltip { display: none; position: fixed; background: var(--bg-menu); color: var(--text-main); padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border-color); box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 999999; width: max-content; max-width: 300px; white-space: pre-wrap; word-wrap: break-word; font-size: 12px; pointer-events: none; line-height: 1.4; }
+
+        /* --- 彻底移除“网页感”的小手光标，回归纯粹的桌面端箭头质感 --- */
+        * { cursor: default !important; }
+        
+        /* [保护机制] 确保所有的文本输入框依然显示文字录入光标 (I字形) */
+        input[type="text"], textarea { cursor: text !important; }
+        
+        /* 确保复选框和单选框也严格使用箭头 */
+        input[type="checkbox"], input[type="radio"] { cursor: default !important; }
     </style>
 </head>
 <body>
 
     <div id="app-loader">L O A D I N G ...</div>
+
+    <div id="tag-search-modal" class="global-dropdown" style="width: 380px; padding: 10px; z-index: 10002; display: none; cursor: default; background: var(--bg-panel);">
+        <div style="display: flex; gap: 6px; margin-bottom: 8px; align-items: center;">
+            <input type="text" id="tag-search-input" data-i18n-ph="search_ph" style="flex: 1;" oninput="doTagSearch()">
+            <button class="tool-btn" onclick="closeTagSearch()" v-html="delete"></button>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; color: var(--text-muted); padding: 0 4px;">
+            <div style="display: flex; gap: 15px;">
+                <label style="cursor: pointer;"><input type="radio" name="search_mode" value="fuzzy" checked onclick="doTagSearch()"> <span data-i18n="fuzzy">模糊</span></label>
+                <label style="cursor: pointer;"><input type="radio" name="search_mode" value="exact" onclick="doTagSearch()"> <span data-i18n="exact">精准</span></label>
+            </div>
+            <label style="cursor: pointer;" data-i18n-title="remember_search_hint"><input type="checkbox" id="search-memory-toggle" onclick="toggleSearchMemory(this.checked)"> <span data-i18n="remember_search">记忆搜索</span></label>
+        </div>
+        <div style="display: flex; gap: 10px; margin-bottom: 8px; font-size: 12px; color: var(--text-muted); padding: 0 4px; border-top: 1px dashed var(--border-color); padding-top: 6px;">
+            <span data-i18n="search_in" style="opacity: 0.8;">范围:</span>
+            <label style="cursor: pointer;"><input type="checkbox" id="search-in-group" checked onchange="doTagSearch()"> <span data-i18n="s_group">标签组</span></label>
+            <label style="cursor: pointer;"><input type="checkbox" id="search-in-tag" checked onchange="doTagSearch()"> <span data-i18n="s_tag">标签</span></label>
+            <label style="cursor: pointer;"><input type="checkbox" id="search-in-remark" checked onchange="doTagSearch()"> <span data-i18n="s_remark">备注</span></label>
+            <label style="cursor: pointer;"><input type="checkbox" id="search-in-desc" checked onchange="doTagSearch()"> <span data-i18n="s_desc">描述</span></label>
+        </div>
+        <div id="tag-search-results">
+            </div>
+    </div>
 
     <div class="main-content">
         <div class="ws-bar" id="ws-bar">
@@ -896,11 +1988,14 @@ html_template = """
         <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px; flex-shrink: 0;">
             <span style="font-size: 14px; font-weight: bold; color: var(--primary);" data-i18n="tag_group">🏷️ 标签组</span>
             <div style="flex: 1;"></div>
-            <button class="tool-btn" data-i18n-title="clear_tree" onclick="clearAll()" v-html="clear"></button>
-            <button class="tool-btn" id="btn-toggle" data-i18n-title="toggle_all" onclick="toggleAll()" v-html="expand"></button>
-            <button class="tool-btn" id="btn-active" data-i18n-title="expand_active" onclick="toggleTool('activeOnly')"><div class="icon-solid-circle"></div></button>
-            <button class="tool-btn" id="btn-filter" data-i18n-title="show_active" onclick="toggleTool('filterOnly')"><div class="icon-outline-circle"></div></button>
-            <button class="tool-btn" id="btn-edit" data-i18n-title="edit_mode" onclick="toggleTool('editMode')" v-html="edit"></button>
+            <button class="tool-btn" data-i18n-title="clear_tree" onmousedown="event.preventDefault(); clearAll()" ondblclick="event.preventDefault()" v-html="clear"></button>
+            <button class="tool-btn" id="btn-toggle" data-i18n-title="toggle_all" onmousedown="event.preventDefault(); toggleAll(event)" ondblclick="event.preventDefault()" oncontextmenu="event.preventDefault()" v-html="expand"></button>
+            <button class="tool-btn" id="btn-active" data-i18n-title="expand_active" onmousedown="event.preventDefault(); toggleTool('activeOnly')" ondblclick="event.preventDefault()"><div class="icon-solid-circle"></div></button>
+            <button class="tool-btn" id="btn-filter" data-i18n-title="show_active" onmousedown="event.preventDefault(); toggleTool('filterOnly')" ondblclick="event.preventDefault()"><div class="icon-outline-circle"></div></button>
+            <button class="tool-btn" id="btn-edit" data-i18n-title="edit_mode" onmousedown="event.preventDefault(); toggleTool('editMode')" ondblclick="event.preventDefault()" v-html="edit"></button>
+            <button class="tool-btn" id="btn-swap-alias" data-i18n-title="swap_alias" onmousedown="event.preventDefault(); toggleTool('showAlias')" ondblclick="event.preventDefault()" v-html="swap"></button>
+            <button class="tool-btn" id="btn-toggle-tooltip" data-i18n-title="toggle_tooltip" onmousedown="event.preventDefault(); toggleTool('enableTooltip')" ondblclick="event.preventDefault()" v-html="tooltip"></button>
+            <button class="tool-btn" style="margin-left:4px;" data-i18n-title="search_tags" onclick="openTagSearch(event)" v-html="search"></button>
             <button class="tool-btn btn-plus-icon" data-i18n-title="add_root" onclick="addRootGroup(event)" oncontextmenu="triggerBatchAddMenu(event, 'root')" v-html="add"></button>
         </div>
 
@@ -910,6 +2005,11 @@ html_template = """
     <div id="global-hist-dropdown" class="global-dropdown"></div>
 
     <div id="ctx-menu">
+        <div class="menu-item" onclick="ctxAction('select-all-or')"><span class="menu-icon" style="color:var(--green);" v-html="selectAll"></span><span class="menu-text" data-i18n="ctx_select_or">全选组内标签 (或)</span></div>
+        <div class="menu-item" onclick="ctxAction('exclude-all')"><span class="menu-icon" style="color:var(--red);" v-html="excludeAll"></span><span class="menu-text" data-i18n="ctx_exclude_all">排除组内标签 (非)</span></div>
+        <div class="menu-item" onclick="ctxAction('clear-group')"><span class="menu-icon" v-html="clear"></span><span class="menu-text" data-i18n="ctx_clear_group">清除组内状态</span></div>
+        <div style="border-top:1px solid var(--border-color); margin:4px 0;"></div>
+        
         <div class="menu-item" id="ctx-expand" onclick="ctxAction('expand-all')"><span class="menu-icon" v-html="expand"></span><span class="menu-text" data-i18n="expand_all_sub">展开子组</span></div>
         <div class="menu-item" id="ctx-collapse" onclick="ctxAction('collapse-leaf')"><span class="menu-icon" v-html="minimize"></span><span class="menu-text" data-i18n="collapse_leaf">折叠子组</span></div>
         <div style="border-top:1px solid var(--border-color); margin:4px 0;"></div>
@@ -936,13 +2036,48 @@ html_template = """
     </div>
     
     <div id="action-btn-ctx-menu">
+        <div class="menu-item" id="ctx-batch-ucs" style="display:none;" onclick="execBatchUCS()"><span class="menu-icon" v-html="edit"></span><span class="menu-text" data-i18n="batch_ucs">批量UCS标签</span></div>
+        <div class="menu-item" id="ctx-batch-ucs-name" style="display:none;" onclick="execBatchUCSName()"><span class="menu-icon" v-html="edit"></span><span class="menu-text" data-i18n="batch_ucs_name">批量文件名转UCS标签</span></div>
+        <div id="ai-sep" style="border-top:1px solid var(--border-color); margin:4px 0; display:none;"></div>
+        <div class="menu-item" id="ctx-ai-filename-dict" style="display:none;" onclick="execAITagging('dict_name')"><span class="menu-icon" style="color:var(--orange);" v-html="info"></span><span class="menu-text" data-i18n="ai_filename_dict">AI 文件名匹配字典 (不激活)</span></div>
+        <div class="menu-item has-submenu" id="ctx-ai-filename-auto-en-zh" style="display:none;">
+            <span class="menu-icon" style="color:var(--orange);" v-html="info"></span><span class="menu-text" data-i18n="ai_filename_auto_en_zh">AI 文件名自动生成标签-英中 (激活)</span><span class="submenu-arrow" v-html="arrowRight"></span>
+            <div class="submenu" style="min-width: 140px; margin-left: 5px;">
+                <div class="submenu-item" onclick="execAITagging('auto_name_en_zh', '通用')"><span data-i18n="domain_general">通用领域</span></div>
+                <div class="submenu-item" onclick="execAITagging('auto_name_en_zh', '音效/音频')"><span data-i18n="domain_audio">音效 / 音频</span></div>
+                <div class="submenu-item" onclick="execAITagging('auto_name_en_zh', '影视/视频')"><span data-i18n="domain_video">影视 / 视频</span></div>
+                <div class="submenu-item" onclick="execAITagging('auto_name_en_zh', '设计/图像素材')"><span data-i18n="domain_design">设计 / 图像素材</span></div>
+                <div class="submenu-item" onclick="execAITagging('auto_name_en_zh', '摄影/照片')"><span data-i18n="domain_photo">摄影 / 照片</span></div>
+                <div class="submenu-item" onclick="execAITagging('auto_name_en_zh', '时尚/穿搭')"><span data-i18n="domain_fashion">时尚 / 穿搭</span></div>
+                <div class="submenu-item" onclick="execAITagging('auto_name_en_zh', '编程/代码')"><span data-i18n="domain_code">编程 / 代码</span></div>
+                <div class="submenu-item" onclick="execAITagging('auto_name_en_zh', '文档/办公')"><span data-i18n="domain_office">文档 / 办公</span></div>
+            </div>
+        </div>
+        <div class="menu-item has-submenu" id="ctx-ai-filename-auto" style="display:none;">
+            <span class="menu-icon" style="color:var(--orange);" v-html="info"></span><span class="menu-text" data-i18n="ai_filename_auto">AI 文件名自动生成标签 (激活)</span><span class="submenu-arrow" v-html="arrowRight"></span>
+            <div class="submenu" style="min-width: 140px; margin-left: 5px;">
+                <div class="submenu-item" onclick="execAITagging('auto_name', '通用')"><span data-i18n="domain_general">通用领域</span></div>
+                <div class="submenu-item" onclick="execAITagging('auto_name', '音效/音频')"><span data-i18n="domain_audio">音效 / 音频</span></div>
+                <div class="submenu-item" onclick="execAITagging('auto_name', '影视/视频')"><span data-i18n="domain_video">影视 / 视频</span></div>
+                <div class="submenu-item" onclick="execAITagging('auto_name', '设计/图像素材')"><span data-i18n="domain_design">设计 / 图像素材</span></div>
+                <div class="submenu-item" onclick="execAITagging('auto_name', '摄影/照片')"><span data-i18n="domain_photo">摄影 / 照片</span></div>
+                <div class="submenu-item" onclick="execAITagging('auto_name', '时尚/穿搭')"><span data-i18n="domain_fashion">时尚 / 穿搭</span></div>
+                <div class="submenu-item" onclick="execAITagging('auto_name', '编程/代码')"><span data-i18n="domain_code">编程 / 代码</span></div>
+                <div class="submenu-item" onclick="execAITagging('auto_name', '文档/办公')"><span data-i18n="domain_office">文档 / 办公</span></div>
+            </div>
+        </div>
+        <div class="menu-item" id="ctx-ai-content-auto" style="display:none;" onclick="execAITagging('auto_content')"><span class="menu-icon" style="color:var(--orange);" v-html="info"></span><span class="menu-text" data-i18n="ai_content_auto">AI 文本内容自动生成 (激活)</span></div>
         <div class="menu-item" onclick="execActionBtnColor()"><span class="menu-icon" v-html="palette"></span><span class="menu-text" data-i18n="edit_bg">修改背景颜色</span></div>
         <div class="menu-item" onclick="execActionBtnColorReset()"><span class="menu-icon" v-html="refresh"></span><span class="menu-text" data-i18n="reset_color">恢复默认颜色</span></div>
     </div>
 
     <div id="batch-add-menu">
         <div class="menu-item" onclick="executeBatchAddMenu()"><span class="menu-icon" id="batch-title-icon" v-html="add"></span><span class="menu-text" id="batch-title-text" data-i18n="batch_add">批量新建</span></div>
+        <div id="ws-io-separator" style="border-top:1px solid var(--border-color); margin:4px 0; display:none;"></div>
+        <div class="menu-item" id="ws-export-btn" style="display:none;" onclick="exportCurrentWorkspace()"><span class="menu-icon" v-html="export"></span><span class="menu-text" data-i18n="export_workspace">导出当前工作区</span></div>
+        <div class="menu-item" id="ws-import-btn" style="display:none;" onclick="importToWorkspace()"><span class="menu-icon" v-html="importIco"></span><span class="menu-text" data-i18n="import_workspace">导入到当前工作区</span></div>
     </div>
+    <input type="file" id="import-ws-file" accept=".json" style="display:none;" onchange="handleImportWorkspace(event)">
     <div id="ext-batch-menu" class="global-dropdown" style="display: none; position: fixed; z-index: 9999; background: var(--bg-menu); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); flex-direction: column; padding: 4px; min-width: 140px;">
         <div class="menu-item" onclick="batchTarget = { type: 'ext' }; executeBatchAddMenu(); document.getElementById('ext-batch-menu').style.display='none';"><span class="menu-icon" v-html="edit"></span><span class="menu-text" data-i18n="batch_ext_custom">自定义批量添加...</span></div>
         <div style="border-top:1px solid var(--border-color); margin:4px 0;"></div>
@@ -966,6 +2101,39 @@ html_template = """
     
     <div id="quick-edit">
         <input type="text" id="edit-input">
+    </div>
+
+    <div id="detail-edit" class="global-dropdown" style="padding: 12px; width: 300px; display: none; background: var(--bg-panel); cursor: default; z-index: 10003; box-sizing: border-box;">
+        <div style="font-size: 13px; font-weight: bold; color: var(--primary); margin-bottom: 10px;" id="de-title">编辑属性</div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;" data-i18n="alias_remark">别名/备注</div>
+        <input type="text" id="de-alias" style="width: 100%; box-sizing: border-box; margin-bottom: 12px; background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 6px 10px; font-family: inherit; font-size: 12px; outline: none;">
+        <div style="font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span data-i18n="descriptions">描述 (多行)</span>
+            <button class="tool-btn btn-plus-icon" style="width: 20px; height: 20px;" onclick="addDeDescRow()" v-html="add"></button>
+        </div>
+        <div id="de-desc-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; overflow-x: hidden; margin-bottom: 12px; padding-right: 4px;"></div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <button class="settings-btn" style="padding: 6px 16px; width: auto;" onclick="closeDetailEdit()" data-i18n="cancel">取消</button>
+            <button class="action-btn btn-search" style="padding: 6px 16px; border:none; width: auto;" onclick="submitDetailEdit()" data-i18n="save">保存</button>
+        </div>
+    </div>
+    
+    <div id="float-tooltip"></div>
+
+    <div id="batch-progress-overlay" class="modal-overlay" style="z-index: 100000; backdrop-filter: blur(3px);">
+        <div class="modal-content" style="width: 380px; text-align: center; justify-content: center; padding: 25px;">
+            <h3 style="margin-top: 0; color: var(--primary); font-size: 16px;" data-i18n="batch_processing">🔄 批量处理中...</h3>
+            <p style="color: var(--red); font-weight: bold; font-size: 15px; margin: 15px 0;" data-i18n="batch_warning">
+                ⚠️ XYplorer完成批量打签前请勿操作！
+            </p>
+            <div style="background: var(--bg-input); padding: 12px; border-radius: var(--radius); margin-bottom: 20px;">
+                <span id="batch-progress-status" style="font-size: 13px; color: var(--text-main); font-family: monospace;" data-i18n="batch_status">正在分析文件并生成指令...</span>
+            </div>
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button id="batch-cancel-btn" class="settings-btn" style="width: 120px; border: 1px solid var(--border-color);" onclick="cancelBatchOperation()" data-i18n="batch_cancel">取消操作</button>
+                <button id="batch-done-btn" class="action-btn btn-add" style="display:none; width: 140px; padding: 8px;" onclick="closeBatchProgressOverlay()" data-i18n="batch_exit">退出批量操作</button>
+            </div>
+        </div>
     </div>
     
     <div id="batch-modal" class="modal-overlay">
@@ -1062,11 +2230,17 @@ ageM: <= 7 d = modified last 7 days</div>
             </div>
 
             <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;" data-i18n="xy_path_hint">XYplorer 路径 (支持填写exe或纯文件夹路径):</div>
-            <div style="display:flex; gap:8px; margin-bottom:20px; align-items:center;">
+            <div style="display:flex; gap:8px; margin-bottom:15px; align-items:center;">
                 <input type="text" id="cfg-xy-path" placeholder="E:\\XYplorer" style="flex:1; box-sizing:border-box; margin:0;">
                 <button class="settings-btn" style="width:auto; padding:5px 12px; height: 29px; white-space: nowrap;" onclick="testXYplorer()"><span v-html="check"></span> <span data-i18n="test_xy_path">测试路径</span></button>
             </div>
             
+            <div style="border-top:1px dashed var(--border-color); margin-bottom:15px;"></div>
+            <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;" data-i18n="settings_ai_api">AI API 地址 (Ollama):</div>
+            <input type="text" id="cfg-ai-api" placeholder="http://localhost:11434/api/generate" style="width:100%; box-sizing:border-box; margin-bottom:15px;">
+            
+            <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;" data-i18n="settings_ai_model">AI 模型名称 (如 qwen2.5:0.5b):</div>
+            <input type="text" id="cfg-ai-model" placeholder="qwen2.5:0.5b" style="width:100%; box-sizing:border-box; margin-bottom:20px;">
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
                 <button class="settings-btn" onclick="exportData()"><span v-html="export"></span> <span data-i18n="export_data">导出工作区数据</span></button>
                 <button class="settings-btn" onclick="document.getElementById('import-data-file').click()"><span v-html="importIco"></span> <span data-i18n="import_data">导入工作区数据</span></button>
@@ -1150,6 +2324,8 @@ ageM: <= 7 d = modified last 7 days</div>
             pinActive: `<svg viewBox="0 0 24 24" fill="var(--primary)" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 11.7V6h1a1 1 0 0 0 0-2H8a1 1 0 0 0 0 2h1v5.7a2 2 0 0 1-1.11 1.64l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>`,
             settings: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`,
             edit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
+            swap: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7L20 7M20 7L16 3M20 7L16 11M16 17L4 17M4 17L8 21M4 17L8 13"/></svg>`,
+            tooltip: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`,
             delete: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`,
             arrowRight: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>`,
             arrowDown: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>`,
@@ -1159,7 +2335,9 @@ ageM: <= 7 d = modified last 7 days</div>
             expand: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>`,
             minimize: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>`,
             check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
-            refresh: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>`
+            refresh: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>`,
+            selectAll: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><path d="M9 12l2 2 4-4"></path></svg>`,
+            excludeAll: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="15"></line><line x1="15" y1="9" x2="9" y2="15"></line></svg>`
         };
         
         const I18N = {
@@ -1169,6 +2347,20 @@ ageM: <= 7 d = modified last 7 days</div>
                 '?*': '含标签', '""': '无标签',
                 
                 'checking_update': '检查中...',
+                'search_tags': '搜索标签',
+                'match_desc': '描述',
+                'search_in': '范围:', 's_group': '标签组', 's_tag': '标签', 's_remark': '备注', 's_desc': '描述',
+                'search_ph': '输入标签名或备注 (上下键选择, Enter)', 'fuzzy': '模糊', 'exact': '精准', 'remember_search': '记忆搜索', 'remember_search_hint': '开启后，下次打开自动恢复上次的搜索词', 'search_no_input': '输入文字以开始检索...', 'search_no_match': '无匹配结果', 'search_limit': '仅显示前 {n} 条...',
+                'domain_general': '通用领域', 'domain_audio': '音效 / 音频', 'domain_video': '影视 / 视频', 'domain_design': '设计 / 图像素材', 'domain_photo': '摄影 / 照片', 'domain_code': '编程 / 代码', 'domain_fashion': '时尚 / 穿搭', 'domain_office': '文档 / 办公',
+                'batch_ucs_name': '批量文件名转UCS标签',
+                'batch_ucs': '批量打UCS标签', 'toast_ucs_processing': '正在处理UCS标签，请稍候...', 'toast_ucs_success': '成功为 {n} 个文件添加了UCS标签！', 'toast_ucs_fail': '处理失败: ',
+                'ai_filename_dict': 'AI 文件名匹配UCS标签 (不激活)', 'ai_filename_auto': 'AI 文件名自动生成标签 (激活)', 'ai_content_auto': 'AI 文本内容自动生成标签 (激活)', 'ai_filename_auto_en_zh': 'AI 文件名自动生成标签-英中 (激活)',
+                'toast_ai_processing': 'AI 正在思考并处理标签，请耐心等待...', 'toast_ai_success': 'AI 处理完成！成功为 {n} 个文件打标。', 'toast_ai_fail': 'AI 处理失败: ',
+                'settings_ai_api': 'AI API 地址 (Ollama):', 'settings_ai_model': 'AI 模型名称 (如 qwen2.5:0.5b):',
+                'swap_alias': '切换显示别名/备注', 'toggle_tooltip': '开启/关闭悬浮提示',
+                'ctx_select_or': '全选组内标签 (或)', 'ctx_exclude_all': '排除组内标签 (非)', 'ctx_clear_group': '清除组内状态',
+                'export_workspace': '导出当前工作区', 'import_workspace': '导入到当前工作区', 'toast_export_ok': '工作区导出成功', 'toast_export_fail': '工作区导出取消或失败', 'toast_import_ok': '工作区导入成功', 'toast_import_err': '工作区导入失败',
+                'set_alias': '设置翻译/备注', 'alias_remark': '别名/备注', 'descriptions': '描述', 'add_desc': '添加描述',
                 'log_import_cfg_ok': '成功导入软件设置并重启', 'log_import_cfg_err': '导入软件设置失败: 解析错误', 'log_func_color_rst': '功能按钮颜色已恢复默认', 'log_sync_fail': '同步失败: ', 'log_ws_color_upd': '工作区颜色已更新', 'log_ws_color_rst': '工作区颜色已恢复默认', 'log_ws_keep_one': '至少需保留一个工作区！', 'log_tag_del': '标签 "{tag}" 已删除', 'log_grp_color_upd': '分组颜色已更新', 'log_grp_color_rst': '分组颜色已恢复默认', 'log_hist_del': '历史记录已删除', 'log_update_err': '检查更新异常: ',
                 'test_xy_path': '测试路径', 'toast_test_ok': 'XYplorer 连接成功！', 'toast_test_fail': '未找到 XYplorer 或调用失败，请检查路径',
                 'log_import_ok': '成功导入工作区数据', 'log_import_err': '导入数据失败: 解析错误', 'log_color_upd': '颜色已更新', 'log_color_rst': '颜色已恢复默认', 'log_sync_ok': 'XYplorer 批注同步成功', 'log_ws_del': '工作区已删除', 'log_uncat_rst': '未分类组已恢复默认标签',
@@ -1204,6 +2396,14 @@ ageM: <= 7 d = modified last 7 days</div>
                 'confirm_del_title': '确认删除',
                 'manual_title': '使用指南',
                 'batch_ext_custom': '自定义批量添加...', 'batch_ext_text': '批量添加 文本 后缀', 'batch_ext_image': '批量添加 图像 后缀', 'batch_ext_audio': '批量添加 音频 后缀', 'batch_ext_video': '批量添加 视频 后缀', 'batch_ext_doc': '批量添加 文档 后缀',
+                'batch_processing': '🔄 批量处理中...',
+                'batch_warning': '⚠️ XYplorer完成批量打签前请勿操作！',
+                'batch_status': '正在分析文件并生成指令...',
+                'batch_cancel': '取消操作',
+                'batch_exit': '退出批量操作',
+                'cancelling': '正在取消...',
+                'batch_sent_cmds': '已发送命令数: {c} / 需处理文件总数: {t}',
+                'ai_processing_status': 'AI 正在分析文件: {c} / {t}',
                 
                 'toast_ext_added': '自定义后缀已添加', 'toast_sync_ok': '同步成功', 'toast_sync_fail': '同步失败', 'toast_hist_saved': '历史记录已保存', 'toast_ws_keep_one': '至少需保留一个工作区！', 'toast_ws_deleted': '工作区已删除', 'toast_save_ok': '保存成功', 'toast_export_data_ok': '导出工作区数据成功', 'toast_export_config_ok': '导出软件配置成功', 'toast_import_data_ok': '导入工作区数据成功', 'toast_import_error': '导入失败: 解析错误', 'toast_batch_add_ok': '批量添加成功', 'toast_no_tags_act': '执行失败: 当前未激活任何要添加或移除的标签', 'toast_tag_cmd_sent': '标签修改指令已发送', 'toast_reading_clip': '正在读取剪贴板提取标签...', 'toast_no_docs': '未找到说明文档，请检查程序目录下的 Docs 文件夹', 'toast_clip_empty': '读取失败: 剪贴板为空', 'toast_clip_long': '内容较长或包含多行，请手动确认', 'toast_read_fail': '读取失败: 未解析到有效标签', 'toast_read_none': '未解析到有效标签', 'toast_read_success': '成功读取并激活 {n} 个标签', 'toast_no_uncat_op': '无法操作未分类组',
 
@@ -1219,6 +2419,20 @@ ageM: <= 7 d = modified last 7 days</div>
                 '文本': '文字', '图像': '影像', '照片': '相片', '音频': '音訊', '视频': '視訊', '媒体': '媒體', '字体': '字型', '矢量图': '向量圖', '网页': '網頁', '文档': '文件', '压缩包': '壓縮檔', '可执行': '執行檔', '文件夹': '資料夾',
                 
                 'checking_update': '檢查中...',
+                'search_tags': '搜尋標籤',
+                'match_desc': '描述',
+                'search_in': '範圍:', 's_group': '標籤組', 's_tag': '標籤', 's_remark': '備註', 's_desc': '描述',
+                'search_ph': '輸入標籤名或備註 (上下鍵選擇, Enter)', 'fuzzy': '模糊', 'exact': '精準', 'remember_search': '記憶搜尋', 'remember_search_hint': '開啟後，下次打開自動恢復上次的搜尋詞', 'search_no_input': '輸入文字以開始檢索...', 'search_no_match': '無匹配結果', 'search_limit': '僅顯示前 {n} 條...',
+                'domain_general': '通用領域', 'domain_audio': '音效 / 音訊', 'domain_video': '影視 / 視訊', 'domain_design': '設計 / 影像素材', 'domain_photo': '攝影 / 照片', 'domain_code': '程式設計 / 程式碼', 'domain_fashion': '時尚 / 穿搭', 'domain_office': '文件 / 辦公',
+                'batch_ucs_name': '批次檔名轉UCS標籤',
+                'batch_ucs': '批次打UCS標籤', 'toast_ucs_processing': '正在處理UCS標籤，請稍候...', 'toast_ucs_success': '成功為 {n} 個檔案新增了UCS標籤！', 'toast_ucs_fail': '處理失敗: ',
+                'ai_filename_dict': 'AI 檔名匹配UCS標籤 (不啟動)', 'ai_filename_auto': 'AI 檔名自動生成標籤 (啟動)', 'ai_content_auto': 'AI 文本內容自動生成標籤 (啟動)', 'ai_filename_auto_en_zh': 'AI 檔名自動生成標籤-英中 (啟動)',
+                'toast_ai_processing': 'AI 正在思考並處理標籤，請耐心等待...', 'toast_ai_success': 'AI 處理完成！成功為 {n} 個檔案打標。', 'toast_ai_fail': 'AI 處理失敗: ',
+                'settings_ai_api': 'AI API 地址 (Ollama):', 'settings_ai_model': 'AI 模型名稱 (如 qwen2.5:0.5b):',
+                'swap_alias': '切換顯示別名/備註', 'toggle_tooltip': '開啟/關閉懸浮提示',
+                'ctx_select_or': '全選群組標籤 (或)', 'ctx_exclude_all': '排除群組標籤 (非)', 'ctx_clear_group': '清除群組狀態',
+                'export_workspace': '匯出當前工作區', 'import_workspace': '匯入到當前工作區', 'toast_export_ok': '工作區匯出成功', 'toast_export_fail': '工作區匯出取消或失敗', 'toast_import_ok': '工作區匯入成功', 'toast_import_err': '工作區匯入失敗',
+                'set_alias': '設定翻譯/備註', 'alias_remark': '別名/備註', 'descriptions': '描述', 'add_desc': '新增描述',
                 'log_import_cfg_ok': '成功匯入軟體設定並重啟', 'log_import_cfg_err': '匯入軟體設定失敗: 解析錯誤', 'log_func_color_rst': '功能按鈕顏色已恢復預設', 'log_sync_fail': '同步失敗: ', 'log_ws_color_upd': '工作區顏色已更新', 'log_ws_color_rst': '工作區顏色已恢復預設', 'log_ws_keep_one': '至少需保留一個工作區！', 'log_tag_del': '標籤 "{tag}" 已刪除', 'log_grp_color_upd': '群組顏色已更新', 'log_grp_color_rst': '群組顏色已恢復預設', 'log_hist_del': '歷史紀錄已刪除', 'log_update_err': '檢查更新異常: ',
                 'test_xy_path': '測試路徑', 'toast_test_ok': 'XYplorer 連接成功！', 'toast_test_fail': '未找到 XYplorer 或呼叫失敗，請檢查路徑',
                 'log_import_ok': '成功匯入工作區資料', 'log_import_err': '匯入資料失敗: 解析錯誤', 'log_color_upd': '顏色已更新', 'log_color_rst': '顏色已恢復預設', 'log_sync_ok': 'XYplorer 批註同步成功', 'log_ws_del': '工作區已刪除', 'log_uncat_rst': '未分類群組已恢復預設標籤',
@@ -1254,6 +2468,14 @@ ageM: <= 7 d = modified last 7 days</div>
                 'confirm_del_title': '確認刪除',
                 'manual_title': '使用指南',
                 'batch_ext_custom': '自訂批次新增...', 'batch_ext_text': '批次新增 文字 副檔名', 'batch_ext_image': '批次新增 影像 副檔名', 'batch_ext_audio': '批次新增 音訊 副檔名', 'batch_ext_video': '批次新增 視訊 副檔名', 'batch_ext_doc': '批次新增 文件 副檔名',
+                'batch_processing': '🔄 批次處理中...',
+                'batch_warning': '⚠️ XYplorer完成批次打籤前請勿操作！',
+                'batch_status': '正在分析檔案並生成指令...',
+                'batch_cancel': '取消操作',
+                'batch_exit': '退出批次操作',
+                'cancelling': '正在取消...',
+                'batch_sent_cmds': '已發送命令數: {c} / 需處理檔案總數: {t}',
+                'ai_processing_status': 'AI 正在分析檔案: {c} / {t}',
                 
                 'toast_ext_added': '自訂副檔名已新增', 'toast_sync_ok': '同步成功', 'toast_sync_fail': '同步失敗', 'toast_hist_saved': '歷史紀錄已儲存', 'toast_ws_keep_one': '至少需保留一個工作區！', 'toast_ws_deleted': '工作區已刪除', 'toast_save_ok': '儲存成功', 'toast_export_data_ok': '匯出工作區資料成功', 'toast_export_config_ok': '匯出軟體設定成功', 'toast_import_data_ok': '匯入工作區資料成功', 'toast_import_error': '匯入失敗: 解析錯誤', 'toast_batch_add_ok': '批次新增成功', 'toast_no_tags_act': '執行失敗: 當前未啟動任何要新增或移除的標籤', 'toast_tag_cmd_sent': '標籤修改指令已發送', 'toast_reading_clip': '正在讀取剪貼簿提取標籤...', 'toast_no_docs': '未找到說明文件，請檢查程式目錄下的 Docs 資料夾', 'toast_clip_empty': '讀取失敗: 剪貼簿為空', 'toast_clip_long': '內容較長或包含多行，請手動確認', 'toast_read_fail': '讀取失敗: 未解析到有效標籤', 'toast_read_none': '未解析到有效標籤', 'toast_read_success': '成功讀取並啟動 {n} 個標籤', 'toast_no_uncat_op': '無法操作未分類群組',
 
@@ -1269,6 +2491,20 @@ ageM: <= 7 d = modified last 7 days</div>
                 '文本': 'Text', '图像': 'Image', '照片': 'Photo', '音频': 'Audio', '视频': 'Video', '媒体': 'Media', '字体': 'Font', '矢量图': 'Vector', '网页': 'Web', '文档': 'Document', '压缩包': 'Archive', '可执行': 'Executable', '文件夹': 'Folder',
                 
                 'checking_update': 'Checking...',
+                'search_tags': 'Search Tags',
+                'match_desc': 'Desc',
+                'search_in': 'In:', 's_group': 'Group', 's_tag': 'Tag', 's_remark': 'Remark', 's_desc': 'Desc',
+                'search_ph': 'Search tags/remarks (Up/Down, Enter)', 'fuzzy': 'Fuzzy', 'exact': 'Exact', 'remember_search': 'Remember', 'remember_search_hint': 'Restore last search query', 'search_no_input': 'Type to start searching...', 'search_no_match': 'No match found', 'search_limit': 'Showing first {n} results...',
+                'domain_general': 'General', 'domain_audio': 'Audio / SFX', 'domain_video': 'Video / Film', 'domain_design': 'Design / Assets', 'domain_photo': 'Photography', 'domain_code': 'Programming / Code', 'domain_fashion': 'Fashion', 'domain_office': 'Docs / Office',
+                'batch_ucs_name': 'Batch Filename to UCS Tags',
+                'batch_ucs': 'Batch UCS Tags', 'toast_ucs_processing': 'Processing UCS Tags...', 'toast_ucs_success': 'Successfully added UCS tags to {n} files!', 'toast_ucs_fail': 'Failed: ',
+                'ai_filename_dict': 'AI Filename -> UCS Tags (No Active)', 'ai_filename_auto': 'AI Filename -> Auto Tags (Active)', 'ai_content_auto': 'AI Content -> Auto Tags (Active)', 'ai_filename_auto_en_zh': 'AI Filename -> Auto Tags En/Zh (Active)',
+                'toast_ai_processing': 'AI is thinking and processing tags...', 'toast_ai_success': 'AI Tagging Complete! Successfully tagged {n} files.', 'toast_ai_fail': 'AI Process failed: ',
+                'settings_ai_api': 'AI API URL (Ollama):', 'settings_ai_model': 'AI Model Name (e.g. qwen2.5:0.5b):',
+                'swap_alias': 'Toggle Alias/Remark', 'toggle_tooltip': 'Toggle Hover Tooltip',
+                'ctx_select_or': 'Select All in Group (OR)', 'ctx_exclude_all': 'Exclude All in Group (NOT)', 'ctx_clear_group': 'Clear Group State',
+                'export_workspace': 'Export Workspace', 'import_workspace': 'Import Workspace', 'toast_export_ok': 'Workspace exported', 'toast_export_fail': 'Export cancelled or failed', 'toast_import_ok': 'Workspace imported', 'toast_import_err': 'Workspace import failed',
+                'set_alias': 'Set Translation/Remark', 'alias_remark': 'Alias/Remark', 'descriptions': 'Descriptions', 'add_desc': 'Add Description',
                 'log_import_cfg_ok': 'App config imported successfully, restarting', 'log_import_cfg_err': 'Failed to import app config: Parsing error', 'log_func_color_rst': 'Action button color restored to default', 'log_sync_fail': 'Sync failed: ', 'log_ws_color_upd': 'Workspace color updated', 'log_ws_color_rst': 'Workspace color restored to default', 'log_ws_keep_one': 'At least one workspace must be kept!', 'log_tag_del': 'Tag "{tag}" deleted', 'log_grp_color_upd': 'Group color updated', 'log_grp_color_rst': 'Group color restored to default', 'log_hist_del': 'History deleted', 'log_update_err': 'Update check exception: ',
                 'test_xy_path': 'Test Path', 'toast_test_ok': 'XYplorer connected successfully!', 'toast_test_fail': 'XYplorer not found or failed, check path',
                 'log_import_ok': 'Workspace data imported successfully', 'log_import_err': 'Import failed: Parsing error', 'log_color_upd': 'Color updated successfully', 'log_color_rst': 'Color restored to default', 'log_sync_ok': 'XYplorer labels synced successfully', 'log_ws_del': 'Workspace deleted', 'log_uncat_rst': 'Uncategorized group restored to default tags',
@@ -1304,6 +2540,14 @@ ageM: <= 7 d = modified last 7 days</div>
                 'confirm_del_title': 'Confirm Delete',
                 'manual_title': 'User Guide',
                 'batch_ext_custom': 'Custom Batch Add...', 'batch_ext_text': 'Batch Add Text Exts', 'batch_ext_image': 'Batch Add Image Exts', 'batch_ext_audio': 'Batch Add Audio Exts', 'batch_ext_video': 'Batch Add Video Exts', 'batch_ext_doc': 'Batch Add Doc Exts',
+                'batch_processing': '🔄 Batch Processing...',
+                'batch_warning': '⚠️ Do NOT operate until XYplorer finishes tagging!',
+                'batch_status': 'Analyzing files and generating commands...',
+                'batch_cancel': 'Cancel',
+                'batch_exit': 'Exit Batch',
+                'cancelling': 'Cancelling...',
+                'batch_sent_cmds': 'Sent Commands: {c} / Total Files: {t}',
+                'ai_processing_status': 'AI Analyzing: {c} / {t}',
                 
                 'toast_ext_added': 'Custom extension added', 'toast_sync_ok': 'Sync successful', 'toast_sync_fail': 'Sync failed', 'toast_hist_saved': 'History saved', 'toast_ws_keep_one': 'At least one workspace must be kept!', 'toast_ws_deleted': 'Workspace deleted', 'toast_save_ok': 'Saved successfully', 'toast_export_data_ok': 'Workspace data exported successfully', 'toast_export_config_ok': 'App config exported successfully', 'toast_import_data_ok': 'Workspace data imported successfully', 'toast_import_error': 'Import failed: Parsing error', 'toast_batch_add_ok': 'Batch add successful', 'toast_no_tags_act': 'Failed: No active tags to add or remove', 'toast_tag_cmd_sent': 'Tag modification command sent', 'toast_reading_clip': 'Reading clipboard for tags...', 'toast_no_docs': 'Manual not found, please check the Docs folder', 'toast_clip_empty': 'Read failed: Clipboard is empty', 'toast_clip_long': 'Content is long or multi-line, please confirm manually', 'toast_read_fail': 'Read failed: No valid tags parsed', 'toast_read_none': 'No valid tags parsed', 'toast_read_success': 'Successfully read and activated {n} tags', 'toast_no_uncat_op': 'Cannot operate on Uncategorized group',
 
@@ -1329,19 +2573,124 @@ ageM: <= 7 d = modified last 7 days</div>
             return I18N['zh-CN'][key] || key;
         }
 
-        // --- 新增：反向翻译引擎 ---
-        // 用于读取 XYplorer 标签时，将外部系统语言（如 "Important"）反推回底层 Key（"重要"）
-        function reverseT(val) {
+        // --- 核心修复：新增系统级词汇专用翻译（防止误伤用户同名标签） ---
+        function sysT(key) {
+            const sysKeys = ['默认工作区', '未分类', '项目状态', '重要', '紧急', '待办', '搁置', '完成', '?*', '""'];
+            if (sysKeys.includes(key)) return t(key);
+            return key;
+        }
+
+        function reverseSysT(val) {
+            const sysKeys = ['默认工作区', '未分类', '项目状态', '重要', '紧急', '待办', '搁置', '完成', '?*', '""'];
             let lang = configData.lang || 'zh-CN';
             let dict = I18N[lang] || I18N['zh-CN'];
-            for (let k in dict) {
+            for (let k of sysKeys) {
                 if (dict[k] === val) return k;
             }
-            // 如果当前语言字典没找到，尝试在默认中文里找（兜底）
-            for (let k in I18N['zh-CN']) {
+            // 兜底
+            for (let k of sysKeys) {
                 if (I18N['zh-CN'][k] === val) return k;
             }
             return val;
+        }
+
+        // --- 进化：高维标签解析引擎 (名称@@别名@@@描述1@@@描述2...) ---
+        function parseTag(raw) {
+            if (raw.includes('@@@')) {
+                let descParts = raw.split('@@@');
+                let basePart = descParts[0];
+                let aliasParts = basePart.split('@@');
+                return { name: aliasParts[0], alias: aliasParts.length > 1 ? aliasParts[1] : '', descs: descParts.slice(1), raw: raw };
+            } else {
+                // 兼容旧版 @@ 分隔符的数据
+                let parts = raw.split('@@');
+                return { name: parts[0], alias: parts.length > 1 ? parts[1] : '', descs: parts.length > 2 ? parts.slice(2) : [], raw: raw };
+            }
+        }
+        function buildTagRaw(name, alias, descs = []) {
+            let res = name;
+            if (alias) res += '@@' + alias;
+            if (descs && descs.length > 0) res += '@@@' + descs.join('@@@');
+            return res;
+        }
+
+        // --- 全局自适应悬浮气泡控制器 (升级版：防挤压智能翻转) ---
+        function calcTooltipPos(e, tt) {
+            let offset = 15; // 浮窗与鼠标的间距
+            let x = e.clientX + offset; // 默认在鼠标右侧
+            let y = e.clientY - tt.offsetHeight - offset; // 默认在鼠标上方
+
+            // 如果上方被挡住，翻转到鼠标下方
+            if (y < 0) y = e.clientY + offset;
+
+            // 如果右侧被挡住，翻转到鼠标左侧，而不是强行挤压
+            if (x + tt.offsetWidth > window.innerWidth) {
+                x = e.clientX - tt.offsetWidth - offset;
+                // 极端情况：如果左侧也放不下，贴着屏幕左边缘
+                if (x < 0) x = 10; 
+            }
+            return { x: Math.max(0, x), y: Math.max(0, y) };
+        }
+
+        function showTooltip(e, content) {
+            if (!state.enableTooltip || !content) return;
+            const tt = document.getElementById('float-tooltip');
+            tt.innerHTML = content; tt.style.display = 'block';
+            let pos = calcTooltipPos(e, tt);
+            tt.style.left = pos.x + 'px'; tt.style.top = pos.y + 'px';
+        }
+        
+        function hideTooltip() { document.getElementById('float-tooltip').style.display = 'none'; }
+        
+        function moveTooltip(e) {
+            const tt = document.getElementById('float-tooltip');
+            if (tt.style.display === 'block') {
+                let pos = calcTooltipPos(e, tt);
+                tt.style.left = pos.x + 'px'; tt.style.top = pos.y + 'px';
+            }
+        }
+
+        // --- 高维属性编辑面板控制器 ---
+        let deCallback = null;
+        function openDetailEdit(x, y, defAlias, defDescs = [], cb, titleStr = '') {
+            deCallback = cb;
+            const de = document.getElementById('detail-edit');
+            const titleEl = document.getElementById('de-title');
+            if(titleEl) titleEl.innerText = titleStr || t('set_alias');
+            document.getElementById('de-alias').value = defAlias || '';
+            const descList = document.getElementById('de-desc-list');
+            descList.innerHTML = '';
+            if (defDescs && defDescs.length > 0) defDescs.forEach(d => addDeDescRow(d));
+            else addDeDescRow(''); 
+            de.style.display = 'flex'; setSafePosition(de, x, y);
+            setTimeout(() => { document.getElementById('de-alias').focus(); document.getElementById('de-alias').select(); }, 50);
+        }
+        function addDeDescRow(val = '') {
+            const list = document.getElementById('de-desc-list'); const row = document.createElement('div');
+            row.style.display = 'flex'; row.style.gap = '6px'; row.style.alignItems = 'flex-start';
+            row.innerHTML = `<textarea class="de-desc-input" style="flex: 1; height: 46px; resize: vertical; font-family: inherit; font-size: 12px; padding: 6px 8px; border: 1px solid var(--border-color); border-radius: var(--radius); background: var(--bg-input); color: var(--text-main); outline: none;">${_h(val)}</textarea><button class="tool-btn" style="width: 24px; height: 24px; flex-shrink: 0; color: var(--red); margin-top: 2px;" onclick="this.parentElement.remove()" v-html="delete"></button>`;
+            list.appendChild(row); renderSVGs(row);
+        }
+
+        // [新增] 动态自适应高度防止越界
+        function adjustDetailEditPosition() {
+            const de = document.getElementById('detail-edit');
+            if (de && de.style.display !== 'none') {
+                let rect = de.getBoundingClientRect();
+                // 如果浮窗底部超出了视窗底部边界，自动将其向上推
+                if (rect.bottom > window.innerHeight - 5) {
+                    let newTop = window.innerHeight - rect.height - 5;
+                    de.style.top = Math.max(0, newTop) + 'px';
+                }
+            }
+        }
+        function closeDetailEdit() { document.getElementById('detail-edit').style.display = 'none'; deCallback = null; }
+        function submitDetailEdit() {
+            const alias = document.getElementById('de-alias').value.trim();
+            const descInputs = document.querySelectorAll('.de-desc-input');
+            const descs = Array.from(descInputs).map(i => i.value.trim()).filter(v => v);
+            document.getElementById('detail-edit').style.display = 'none';
+            if (deCallback) { deCallback({ alias, descs }); deCallback = null; }
         }
 
         function updateI18n() {
@@ -1386,7 +2735,7 @@ ageM: <= 7 d = modified last 7 days</div>
         });
         function isDragAction(e) { return Math.abs(e.clientX - gStartX) > 4 || Math.abs(e.clientY - gStartY) > 4; }
 
-        let state = { editMode: false, allExpanded: true, activeOnly: false, filterOnly: false, tagStates: {}, expandedGroups: {}, isPinned: false };
+        let state = { editMode: false, allExpanded: true, activeOnly: false, filterOnly: false, showAlias: false, enableTooltip: true, tagStates: {}, expandedGroups: {}, isPinned: false };
         let extEditModeUI = false;
         let clickOrder = []; 
         let ctxTarget = null; let wsCtxTarget = null; let dragItem = null; let batchTarget = null;
@@ -1457,10 +2806,12 @@ ageM: <= 7 d = modified last 7 days</div>
                 const bm = document.getElementById('batch-add-menu'); const wl = document.getElementById('ws-list-menu');
                 const actM = document.getElementById('action-btn-ctx-menu');
                 const extM = document.getElementById('ext-batch-menu');
+                const de = document.getElementById('detail-edit');
                 if (extM && extM.style.display === 'flex' && !extM.contains(e.target)) extM.style.display = 'none';
+                if (de && de.style.display === 'flex' && !de.contains(e.target)) closeDetailEdit();
                 
                 document.querySelectorAll('.global-dropdown').forEach(el => { 
-                    if (el.style.display === 'flex' && !el.contains(e.target) && !e.target.closest('#btn-ws-dropdown') && !e.target.classList.contains('hist-toggle') && !e.target.parentElement.classList.contains('hist-toggle')) 
+                    if (el.style.display === 'flex' && el.id !== 'tag-search-modal' && !el.contains(e.target) && !e.target.closest('#btn-ws-dropdown') && !e.target.classList.contains('hist-toggle') && !e.target.parentElement.classList.contains('hist-toggle'))
                         el.style.display = 'none'; 
                 });
                 if (cm.style.display === 'flex' && !cm.contains(e.target)) cm.style.display = 'none';
@@ -1506,6 +2857,16 @@ ageM: <= 7 d = modified last 7 days</div>
                 document.querySelector('.main-content').classList.add('ready');
                 document.getElementById('app-loader').style.opacity = '0';
                 setTimeout(() => document.getElementById('app-loader').style.display = 'none', 400);
+                // [新增] 启动软件时恢复别名状态
+                state.showAlias = !!configData['showAlias_' + configData.currentWs];
+                document.getElementById('btn-swap-alias').classList.toggle('active-green', state.showAlias);
+                
+                // [新增] 启动软件时恢复悬浮提示状态
+                let initTooltip = configData['enableTooltip_' + configData.currentWs];
+                state.enableTooltip = initTooltip !== undefined ? !!initTooltip : true;
+                document.getElementById('btn-toggle-tooltip').classList.toggle('active-green', state.enableTooltip);
+                
+                initColorPicker(); initExpandedState(currentTree(), ""); renderWsBar(); renderActionBtnColors(); initCompModule(); render();
             }, 50);
             
             window.addEventListener('resize', () => setTimeout(updateWsVisibility, 100));
@@ -1519,7 +2880,14 @@ ageM: <= 7 d = modified last 7 days</div>
             if(sel) sel.value = theme;
             
             let hex = theme === 'light' ? '#F4F5F7' : '#1A1B1E';
-            try { pywebview.api.change_titlebar_theme(hex, theme === 'dark'); } catch(e) {}
+            // 【高维修复】：确保 pywebview API 加载完毕后再投递命令，避免初始化瞬间因为 undefined 而被静默吞噬
+            if (window.pywebview && window.pywebview.api) {
+                pywebview.api.change_titlebar_theme(hex, theme === 'dark');
+            } else {
+                window.addEventListener('pywebviewready', () => {
+                    pywebview.api.change_titlebar_theme(hex, theme === 'dark');
+                });
+            }
         }
 
         function applyLang(lang) {
@@ -1527,7 +2895,8 @@ ageM: <= 7 d = modified last 7 days</div>
             updateI18n();
             renderWsBar();
             initCompModule();
-            render();
+            renderActionBtnColors(); // [新增] 强制刷新按钮映射色
+            render();                // 强制刷新树状图映射色
             let sel = document.getElementById('cfg-lang');
             if(sel) sel.value = lang;
         }
@@ -1550,7 +2919,8 @@ ageM: <= 7 d = modified last 7 days</div>
             reader.onload = function(evt) {
                 try {
                     allTreeData = JSON.parse(evt.target.result);
-                    saveDataAndRenderAll();
+                    initExpandedState(currentTree(), ""); // [修复] 导入全量数据后立即重建状态字典
+                    saveCompState(); render(); refreshCompUI();
                     sysLog(t("log_import_ok"), "INFO");
                     showToast(t("toast_import_data_ok"), "success");
                 } catch(err) { sysLog(t("log_import_err"), "ERROR"); showToast(t("toast_import_error"), "error"); }
@@ -1576,7 +2946,9 @@ ageM: <= 7 d = modified last 7 days</div>
         function renderActionBtnColors() {
             if(!configData.actionBtnColors) return;
             ['search','add','read','clear'].forEach(id => {
-                let color = configData.actionBtnColors[id];
+                let rawColor = configData.actionBtnColors[id];
+                // [修改] 让顶部的功能大按钮也支持自适应映射
+                let color = getMappedColor(rawColor, configData.theme);
                 let btn = document.getElementById(`btn-${id}`);
                 if(btn) {
                     if(color) {
@@ -1594,6 +2966,33 @@ ageM: <= 7 d = modified last 7 days</div>
             e.preventDefault(); e.stopPropagation();
             actionBtnTarget = id;
             const menu = document.getElementById('action-btn-ctx-menu');
+            
+            let ucsBtn = document.getElementById('ctx-batch-ucs');
+            if (ucsBtn) {
+                ucsBtn.style.display = (id === 'add') ? 'flex' : 'none';
+            }
+
+            let ucsNameBtn = document.getElementById('ctx-batch-ucs-name');
+            if (ucsNameBtn) {
+                ucsNameBtn.style.display = (id === 'add') ? 'flex' : 'none';
+            }
+
+            // --- 下面是新增的 AI 菜单显示控制逻辑 ---
+            let aiSep = document.getElementById('ai-sep'); 
+            if (aiSep) { aiSep.style.display = (id === 'add') ? 'block' : 'none'; }
+            
+            let ai1 = document.getElementById('ctx-ai-filename-dict'); 
+            if (ai1) { ai1.style.display = (id === 'add') ? 'flex' : 'none'; }
+            
+            let ai2 = document.getElementById('ctx-ai-filename-auto'); 
+            if (ai2) { ai2.style.display = (id === 'add') ? 'flex' : 'none'; }
+            
+            let ai3 = document.getElementById('ctx-ai-content-auto'); 
+            if (ai3) { ai3.style.display = (id === 'add') ? 'flex' : 'none'; }
+
+            let ai4 = document.getElementById('ctx-ai-filename-auto-en-zh'); 
+            if (ai4) { ai4.style.display = (id === 'add') ? 'flex' : 'none'; }
+            
             menu.style.display = 'flex';
             setSafePosition(menu, e.clientX, e.clientY);
         }
@@ -1626,6 +3025,7 @@ ageM: <= 7 d = modified last 7 days</div>
         function initResizeObserver() {
             const synWrap = document.getElementById('syntax-wrapper');
             const compMod = document.getElementById('comp-module');
+            const detailEdit = document.getElementById('detail-edit'); // [新增]
             if (configData.syntax_w) synWrap.style.width = configData.syntax_w;
             if (configData.syntax_h) synWrap.style.height = configData.syntax_h;
             if (configData.comp_h) compMod.style.height = configData.comp_h;
@@ -1641,6 +3041,8 @@ ageM: <= 7 d = modified last 7 days</div>
                     } else if (entry.target.id === 'comp-module') {
                         configData.comp_h = entry.target.style.height;
                         changed = true;
+                    } else if (entry.target.id === 'detail-edit') {
+                        adjustDetailEditPosition(); // [新增] 只要发生尺寸变化（加减行/手动拖拽），立即修正位置
                     }
                 }
                 if (changed) {
@@ -1650,9 +3052,24 @@ ageM: <= 7 d = modified last 7 days</div>
             });
             ro.observe(synWrap);
             ro.observe(compMod);
+            if (detailEdit) ro.observe(detailEdit); // [新增]
         }
 
-        function initExpandedState(node, path) { for (let k in node) { if (!k.startsWith('_')) { let cur = path ? path + '/' + k : k; if (state.expandedGroups[cur] === undefined) state.expandedGroups[cur] = true; initExpandedState(node[k], cur); } } }
+        function initExpandedState(node, path) { 
+            // [修复] 将展开状态挂载到当前工作区数据树中，实现随标签一起持久化保存
+            if (!node._expandedGroups) node._expandedGroups = {};
+            state.expandedGroups = node._expandedGroups;
+            function _traverse(nd, p) {
+                for (let k in nd) { 
+                    if (!k.startsWith('_')) { 
+                        let cur = p ? p + '/' + k : k; 
+                        if (state.expandedGroups[cur] === undefined) state.expandedGroups[cur] = true; 
+                        _traverse(nd[k], cur); 
+                    } 
+                }
+            }
+            _traverse(node, path);
+        }
         
         function togglePin() { 
             pywebview.api.toggle_pin(state.isPinned).then(newState => { 
@@ -1681,6 +3098,8 @@ ageM: <= 7 d = modified last 7 days</div>
             document.getElementById('cfg-theme').value = configData.theme || 'dark';
             document.getElementById('cfg-lang').value = configData.lang || 'zh-CN';
             document.getElementById('settings-modal').style.display = 'flex'; 
+            document.getElementById('cfg-ai-api').value = configData.ai_api || "http://localhost:11434/api/generate";
+            document.getElementById('cfg-ai-model').value = configData.ai_model || "qwen2.5:0.5b";
         }
         function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
         function saveSettings() { 
@@ -1690,6 +3109,8 @@ ageM: <= 7 d = modified last 7 days</div>
             debouncedSaveConfig(); 
             closeSettings(); 
             showToast(t("toast_save_ok"), "success");
+            configData.ai_api = document.getElementById('cfg-ai-api').value.trim(); 
+            configData.ai_model = document.getElementById('cfg-ai-model').value.trim();
         }
 
         function testXYplorer() {
@@ -1700,7 +3121,7 @@ ageM: <= 7 d = modified last 7 days</div>
             let textSpan = btn.querySelector('span[data-i18n="test_xy_path"]');
             let originalText = textSpan.innerText;
             
-            textSpan.innerText = t('checking_update'); // 复用"检查中"的翻译
+            textSpan.innerText = t('checking_update');
             btn.disabled = true;
             
             pywebview.api.test_xy_path(pathToTest).then(res => {
@@ -1766,7 +3187,6 @@ ageM: <= 7 d = modified last 7 days</div>
 
         function switchCompTab(tabId) { document.querySelectorAll('.comp-tab').forEach(el => el.classList.remove('active')); document.querySelectorAll('.comp-body').forEach(el => el.classList.remove('active')); event.target.classList.add('active'); document.getElementById(`comp-${tabId}`).classList.add('active'); const m = document.getElementById('comp-module'); if (m.classList.contains('collapsed')) toggleCompModule(); }
         
-        
         function toggleExtEditMode() { extEditModeUI = !extEditModeUI; document.getElementById('comp-ext-container').classList.toggle('ext-edit-mode', extEditModeUI); renderCustomExts(); }
 
         function renderCustomExts() {
@@ -1774,7 +3194,6 @@ ageM: <= 7 d = modified last 7 days</div>
             if (!cs.customExts) cs.customExts = [];
             if (!cs.orderExt) cs.orderExt = [...cs.customExts];
             
-            // 数据迁移：将旧的全局后缀无缝移至当前工作区
             if (configData.customExts && configData.customExts.length > 0) {
                 cs.customExts = [...configData.customExts];
                 cs.orderExt = configData.orderExt ? [...configData.orderExt] : [...cs.customExts];
@@ -1823,7 +3242,6 @@ ageM: <= 7 d = modified last 7 days</div>
             if (!cs.customExts) cs.customExts = [];
             if (!cs.orderExt) cs.orderExt = [];
 
-            // 新增逻辑：Alt + 鼠标中键 重命名 (与标签组交互完全对齐)
             if (e.altKey && e.button === 1) {
                 e.preventDefault(); e.stopPropagation();
                 openQuickEdit(e.clientX, e.clientY, ext, (val) => { 
@@ -1839,7 +3257,6 @@ ageM: <= 7 d = modified last 7 days</div>
 
             let now = Date.now(); if (now - (lastClickTime[`ext_${ext}`] || 0) < 150) return; lastClickTime[`ext_${ext}`] = now;
 
-            // 笔形按钮的常规编辑模式逻辑
             if (extEditModeUI && e.button === 0) { 
                 openQuickEdit(e.clientX, e.clientY, ext, (val) => { 
                     if (val && val !== ext) { 
@@ -1854,7 +3271,6 @@ ageM: <= 7 d = modified last 7 days</div>
             
             let cur = cs.types[ext] || 0; 
             
-            // 左键/右键切换包含与排除状态的常规逻辑
             if (e.button === 0) {
                 let nextState = cur === 1 ? 0 : 1;
                 if (nextState === 1) {
@@ -1927,7 +3343,7 @@ ageM: <= 7 d = modified last 7 days</div>
             let val = document.getElementById(`comp-input-${key}`).value.trim();
             if (val || key === 'path') {
                 updateCompState(key, val);
-                pushHistory(key, val); // 去除硬编码前缀，由 pushHistory 内部动态拼接当前工作区
+                pushHistory(key, val); 
                 refreshCompUI();
                 updateSyntax();
                 showToast(t("toast_hist_saved"), "success");
@@ -1956,10 +3372,9 @@ ageM: <= 7 d = modified last 7 days</div>
                 let val = document.getElementById('date-val').value.trim(); 
                 if (!val) return; 
                 
-                // 智能检测：如果包含字母（高级语法如 dw, m, d 等），强制剔除比较符号
                 if (/[a-zA-Z]/.test(val)) {
                     op = ""; 
-                    document.getElementById('date-op').value = ""; // 同时让界面上的下拉框变为空白
+                    document.getElementById('date-op').value = "";
                 }
                 
                 let str = op ? `${dt}: ${op} ${val}` : `${dt}: ${val}`;
@@ -1973,10 +3388,8 @@ ageM: <= 7 d = modified last 7 days</div>
             let html = ''; 
             let cs = currentCompState();
             
-            // 自动清洗：遍历并修复以前可能残留了比较符号的高级语法旧规则
             cs.rules = cs.rules.map(r => {
                 let match = r.match(/^(dateC|dateM|dateA|ageC|ageM|ageA):\\s*(>=|<=|==|>|<)?\\s*(.*)$/);
-                // 如果是时间类型，且值里面包含字母，就强制丢弃 match[2] 的运算符号
                 if (match && /[a-zA-Z]/.test(match[3])) {
                     return `${match[1]}: ${match[3]}`; 
                 }
@@ -2003,7 +3416,6 @@ ageM: <= 7 d = modified last 7 days</div>
                     if (match[3]) document.getElementById('size-unit').value = match[3];
                 }
             } else {
-                // 匹配日期与时间格式，兼容无符号的高级语法
                 let match = rule.match(/^(dateC|dateM|dateA|ageC|ageM|ageA):\\s*(>=|<=|==|>|<)?\\s*(.*)$/);
                 if (match) {
                     document.getElementById('date-type').value = match[1];
@@ -2137,10 +3549,12 @@ ageM: <= 7 d = modified last 7 days</div>
             let html = '';
             getWsList().forEach(ws => { 
                 const isActive = ws === configData.currentWs; 
-                let bgColor = (configData.wsColors && configData.wsColors[ws]) ? configData.wsColors[ws] : '';
+                // [修改] 让工作区选项卡背景色也支持自适应映射
+                let rawBgColor = (configData.wsColors && configData.wsColors[ws]) ? configData.wsColors[ws] : '';
+                let bgColor = getMappedColor(rawBgColor, configData.theme);
                 let styleStr = isActive ? `background: var(--primary); color: #fff; border-color:var(--primary);` : (bgColor ? `background: ${bgColor};` : '');
                 let sws = _e(ws);
-                let hws = _h(t(ws));
+                let hws = _h(sysT(ws));
                 html += `<div class="ws-tab ${isActive ? 'active' : ''}" id="ws-tab-${_h(ws)}" style="${styleStr}" draggable="true" ondragstart="onDragStartWs(event, '${sws}')" ondragover="onDragOverWs(event)" ondragleave="onDragLeaveWs(event)" ondrop="onDropWs(event, '${sws}')" onclick="switchWs('${sws}')" oncontextmenu="onWsCtx(event, '${sws}')">${hws}</div>`; 
             });
             container.innerHTML = html; renderSVGs(container);
@@ -2150,7 +3564,7 @@ ageM: <= 7 d = modified last 7 days</div>
         function updateWsVisibility() {
             const container = document.getElementById('ws-tabs-scroll');
             const dynamicArea = document.getElementById('ws-dynamic-area');
-            const activeTab = document.getElementById(`ws-tab-${_h(configData.currentWs)}`);
+            const activeTab = document.getElementById(`ws-tab-${_h(sysT(configData.currentWs))}`);
             
             if (!activeTab) return;
             const containerRect = container.getBoundingClientRect();
@@ -2180,7 +3594,7 @@ ageM: <= 7 d = modified last 7 days</div>
                 html += `<div class="menu-item ws-list-item ${isActive ? 'active' : ''}" 
                               onclick="switchWs('${sws}'); document.getElementById('ws-list-menu').style.display='none';"
                               oncontextmenu="onWsCtx(event, '${sws}'); ">
-                            <span class="menu-text">${_h(t(ws))}</span>
+                            <span class="menu-text">${_h(sysT(ws))}</span>
                          </div>`;
             });
             menu.innerHTML = html;
@@ -2188,7 +3602,21 @@ ageM: <= 7 d = modified last 7 days</div>
             setSafePosition(menu, e.clientX - 100, e.clientY + 15);
         }
 
-        function switchWs(ws) { if (configData.currentWs === ws) return; configData.currentWs = ws; debouncedSaveConfig(); state.tagStates = {}; clickOrder = []; state.expandedGroups = {}; initExpandedState(currentTree(), ""); renderWsBar(); initCompModule(); render(); }
+        function switchWs(ws) { 
+            if (configData.currentWs === ws) return; 
+            configData.currentWs = ws; 
+            
+            // [新增] 切换工作区时读取它的专属别名状态
+            state.showAlias = !!configData['showAlias_' + ws];
+            document.getElementById('btn-swap-alias').classList.toggle('active-green', state.showAlias);
+            
+            // [新增] 切换工作区时读取它的专属悬浮提示状态，默认开启
+            let savedTooltip = configData['enableTooltip_' + ws];
+            state.enableTooltip = savedTooltip !== undefined ? !!savedTooltip : true;
+            document.getElementById('btn-toggle-tooltip').classList.toggle('active-green', state.enableTooltip);
+            
+            debouncedSaveConfig(); state.tagStates = {}; clickOrder = []; state.expandedGroups = {}; initExpandedState(currentTree(), ""); renderWsBar(); initCompModule(); render(); 
+        }
         
         function addWs(e) { 
             openQuickEdit(e.clientX, e.clientY, t("new_ws"), val => { 
@@ -2196,7 +3624,7 @@ ageM: <= 7 d = modified last 7 days</div>
                     allTreeData[val] = { "未分类": { "_bg_color": "", "_tags": ["?*", '""'] }, "_compState": { types: {}, path: "", name: "", remarkMode: "", remark: "", label: "", ratings: {}, rules: [] } }; 
                     let wsList = getWsList();
                     if (!wsList.includes(val)) { wsList.push(val); configData.orderWs = wsList; debouncedSaveConfig(); }
-                    saveDataAndRenderAll(); 
+                    saveCompState(); render(); refreshCompUI(); 
                     switchWs(val); 
                     setTimeout(()=> { document.getElementById('ws-tabs-scroll').scrollLeft = 9999; }, 100); 
                 } 
@@ -2244,7 +3672,6 @@ ageM: <= 7 d = modified last 7 days</div>
                         } 
                         allTreeData = newAll; 
 
-                        // 同步迁移该工作区的历史记录
                         ['path', 'name', 'remark'].forEach(k => {
                             if (configData[`hist_${k}_${ws}`]) {
                                 configData[`hist_${k}_${val}`] = configData[`hist_${k}_${ws}`];
@@ -2254,21 +3681,24 @@ ageM: <= 7 d = modified last 7 days</div>
                         
                         if (configData.currentWs === ws) { configData.currentWs = val; } 
                         debouncedSaveConfig();
-                        saveDataAndRenderAll(); 
+                        saveCompState(); renderWsBar(); render(); refreshCompUI(); // [修复] 强制刷新顶部工作区栏
                     } 
                 }); 
             } else if (action === 'duplicate') { 
                 let newWs = ws + " Copy"; let count = 1; 
                 while(allTreeData[newWs]) { count++; newWs = `${ws} Copy ${count}`; } 
-                allTreeData[newWs] = JSON.parse(JSON.stringify(allTreeData[ws])); 
                 
+                // 【高维修复】：先获取旧的 keys 列表并插入新名字
+                // 彻底避免 getWsList() 的内部校验把新工作区提前当成野孩子塞到末尾
                 let keys = getWsList();
                 let idx = keys.indexOf(ws);
                 if (idx !== -1) keys.splice(idx + 1, 0, newWs);
                 else keys.push(newWs);
                 configData.orderWs = keys;
 
-                // 完美复刻原工作区的历史记录
+                // 然后再把数据安全地复制进字典
+                allTreeData[newWs] = JSON.parse(JSON.stringify(allTreeData[ws])); 
+
                 ['path', 'name', 'remark'].forEach(k => {
                     if (configData[`hist_${k}_${ws}`]) {
                         configData[`hist_${k}_${newWs}`] = [...configData[`hist_${k}_${ws}`]];
@@ -2278,27 +3708,51 @@ ageM: <= 7 d = modified last 7 days</div>
                 debouncedSaveConfig();
                 
                 let newAll = {}; for (let k of keys) newAll[k] = allTreeData[k]; allTreeData = newAll;
-                saveDataAndRenderAll(); 
-            } else if (action === 'delete') { 
-                if (Object.keys(allTreeData).length <= 1) { 
+                saveCompState(); renderWsBar(); render(); refreshCompUI(); // [修复] 强制刷新顶部工作区栏
+            } else if (action === 'delete') {
+            if (Object.keys(allTreeData).length <= 1) { 
                     showToast(t("toast_ws_keep_one"), "error"); 
                     sysLog(t("log_ws_keep_one"), "ERROR"); 
                     return; 
                 } 
                 showConfirmModal(t('confirm_del_ws').replace('{ws}', ws), () => {
+                    let keys = getWsList();
+                    let wsIndex = keys.indexOf(ws);
+                    
+                    let fallbackWs = "";
+                    if (wsIndex > 0) {
+                        fallbackWs = keys[wsIndex - 1]; 
+                    } else {
+                        fallbackWs = keys[1]; 
+                    }
+
+                    let wasCurrent = (configData.currentWs === ws); 
+
                     delete allTreeData[ws]; 
 
-                    // 彻底销毁该工作区关联的所有历史垃圾记录
                     ['path', 'name', 'remark'].forEach(k => {
                         delete configData[`hist_${k}_${ws}`];
                     });
 
-                    if (configData.currentWs === ws) { configData.currentWs = Object.keys(allTreeData)[0]; } 
-                    let keys = getWsList();
+                    if (wasCurrent) { 
+                        configData.currentWs = fallbackWs; 
+                    } 
+                    
                     configData.orderWs = keys.filter(k => k !== ws);
                     debouncedSaveConfig();
-                    if (configData.currentWs === ws) { state.tagStates = {}; clickOrder = []; initExpandedState(currentTree(), ""); } 
-                    saveDataAndRenderAll(); 
+                    
+                    if (wasCurrent) { 
+                        state.tagStates = {}; 
+                        clickOrder = []; 
+                        initExpandedState(currentTree(), ""); 
+                    } 
+                    
+                    saveCompState(); 
+                    
+                    renderWsBar();
+                    render(); 
+                    refreshCompUI(); 
+                    
                     sysLog(t("log_ws_del"), "INFO");
                     showToast(t("toast_ws_deleted"), "success");
                 });
@@ -2335,35 +3789,18 @@ ageM: <= 7 d = modified last 7 days</div>
             debouncedSaveConfig();
             
             let newAll = {}; for (let k of keys) newAll[k] = allTreeData[k]; allTreeData = newAll; 
-            saveDataAndRenderAll(); 
+            
+            // 【高维修复】：补上缺失的视觉同步咒语，拖拽完成后强制重新渲染顶部工作区栏！
+            saveCompState(); 
+            renderWsBar(); 
+            render(); 
+            refreshCompUI(); 
         }
 
-        function saveDataAndRenderAll() { 
-            try {
-                pywebview.api.save_data(allTreeData).then(() => { 
-                    renderWsBar(); 
-                    render(); 
-                    let wl = document.getElementById('ws-list-menu');
-                    if (wl && wl.style.display === 'flex') {
-                        wl.style.display = 'none';
-                        let html = '';
-                        getWsList().forEach(ws => { 
-                            const isActive = ws === configData.currentWs;
-                            let sws = _e(ws);
-                            html += `<div class="menu-item ws-list-item ${isActive ? 'active' : ''}" 
-                                          onclick="switchWs('${sws}'); document.getElementById('ws-list-menu').style.display='none';"
-                                          oncontextmenu="onWsCtx(event, '${sws}'); ">
-                                        <span class="menu-text">${_h(t(ws))}</span>
-                                     </div>`;
-                        });
-                        wl.innerHTML = html;
-                        wl.style.display = 'flex';
-                    }
-                });
-            } catch(e) { 
-                renderWsBar(); 
-                render(); 
-            } 
+        function saveDataAndRenderAll() {
+            saveCompState(); 
+            render(); 
+            refreshCompUI();
         }
 
         function toggleTool(toolName) {
@@ -2373,7 +3810,22 @@ ageM: <= 7 d = modified last 7 days</div>
                 render();
                 return;
             }
-            if (toolName !== 'activeOnly') state.activeOnly = false; 
+            if (toolName === 'showAlias') {
+                state.showAlias = !state.showAlias;
+                document.getElementById('btn-swap-alias').classList.toggle('active-green', state.showAlias);
+                configData['showAlias_' + configData.currentWs] = state.showAlias; // [新增] 保存当前工作区的别名状态
+                debouncedSaveConfig(); // [新增] 写入本地
+                render();
+                return;
+            }
+            if (toolName === 'enableTooltip') {
+                state.enableTooltip = !state.enableTooltip;
+                document.getElementById('btn-toggle-tooltip').classList.toggle('active-green', state.enableTooltip);
+                configData['enableTooltip_' + configData.currentWs] = state.enableTooltip;
+                debouncedSaveConfig();
+                return;
+            }
+            if (toolName !== 'activeOnly') state.activeOnly = false;
             if (toolName !== 'filterOnly') state.filterOnly = false; 
             state[toolName] = !state[toolName];
             document.getElementById('btn-active').classList.toggle('active-green', state.activeOnly); 
@@ -2391,14 +3843,29 @@ ageM: <= 7 d = modified last 7 days</div>
         }
 
         function forceExpandActive(node, path) { for (let k in node) { if (!k.startsWith('_')) { let p = path ? path + '/' + k : k; if (checkActiveBubble(node[k], p)) { state.expandedGroups[p] = true; forceExpandActive(node[k], p); } } } }
-        function toggleAll() { 
-            state.allExpanded = !state.allExpanded; 
+        function toggleAll(e) { 
+            let targetState = !state.allExpanded; 
+
+            if (e && e.altKey) {
+                if (e.button === 0) { 
+                    targetState = true;
+                } else if (e.button === 2) { 
+                    targetState = false;
+                } else {
+                    return; 
+                }
+            } else if (e && e.button === 2) {
+                return; 
+            }
+
+            state.allExpanded = targetState; 
             state.activeOnly = false; 
             state.filterOnly = false; 
             document.getElementById('btn-active').classList.remove('active-green'); 
             document.getElementById('btn-filter').classList.remove('active-green'); 
             document.getElementById('btn-toggle').innerHTML = state.allExpanded ? SVGS.expand : SVGS.minimize; 
             for (let k in state.expandedGroups) state.expandedGroups[k] = state.allExpanded; 
+            saveCompState(); // [修复] 保存全局折叠状态
             render(); 
         }
         
@@ -2418,7 +3885,7 @@ ageM: <= 7 d = modified last 7 days</div>
         function buildGroup(name, node, path, level) {
             let sp = _e(path);
             let sn = _e(name);
-            let dn = _h(t(name));
+            let dn = (state.showAlias && node._alias) ? _h(node._alias) : _h(sysT(name)); 
 
             let isExpanded = state.expandedGroups[path]; let hasActive = checkActiveBubble(node, path);
             if (state.filterOnly && !hasActive) return "";
@@ -2428,18 +3895,18 @@ ageM: <= 7 d = modified last 7 days</div>
             for (let k in node) { if (!k.startsWith('_')) { hasSubgroups = true; break; } }
             let isExpandable = hasTags || hasSubgroups;
 
-            let canAddTags = (level > 0) || (name === "未分类"); // 根级分组隐藏悬浮+号，改由右键菜单添加
+            let canAddTags = (level > 0) || (name === "未分类"); 
             let isRoot = level === 0;
-            let selfColor = node._bg_color; 
+            // [修改] 提取原始颜色后，经过引擎进行主题自适应转换
+            let rawSelfColor = node._bg_color; 
+            let selfColor = getMappedColor(rawSelfColor, configData.theme); 
             let finalColor = isRoot ? (selfColor || 'transparent') : (selfColor || (node._parentBg && node._parentBg !== 'transparent' ? getLighterColor(node._parentBg) : 'transparent'));
             
-            // 算法注入：动态判断文字与箭头的强对比颜色
             let dynTextColor = (finalColor && finalColor !== 'transparent') ? getContrastColor(finalColor) : '';
             let bgStyle = isRoot ? (selfColor ? `background: ${finalColor}; border-color: transparent; --group-text: ${dynTextColor}; --group-arrow: ${dynTextColor};` : ``) : ``;
             let html = `<div class="group ${isRoot ? 'group-root' : 'group-sub'} ${isExpanded ? '' : 'collapsed'}" data-path="${sp}" data-type="group" style="${bgStyle}">`;
             
             let arrowIcon = isExpanded ? 'arrowDown' : 'arrowRight';
-            // 组名右侧悬浮的“+”按钮 (仅在无标签时在此处显示)
             let addBtnHtml = (!state.editMode && canAddTags) ? `<div class="add-tag-btn btn-plus-icon" style="margin-left:4px;" onclick="addTag(event, '${sp}')" oncontextmenu="triggerBatchAddMenu(event, 'tag', '${sp}')" v-html="add"></div>` : '';
             let headerAddBtn = !hasTags ? addBtnHtml : '';
 
@@ -2452,40 +3919,71 @@ ageM: <= 7 d = modified last 7 days</div>
                 html += `<div class="group-sub-main">`;
             }
 
+            // [修复] 只有真正存在别名或描述时，才激活悬浮气泡
+            let gTooltipHtml = '';
+            if (node._alias || (node._descriptions && node._descriptions.length > 0)) {
+                // [动态切换] 开启别名显示时，气泡标题显示原名(黄色)；否则显示别名(黄绿色)
+                let gTitle = state.showAlias ? name : node._alias;
+                let gTitleColor = state.showAlias ? 'var(--hl-tag)' : 'var(--hl-remark)'; // [修改]
+                
+                if (gTitle) gTooltipHtml += `<div><strong style="color:${gTitleColor};">${_h(gTitle)}</strong></div>`;
+                if (node._descriptions && node._descriptions.length > 0) {
+                    if (gTitle) gTooltipHtml += `<div style="border-top:1px solid var(--border-color); margin: 6px 0;"></div>`;
+                    gTooltipHtml += `<div style="color:var(--text-muted); line-height:1.4;">` + node._descriptions.map(d => _h(d)).join('<div style="border-top:1px dashed var(--border-color); margin: 4px 0; opacity: 0.5;"></div>') + `</div>`;
+                }
+            }
+            let encodedGTooltip = _e(gTooltipHtml);
+            let gHoverAttr = gTooltipHtml ? `onmouseenter="showTooltip(event, '${encodedGTooltip}')" onmousemove="moveTooltip(event)" onmouseleave="hideTooltip()"` : '';
+
             if (isRoot) {
                 html += `<div class="group-header" draggable="true" ondragstart="onDragStartTree(event, 'group', '${sp}', '${sn}')" ondragover="onDragOverTree(event)" ondragleave="onDragLeaveTree(event)" ondrop="onDropTree(event, '${sp}', '${sn}')" onmouseup="onGroupClick(event, '${sp}', '${sn}')" oncontextmenu="onGroupCtx(event, '${sp}', ${isRoot}, '${sn}')">`;
                 html += isExpandable ? `<span class="group-arrow" v-html="${arrowIcon}"></span>` : `<span class="group-arrow" style="visibility:hidden;" v-html="arrowRight"></span>`;
-                html += `<span class="group-title" data-name="${_h(name)}">${dn}</span><span class="group-dot ${hasActive ? 'show' : ''}">●</span>${headerAddBtn}</div>`;
+                html += `<span class="group-title" ${gHoverAttr} data-name="${_h(name)}">${dn}</span><span class="group-dot ${hasActive ? 'show' : ''}">●</span>${headerAddBtn}</div>`;
             } else {
                 html += `<div class="group-header" draggable="true" ondragstart="onDragStartTree(event, 'group', '${sp}', '${sn}')" ondragover="onDragOverTree(event)" ondragleave="onDragLeaveTree(event)" ondrop="onDropTree(event, '${sp}', '${sn}')" onmouseup="onGroupClick(event, '${sp}', '${sn}')" oncontextmenu="onGroupCtx(event, '${sp}', ${isRoot}, '${sn}')">`;
-                html += `<span class="group-title" data-name="${_h(name)}">${dn}</span><span class="group-dot ${hasActive ? 'show' : ''}">●</span>${headerAddBtn}</div>`;
+                html += `<span class="group-title" ${gHoverAttr} data-name="${_h(name)}">${dn}</span><span class="group-dot ${hasActive ? 'show' : ''}">●</span>${headerAddBtn}</div>`;
             }
 
             html += `<div class="group-content"><div class="tags-area" ondragover="onDragOverTreeArea(event)" ondragleave="onDragLeaveTreeArea(event)" ondrop="onDropTreeArea(event, '${sp}')">`;
             if (hasTags) {
-                // 核心修复：如果当前是根组，标签颜色取“变浅一阶”的颜色，从而与子组色条对齐
                 let tagBgColor = (isRoot && finalColor && finalColor !== 'transparent') ? getLighterColor(finalColor) : finalColor;
                 
-                node._tags.forEach(tagStr => {
+                node._tags.forEach(tagRaw => {
+                    let pt = parseTag(tagRaw);
+                    let tagStr = pt.name; 
                     let st = _e(tagStr);
-                    let ht = _h(t(tagStr));
+                    let ht = (state.showAlias && pt.alias) ? _h(pt.alias) : _h(sysT(tagStr)); 
                     let key = `${path}|${tagStr}`; 
                     let tState = state.tagStates[key] || 0; 
                     let cls = tState === 1 ? 's1' : (tState === 2 ? 's2' : (tState === 3 ? 's3' : ''));
                     
-                    // 核心逻辑：注入计算好的 tagBgColor
                     let styleStr = '';
                     if (tState === 0 && tagBgColor && tagBgColor !== 'transparent') {
                         let textColor = getContrastColor(tagBgColor);
                         styleStr = `style="--bg-btn: ${tagBgColor}; --border-color: ${tagBgColor}; --btn-text: ${textColor};"`;
                     }
 
+                    // [修复] 只有真正存在别名或描述时，才激活悬浮气泡
+                    let tTooltipHtml = '';
+                    if (pt.alias || (pt.descs && pt.descs.length > 0)) {
+                        // [动态切换] 开启别名显示时，气泡标题显示原名(黄色)；否则显示别名(黄绿色)
+                        let tTitle = state.showAlias ? pt.name : pt.alias;
+                        let tTitleColor = state.showAlias ? 'var(--hl-tag)' : 'var(--hl-remark)'; // [修改]
+                        
+                        if (tTitle) tTooltipHtml += `<div><strong style="color:${tTitleColor};">${_h(tTitle)}</strong></div>`;
+                        if (pt.descs && pt.descs.length > 0) {
+                            if (tTitle) tTooltipHtml += `<div style="border-top:1px solid var(--border-color); margin: 6px 0;"></div>`;
+                            tTooltipHtml += `<div style="color:var(--text-muted); line-height:1.4;">` + pt.descs.map(d => _h(d)).join('<div style="border-top:1px dashed var(--border-color); margin: 4px 0; opacity: 0.5;"></div>') + `</div>`;
+                        }
+                    }
+                    let encodedTTooltip = _e(tTooltipHtml);
+                    let tHoverAttr = tTooltipHtml ? `onmouseenter="showTooltip(event, '${encodedTTooltip}')" onmousemove="moveTooltip(event)" onmouseleave="hideTooltip()"` : '';
+
                     html += `
-                    <div class="tag-btn ${cls}" ${styleStr} draggable="true" ondragstart="onDragStartTree(event, 'tag', '${sp}', '${st}')" ondragover="onDragOverTreeTag(event)" ondragleave="onDragLeaveTree(event)" ondrop="onDropTreeTag(event, '${sp}', '${st}')" onmouseup="onTagClick(event, '${sp}', '${st}')" oncontextmenu="event.preventDefault()">
+                    <div class="tag-btn ${cls}" ${styleStr} ${tHoverAttr} draggable="true" ondragstart="onDragStartTree(event, 'tag', '${sp}', '${st}')" ondragover="onDragOverTreeTag(event)" ondragleave="onDragLeaveTree(event)" ondrop="onDropTreeTag(event, '${sp}', '${st}')" onmouseup="onTagClick(event, '${sp}', '${st}', '${_e(pt.alias)}')"" oncontextmenu="event.preventDefault()">
                         ${ht}<div class="tag-del" onmousedown="event.stopPropagation();" onmouseup="delTagBtn(event, '${sp}', '${st}')" v-html="delete"></div>
                     </div>`;
                 });
-                // 如果有标签，+号按钮出现在标签末尾
                 if (!state.editMode && canAddTags) html += `<div class="add-tag-btn btn-plus-icon" onclick="addTag(event, '${sp}')" oncontextmenu="triggerBatchAddMenu(event, 'tag', '${sp}')" v-html="add"></div>`;
             }
             html += `</div><div class="subgroups-area">`;
@@ -2510,30 +4008,58 @@ ageM: <= 7 d = modified last 7 days</div>
             if (!dragItem || dragItem.type !== 'tag') return;
             
             let srcNode = getNodeByPath(dragItem.path);
-            let sIdx = srcNode._tags.indexOf(dragItem.name);
+            let sIdx = srcNode._tags.findIndex(t => parseTag(t).name === dragItem.name);
             if (sIdx > -1) srcNode._tags.splice(sIdx, 1);
             
             let tgtNode = getNodeByPath(targetPath);
             if (!tgtNode._tags) tgtNode._tags = [];
-            if (!tgtNode._tags.includes(dragItem.name)) tgtNode._tags.push(dragItem.name);
+            if (!tgtNode._tags.some(t => parseTag(t).name === dragItem.name)) tgtNode._tags.push(dragItem.name);
             
-            saveDataAndRenderAll();
+            saveCompState(); render(); refreshCompUI();
         }
 
-        function onTagClick(e, path, tag) {
+        function onTagClick(e, path, tag, alias='') {
+            // 将同一个标签的短时间多次点击当成一次，完美实现你的需求
+            if (isThrottled('t_' + path + '_' + tag)) return;
+
             if (isDragAction(e)) return;
             if (e.target.closest && e.target.closest('.tag-del')) return;
+
+            // 新增：Ctrl + 中键 设置标签属性 (包含描述)
+            if (e.ctrlKey && e.button === 1) {
+                e.preventDefault(); e.stopPropagation();
+                let node = getNodeByPath(path);
+                let tagRaw = node._tags.find(t => parseTag(t).name === tag);
+                let pt = parseTag(tagRaw);
+                openDetailEdit(e.clientX, e.clientY, pt.alias, pt.descs, (res) => {
+                    if (res) {
+                        let idx = node._tags.findIndex(t => parseTag(t).name === tag);
+                        if (idx > -1) {
+                            node._tags[idx] = buildTagRaw(tag, res.alias, res.descs);
+                            saveCompState(); render();
+                        }
+                    }
+                }, t('set_alias'));
+                return;
+            }
             
-            // Alt + 中键 (e.button === 1)：重命名标签
+            // Alt + 中键 (e.button === 1)：重命名标签名称
             if (e.altKey && e.button === 1) {
                 e.preventDefault(); e.stopPropagation();
                 openQuickEdit(e.clientX, e.clientY, tag, (val) => { 
                     if (val && val !== tag) { 
                         let node = getNodeByPath(path); 
-                        let idx = node._tags.indexOf(tag); 
+                        let idx = node._tags.findIndex(t => parseTag(t).name === tag);
                         if (idx > -1) { 
-                            node._tags[idx] = val; 
-                            saveDataAndRenderAll(); 
+                            let oldPt = parseTag(node._tags[idx]);
+                            node._tags[idx] = buildTagRaw(val.trim(), oldPt.alias, oldPt.descs); 
+                            if (state.tagStates[`${path}|${tag}`] !== undefined) {
+                                state.tagStates[`${path}|${val.trim()}`] = state.tagStates[`${path}|${tag}`];
+                                delete state.tagStates[`${path}|${tag}`];
+                            }
+                            let cIdx = clickOrder.indexOf(`${path}|${tag}`);
+                            if (cIdx > -1) clickOrder[cIdx] = `${path}|${val.trim()}`;
+                            saveCompState(); render(); refreshCompUI(); 
                         } 
                     } 
                 });
@@ -2546,10 +4072,11 @@ ageM: <= 7 d = modified last 7 days</div>
                     openQuickEdit(e.clientX, e.clientY, tag, (val) => { 
                         if (val && val !== tag) { 
                             let node = getNodeByPath(path); 
-                            let idx = node._tags.indexOf(tag); 
+                            let idx = node._tags.findIndex(t => parseTag(t).name === tag);
                             if (idx > -1) { 
-                                node._tags[idx] = val; 
-                                saveDataAndRenderAll(); 
+                                let oldPt = parseTag(node._tags[idx]);
+                                node._tags[idx] = buildTagRaw(val.trim(), oldPt.alias, oldPt.descs); 
+                                saveCompState(); render(); refreshCompUI(); 
                             } 
                         } 
                     }); 
@@ -2557,6 +4084,7 @@ ageM: <= 7 d = modified last 7 days</div>
                 return; 
             }
             
+            // ...以下保持原有的左右键点击切换状态逻辑（只需在 if-else 末尾前补上即可）...
             let key = `${path}|${tag}`; 
             let now = Date.now(); if (now - (lastClickTime[key] || 0) < 150) return; lastClickTime[key] = now;
             let cur = state.tagStates[key] || 0; let nextState = 0;
@@ -2565,10 +4093,8 @@ ageM: <= 7 d = modified last 7 days</div>
             
             state.tagStates[key] = nextState; 
 
-            // 核心互斥与清理逻辑
             if (nextState !== 0) {
                 if (tag === '""') {
-                    // 规则1：选择"无标签"时，清除所有其他激活的标签
                     Object.keys(state.tagStates).forEach(k => {
                         if (k !== key && state.tagStates[k] !== 0) {
                             state.tagStates[k] = 0;
@@ -2576,7 +4102,6 @@ ageM: <= 7 d = modified last 7 days</div>
                         }
                     });
                 } else if (tag === '?*') {
-                    // 规则2：选择"有标签"时，清除"无标签"，以及所有处于 包含(1) 或 或者(3) 状态的普通标签
                     Object.keys(state.tagStates).forEach(k => {
                         if (k !== key && state.tagStates[k] !== 0) {
                             let otherTag = k.split('|')[1];
@@ -2587,15 +4112,12 @@ ageM: <= 7 d = modified last 7 days</div>
                         }
                     });
                 } else {
-                    // 规则3：当激活普通标签时，进行反向校验
                     Object.keys(state.tagStates).forEach(k => {
                         let otherTag = k.split('|')[1];
-                        // 任何标签被激活，都会挤掉"无标签"
                         if (otherTag === '""' && state.tagStates[k] !== 0) {
                             state.tagStates[k] = 0;
                             clickOrder = clickOrder.filter(x => x !== k);
                         }
-                        // 如果以 包含(1) 或 或者(3) 激活，则挤掉"有标签"
                         if (otherTag === '?*' && state.tagStates[k] !== 0 && (nextState === 1 || nextState === 3)) {
                             state.tagStates[k] = 0;
                             clickOrder = clickOrder.filter(x => x !== k);
@@ -2640,15 +4162,20 @@ ageM: <= 7 d = modified last 7 days</div>
                     return;
                 }
                 
-                // 核心修复：将内部存储的标签名翻译为当前语言名称，以匹配 XYplorer 中真实的标签名
-                let translatedTag = t(tag);
+                // 取消强制翻译，保留用户自定义的标签原名
+                let formattedTag = tag;
+                
+                // 【高维修复】：若标签含有 '&' 符号，自动套上英文双引号
+                // 防止 XYplorer 将 "R&B" 误判为 "R AND B" 的逻辑运算
+                if (formattedTag.includes('&')) {
+                    formattedTag = `"${formattedTag}"`;
+                }
                 
                 if (stateVal === 2) {
                     // 如果是排除(红色)，则丢入单独的排除数组
-                    excludeTags.push(translatedTag);
+                    excludeTags.push(formattedTag);
                 } else {
                     // 如果是包含/或者(绿色/蓝色)，正常拼接到包含链中
-                    let formattedTag = translatedTag;
                     if (actualTagsCount === 0) tagSyn += formattedTag; 
                     else { 
                         if (stateVal === 1) tagSyn += ` & ${formattedTag}`; 
@@ -2778,8 +4305,8 @@ ageM: <= 7 d = modified last 7 days</div>
             clickOrder.forEach(key => { 
                 let tag = key.split('|')[1];
                 if (tag !== '?*' && tag !== '""') {
-                    // 核心修复：打标签时，将内部中文 Key 翻译为当前的界面语言发送
-                    let translatedTag = t(tag);
+                    // 取消强制翻译，保留用户自定义的标签原名
+                    let translatedTag = tag;
                     
                     if (state.tagStates[key] === 1) {
                         activeTags.push(translatedTag); 
@@ -2850,26 +4377,96 @@ ageM: <= 7 d = modified last 7 days</div>
             }, 600);
         }
         
+        // ======= 新增：批量操作通讯总线控制器 =======
+        function showBatchProgressOverlay() {
+            document.getElementById('batch-progress-overlay').style.display = 'flex';
+            document.getElementById('batch-progress-status').innerText = t('batch_status');
+            document.getElementById('batch-cancel-btn').style.display = 'block';
+            document.getElementById('batch-done-btn').style.display = 'none';
+        }
+
+        function updateBatchProgress(sentCmds, totalFiles) {
+            let s = t('batch_sent_cmds').replace('{c}', sentCmds).replace('{t}', totalFiles);
+            document.getElementById('batch-progress-status').innerText = s;
+        }
+
+        function updateAiProgress(processed, totalFiles) {
+            let s = t('ai_processing_status').replace('{c}', processed).replace('{t}', totalFiles);
+            document.getElementById('batch-progress-status').innerText = s;
+        }
+
+        function finishBatchProgress(success, msg) {
+            document.getElementById('batch-progress-status').innerText = msg;
+            document.getElementById('batch-cancel-btn').style.display = 'none';
+            document.getElementById('batch-done-btn').style.display = 'block';
+        }
+
+        function closeBatchProgressOverlay() {
+            document.getElementById('batch-progress-overlay').style.display = 'none';
+        }
+
+        function cancelBatchOperation() {
+            if (window.pywebview && window.pywebview.api) {
+                document.getElementById('batch-progress-status').innerText = t('cancelling');
+                pywebview.api.cancel_batch();
+            }
+        }
+        
+        // ======= 改写原有的批量执行入口 =======
+        function execBatchUCS() {
+            document.getElementById('action-btn-ctx-menu').style.display = 'none';
+            showBatchProgressOverlay();
+            pywebview.api.batch_ucs_tags(configData.xyPath).then(res => {
+                if (res && res.success) finishBatchProgress(true, "✅ " + t("toast_ucs_success").replace('{n}', res.count));
+                else finishBatchProgress(false, "❌ " + t("toast_ucs_fail") + (res ? res.msg : ""));
+            });
+        }
+        
+        function execBatchUCSName() {
+            document.getElementById('action-btn-ctx-menu').style.display = 'none';
+            showBatchProgressOverlay();
+            pywebview.api.batch_ucs_name_tags(configData.xyPath).then(res => {
+                if (res && res.success) finishBatchProgress(true, "✅ " + t("toast_ucs_success").replace('{n}', res.count));
+                else finishBatchProgress(false, "❌ " + t("toast_ucs_fail") + (res ? res.msg : ""));
+            });
+        }
+
+        function execAITagging(mode, domain = "通用") {
+            document.getElementById('action-btn-ctx-menu').style.display = 'none';
+            showBatchProgressOverlay();
+            pywebview.api.ai_batch_process(configData.xyPath, mode, domain).then(res => {
+                if (res && res.success) {
+                    finishBatchProgress(true, "✅ " + t("toast_ai_success").replace('{n}', res.count));
+                    if ((mode === 'auto_name' || mode === 'auto_content' || mode === 'auto_name_en_zh') && res.tags && res.tags.length > 0) {
+                        clearAllActiveTags(); 
+                        activateTagsFromText(res.tags);
+                    }
+                } else { 
+                    finishBatchProgress(false, "❌ " + t("toast_ai_fail") + (res ? res.msg : "")); 
+                }
+            });
+        }
+        
         function activateTagsFromText(tags) { 
             let tree = currentTree(); let changed = false; 
             tags.forEach(rawT => { 
                 if (!rawT || rawT.includes("Ctrl+V") || rawT.includes("剪贴板")) return; 
                 
-                // 核心修复：读取 XYplorer 的标签后，通过翻译字典反查它底层的原生 Key
-                let tKey = reverseT(rawT); 
+                let tKey = reverseSysT(rawT);
+                let pt = parseTag(tKey); // [修改] 智能剥离别名
                 
-                let foundPath = findTagPath(tree, "", tKey); 
+                let foundPath = findTagPath(tree, "", pt.name); // [修改] 用纯净的英文名去查找
                 if (foundPath) { 
-                    state.tagStates[`${foundPath}|${tKey}`] = 1; 
-                    if (!clickOrder.includes(`${foundPath}|${tKey}`)) clickOrder.push(`${foundPath}|${tKey}`); 
+                    state.tagStates[`${foundPath}|${pt.name}`] = 1; 
+                    if (!clickOrder.includes(`${foundPath}|${pt.name}`)) clickOrder.push(`${foundPath}|${pt.name}`); 
                     let parts = foundPath.split('/'); let curP = ""; 
                     parts.forEach(p => { curP += (curP?"/":"")+p; state.expandedGroups[curP] = true; }); 
                     changed = true; 
                 } else { 
                     if (!tree["未分类"]) tree["未分类"] = { "_bg_color": "", "_tags": ["?*", '""'] }; 
-                    if (!tree["未分类"]._tags.includes(tKey)) tree["未分类"]._tags.push(tKey); 
-                    state.tagStates[`未分类|${tKey}`] = 1; 
-                    if (!clickOrder.includes(`未分类|${tKey}`)) clickOrder.push(`未分类|${tKey}`); 
+                    if (!tree["未分类"]._tags.some(t => parseTag(t).name === pt.name)) tree["未分类"]._tags.push(tKey); // [修改] 写入完整的 English@@中文
+                    state.tagStates[`未分类|${pt.name}`] = 1; 
+                    if (!clickOrder.includes(`未分类|${pt.name}`)) clickOrder.push(`未分类|${pt.name}`); 
                     state.expandedGroups["未分类"] = true; 
                     changed = true; 
                 } 
@@ -2883,17 +4480,59 @@ ageM: <= 7 d = modified last 7 days</div>
                 
                 for (let k in state.expandedGroups) state.expandedGroups[k] = false;
                 forceExpandActive(currentTree(), "");
-                saveDataAndRenderAll(); 
+                saveCompState(); render(); refreshCompUI(); 
             } 
         }
 
-        function findTagPath(node, path, tag) { if (node._tags && node._tags.includes(tag)) return path; for (let k in node) { if (!k.startsWith('_')) { let res = findTagPath(node[k], path ? path+'/'+k : k, tag); if (res) return res; } } return null; }
+        function findTagPath(node, path, tag) { if (node._tags && node._tags.some(t => parseTag(t).name === tag)) return path; for (let k in node) { if (!k.startsWith('_')) { let res = findTagPath(node[k], path ? path+'/'+k : k, tag); if (res) return res; } } return null; }
         function clearAllFiltersAndTags() { clearCompFilters(); clearAll(); showToast(t("clear_title"), "success"); }
-        function checkActiveBubble(node, path) { if (node._tags && node._tags.some(t => state.tagStates[`${path}|${t}`])) return true; for (let k in node) { if (!k.startsWith('_') && checkActiveBubble(node[k], path + '/' + k)) return true; } return false; }
+        function checkActiveBubble(node, path) { if (node._tags && node._tags.some(t => state.tagStates[`${path}|${parseTag(t).name}`])) return true; for (let k in node) { if (!k.startsWith('_') && checkActiveBubble(node[k], path + '/' + k)) return true; } return false; }
+
+        // 【高维重构】：独立元素节流器。
+        // 彻底解决快速点击不同标签/组名时，后续点击被误判为双击而失效的“断触”现象。
+        let clickThrottleMap = {};
+        function isThrottled(key, ms = 250) {
+            let now = Date.now();
+            if (clickThrottleMap[key] && now - clickThrottleMap[key] < ms) return true;
+            clickThrottleMap[key] = now;
+            return false;
+        }
 
         function onGroupClick(e, path, name) { 
-            if (isDragAction(e)) return; 
+            // 将同一个组名的短时间多次点击当成一次，但不影响你光速连点不同的组
+            if (isThrottled('g_' + path)) return;
+
+            if (isDragAction(e)) return;
             
+            // 新增：Ctrl + 中键 设置组名属性 (包含描述)
+            if (e.ctrlKey && e.button === 1) {
+                e.preventDefault(); e.stopPropagation();
+                let parent = getParentNode(path);
+                let node = parent[name];
+                let oldAlias = node._alias || '';
+                let oldDescs = node._descriptions || [];
+                
+                openDetailEdit(e.clientX, e.clientY, oldAlias, oldDescs, (res) => {
+                    if (res) {
+                        let trimmed = res.alias.trim();
+                        let newNode = {};
+                        if (trimmed) newNode._alias = trimmed;
+                        if (res.descs && res.descs.length > 0) newNode._descriptions = res.descs;
+                        if (node.hasOwnProperty('_bg_color')) newNode._bg_color = node._bg_color;
+                        if (node.hasOwnProperty('_tags')) newNode._tags = node._tags;
+                        
+                        for (let k in node) {
+                            if (k !== '_alias' && k !== '_descriptions' && k !== '_bg_color' && k !== '_tags') {
+                                newNode[k] = node[k];
+                            }
+                        }
+                        parent[name] = newNode;
+                        saveCompState(); render(); 
+                    }
+                }, t('set_alias'));
+                return;
+            }
+
             // Alt + 中键 (e.button === 1)：重命名
             if (e.altKey && e.button === 1) {
                 e.preventDefault(); e.stopPropagation();
@@ -2906,7 +4545,7 @@ ageM: <= 7 d = modified last 7 days</div>
                         for (let k in newObj) parent[k] = newObj[k]; 
                         let newPath = path.substring(0, path.lastIndexOf('/') + 1) + val; 
                         state.expandedGroups[newPath] = state.expandedGroups[path]; 
-                        saveDataAndRenderAll(); 
+                        saveCompState(); render(); refreshCompUI(); 
                     } 
                 });
                 return;
@@ -2932,7 +4571,7 @@ ageM: <= 7 d = modified last 7 days</div>
                         for (let k in newObj) parent[k] = newObj[k]; 
                         let newPath = path.substring(0, path.lastIndexOf('/') + 1) + val; 
                         state.expandedGroups[newPath] = state.expandedGroups[path]; 
-                        saveDataAndRenderAll(); 
+                        saveCompState(); render(); refreshCompUI(); 
                     } 
                 }); 
             } else { 
@@ -2940,13 +4579,14 @@ ageM: <= 7 d = modified last 7 days</div>
                 let hasTags = node._tags && node._tags.length > 0;
                 let hasSubgroups = false;
                 for (let k in node) { if (!k.startsWith('_')) { hasSubgroups = true; break; } }
-                if (!hasTags && !hasSubgroups) return; // 核心：空组彻底禁止折叠/展开操作
+                if (!hasTags && !hasSubgroups) return; 
 
                 state.expandedGroups[path] = !state.expandedGroups[path]; 
+                saveCompState(); // [修复] 保存点击后的折叠状态
                 render(); 
             } 
         }
-        function addRootGroup(e) { openQuickEdit(e.clientX, e.clientY, "", (val) => { if (val && !currentTree()[val]) { currentTree()[val] = {"_tags": [], "_bg_color": ""}; saveDataAndRenderAll(); } }); }
+        function addRootGroup(e) { openQuickEdit(e.clientX, e.clientY, "", (val) => { if (val && !currentTree()[val]) { currentTree()[val] = {"_tags": [], "_bg_color": ""}; initExpandedState(currentTree(), ""); /* [修复] 注册新根组 */ saveCompState(); render(); refreshCompUI(); } }); }
         
         // 加入了 e.stopPropagation() 以防止在组名栏点击+号时触发展开操作
         function addTag(e, path) { 
@@ -2955,18 +4595,21 @@ ageM: <= 7 d = modified last 7 days</div>
                 if (val) { 
                     let node = getNodeByPath(path); 
                     if (!node._tags) node._tags = []; 
-                    if (!node._tags.includes(val)) { node._tags.push(val); saveDataAndRenderAll(); } 
+                    if (!node._tags.some(t => parseTag(t).name === val)) { 
+                        node._tags.push(val); 
+                        saveCompState(); render(); 
+                    } 
                 } 
             }); 
         }
-        
+
         function delTagBtn(e, path, tag) { 
             e.stopPropagation(); e.preventDefault(); 
             let node = getNodeByPath(path); 
-            node._tags = node._tags.filter(t => t !== tag); 
+            node._tags = node._tags.filter(t => parseTag(t).name !== tag); 
             delete state.tagStates[`${path}|${tag}`]; 
             clickOrder = clickOrder.filter(k => k !== `${path}|${tag}`); 
-            saveDataAndRenderAll(); 
+            saveCompState(); render(); refreshCompUI(); 
             sysLog(t("log_tag_del").replace('{tag}', tag), "INFO");
         }
 
@@ -3001,7 +4644,7 @@ ageM: <= 7 d = modified last 7 days</div>
             if (wsKeys.length > 0) { 
                 sMove.innerHTML = ''; sCopy.innerHTML = ''; 
                 wsKeys.forEach(w => { 
-                    let sw = _e(w); let hw = _h(t(w)); 
+                    let sw = _e(w); let hw = _h(sysT(w));
                     sMove.innerHTML += `<div class="submenu-item" onclick="execWsTransfer('move', '${sw}')">${hw}</div>`; 
                     sCopy.innerHTML += `<div class="submenu-item" onclick="execWsTransfer('copy', '${sw}')">${hw}</div>`; 
                 }); 
@@ -3013,8 +4656,46 @@ ageM: <= 7 d = modified last 7 days</div>
         
         function ctxAction(action) { 
             ctxMenu.style.display = 'none'; let p = ctxTarget.path, n = ctxTarget.name; 
-            if (action === 'color') { let node = getNodeByPath(p); openColorModal(node._bg_color || "", (newHex) => { if (newHex) { node._bg_color = newHex; saveDataAndRenderAll(); sysLog(t("log_grp_color_upd"), "INFO"); } }); } 
-            else if (action === 'color-reset') { let node = getNodeByPath(p); delete node._bg_color; saveDataAndRenderAll(); sysLog(t("log_grp_color_rst"), "INFO"); }
+            
+            // --- 新增：批量组内标签操作逻辑 ---
+            if (action === 'select-all-or') {
+                let node = getNodeByPath(p); let allT = getAllTagsInGroup(node, p); let changed = false;
+                allT.forEach(item => {
+                    if(item.tag === '""' || item.tag === '?*') return; // 跳过特殊标签
+                    let key = `${item.path}|${item.tag}`;
+                    if(state.tagStates[key] === 1 || state.tagStates[key] === 2) { delete state.tagStates[key]; clickOrder = clickOrder.filter(x => x !== key); }
+                    if(state.tagStates[key] !== 3) { state.tagStates[key] = 3; if(!clickOrder.includes(key)) clickOrder.push(key); changed = true; }
+                });
+                if (changed) { // 清除冲突的特殊过滤
+                    Object.keys(state.tagStates).forEach(k => { let otherTag = k.split('|')[1]; if(otherTag === '""' || otherTag === '?*') { delete state.tagStates[k]; clickOrder = clickOrder.filter(x => x !== k); } });
+                }
+                saveCompState(); render(); refreshCompUI();
+            }
+            else if (action === 'exclude-all') {
+                let node = getNodeByPath(p); let allT = getAllTagsInGroup(node, p); let changed = false;
+                allT.forEach(item => {
+                    if(item.tag === '""' || item.tag === '?*') return; // 跳过特殊标签
+                    let key = `${item.path}|${item.tag}`;
+                    if(state.tagStates[key] === 1 || state.tagStates[key] === 3) { delete state.tagStates[key]; clickOrder = clickOrder.filter(x => x !== key); }
+                    if(state.tagStates[key] !== 2) { state.tagStates[key] = 2; if(!clickOrder.includes(key)) clickOrder.push(key); changed = true; }
+                });
+                if (changed) { // 清除冲突的特殊过滤
+                    Object.keys(state.tagStates).forEach(k => { let otherTag = k.split('|')[1]; if(otherTag === '""' || otherTag === '?*') { delete state.tagStates[k]; clickOrder = clickOrder.filter(x => x !== k); } });
+                }
+                saveCompState(); render(); refreshCompUI();
+            }
+            else if (action === 'clear-group') {
+                let node = getNodeByPath(p); let allT = getAllTagsInGroup(node, p);
+                allT.forEach(item => {
+                    let key = `${item.path}|${item.tag}`;
+                    if (state.tagStates[key] !== undefined) { delete state.tagStates[key]; clickOrder = clickOrder.filter(x => x !== key); }
+                });
+                saveCompState(); render(); refreshCompUI();
+            }
+            // --- 批量逻辑结束 ---
+            
+            else if (action === 'color') { let node = getNodeByPath(p); openColorModal(node._bg_color || "", (newHex) => { if (newHex) { node._bg_color = newHex; saveCompState(); render(); refreshCompUI(); sysLog(t("log_grp_color_upd"), "INFO"); } }); }
+            else if (action === 'color-reset') { let node = getNodeByPath(p); delete node._bg_color; saveCompState(); render(); refreshCompUI(); sysLog(t("log_grp_color_rst"), "INFO"); }
             else if (action === 'reset-uncat') {
                 if (n !== "未分类") return;
                 let node = getNodeByPath(p);
@@ -3026,7 +4707,7 @@ ageM: <= 7 d = modified last 7 days</div>
                         clickOrder = clickOrder.filter(x => x !== k);
                     }
                 });
-                saveDataAndRenderAll();
+                saveCompState(); render(); refreshCompUI();
                 sysLog(t("log_uncat_rst"), "INFO");
             }
             else if (action === 'rename') {
@@ -3039,7 +4720,7 @@ ageM: <= 7 d = modified last 7 days</div>
                         for (let k in newObj) parent[k] = newObj[k]; 
                         let newPath = p.substring(0, p.lastIndexOf('/') + 1) + val; 
                         state.expandedGroups[newPath] = state.expandedGroups[p]; 
-                        saveDataAndRenderAll(); 
+                        saveCompState(); render(); refreshCompUI(); 
                     } 
                 });
             }
@@ -3051,7 +4732,8 @@ ageM: <= 7 d = modified last 7 days</div>
                     for(let k in nd) { if(!k.startsWith('_')) _expandAll(nd[k], curPath + '/' + k); }
                 }
                 _expandAll(node, p);
-                render(); // UI状态改变，只重绘不写盘
+                saveCompState(); // [修复] 保存状态
+                render(); 
             }
             else if (action === 'collapse-leaf') {
                 if (n === "未分类") return;
@@ -3069,26 +4751,44 @@ ageM: <= 7 d = modified last 7 days</div>
                     }
                 }
                 _collapseLeaf(node, p, true);
+                saveCompState(); // [修复] 保存状态
                 render();
             }
-            else if (action === 'add') { openQuickEdit(gStartX, gStartY, "", val => { if (val) { getNodeByPath(p)[val] = {"_tags": []}; state.expandedGroups[p] = true; saveDataAndRenderAll(); } }); }
+            else if (action === 'add') { openQuickEdit(gStartX, gStartY, "", val => { if (val) { getNodeByPath(p)[val] = {"_tags": []}; state.expandedGroups[p] = true; initExpandedState(currentTree(), ""); /* [修复] 注册新子组 */ saveCompState(); render(); refreshCompUI(); } }); }
             else if (action === 'batch-add') { batchTarget = { type: 'subgroup', path: p }; executeBatchAddMenu(); }
             else if (action === 'add-tag') {
                 openQuickEdit(gStartX, gStartY, "", val => {
                     if (val) {
                         let node = getNodeByPath(p);
                         if (!node._tags) node._tags = [];
-                        if (!node._tags.includes(val)) { node._tags.push(val); saveDataAndRenderAll(); }
+                        if (!node._tags.includes(val)) { node._tags.push(val); saveCompState(); render(); refreshCompUI(); }
                     }
                 });
             }
             else if (action === 'batch-add-tag') { batchTarget = { type: 'tag', path: p }; executeBatchAddMenu(); }
-            else if (action === 'delete') { if (n === "未分类") return; let parent = getParentNode(p); delete parent[n]; saveDataAndRenderAll(); } 
+            else if (action === 'delete') { if (n === "未分类") return; let parent = getParentNode(p); delete parent[n]; saveCompState(); render(); refreshCompUI(); } 
         }
-        function execWsTransfer(action, targetWs) { ctxMenu.style.display = 'none'; if (ctxTarget.name === "未分类") return showToast(t("toast_no_uncat_op"), "error"); let parent = getParentNode(ctxTarget.path); let dataCopy = JSON.parse(JSON.stringify(parent[ctxTarget.name])); allTreeData[targetWs][ctxTarget.name] = dataCopy; if (action === 'move') delete parent[ctxTarget.name]; saveDataAndRenderAll(); }
+        function execWsTransfer(action, targetWs) { ctxMenu.style.display = 'none'; if (ctxTarget.name === "未分类") return showToast(t("toast_no_uncat_op"), "error"); let parent = getParentNode(ctxTarget.path); let dataCopy = JSON.parse(JSON.stringify(parent[ctxTarget.name])); allTreeData[targetWs][ctxTarget.name] = dataCopy; if (action === 'move') delete parent[ctxTarget.name]; saveCompState(); render(); refreshCompUI(); }
 
         function getNodeByPath(pathStr) { let parts = pathStr.split('/'); let curr = currentTree(); for (let p of parts) curr = curr[p]; return curr; }
         function getParentNode(pathStr) { let parts = pathStr.split('/'); let curr = currentTree(); for (let i = 0; i < parts.length - 1; i++) curr = curr[parts[i]]; return curr; }
+
+        function getNodeByPath(pathStr) { let parts = pathStr.split('/'); let curr = currentTree(); for (let p of parts) curr = curr[p]; return curr; }
+        function getParentNode(pathStr) { let parts = pathStr.split('/'); let curr = currentTree(); for (let i = 0; i < parts.length - 1; i++) curr = curr[parts[i]]; return curr; }
+
+        // --- 新增：递归获取当前组及其所有子组内的全部标签 ---
+        function getAllTagsInGroup(node, path) {
+            let tags = [];
+            if (node._tags) {
+                node._tags.forEach(tRaw => { tags.push({ path: path, tag: parseTag(tRaw).name }); });
+            }
+            for (let k in node) {
+                if (!k.startsWith('_')) {
+                    tags = tags.concat(getAllTagsInGroup(node[k], path ? path + '/' + k : k));
+                }
+            }
+            return tags;
+        }
 
         function onDragStartTree(e, type, path, name) { dragItem = { type, path, name }; e.dataTransfer.setData('text', 'dummy'); e.stopPropagation(); }
         function onDragLeaveTree(e) { e.currentTarget.classList.remove('drag-top', 'drag-bottom', 'drag-center', 'drag-left', 'drag-right'); }
@@ -3125,7 +4825,7 @@ ageM: <= 7 d = modified last 7 days</div>
                 srcNode._tags = srcNode._tags.filter(t => t !== dragItem.name); 
                 let tgtNode = getNodeByPath(targetPath); 
                 if (!tgtNode._tags) tgtNode._tags = []; 
-                if (!tgtNode._tags.includes(dragItem.name)) tgtNode._tags.push(dragItem.name); 
+                if (!tgtNode._tags.some(t => parseTag(t).name === dragItem.name)) tgtNode._tags.push(dragItem.name); 
             } 
             else if (dragItem.type === 'group') { 
                 if (targetPath === dragItem.path || targetPath.startsWith(dragItem.path + '/')) return; 
@@ -3168,7 +4868,7 @@ ageM: <= 7 d = modified last 7 days</div>
                     for (let k in newDict) tgtParent[k] = newDict[k]; 
                 } 
             } 
-            saveDataAndRenderAll(); 
+            saveCompState(); render(); refreshCompUI(); 
         }
         
         function onDragOverTreeTag(e) { e.preventDefault(); e.stopPropagation(); if (dragItem.type !== 'tag') return; let el = e.currentTarget; el.classList.remove('drag-left', 'drag-right'); let r = el.getBoundingClientRect(); if (e.clientX - r.left < r.width / 2) el.classList.add('drag-left'); else el.classList.add('drag-right'); }
@@ -3180,26 +4880,87 @@ ageM: <= 7 d = modified last 7 days</div>
             if (dragItem.path === targetPath && dragItem.name === targetTag) return; 
             
             let srcNode = getNodeByPath(dragItem.path); 
-            let sIdx = srcNode._tags.indexOf(dragItem.name);
+            let sIdx = srcNode._tags.findIndex(t => parseTag(t).name === dragItem.name);
             if (sIdx > -1) srcNode._tags.splice(sIdx, 1); 
             
             let tgtNode = getNodeByPath(targetPath); 
             if (!tgtNode._tags) tgtNode._tags = []; 
-            let tIdx = tgtNode._tags.indexOf(targetTag);  
+            let tIdx = tgtNode._tags.findIndex(t => parseTag(t).name === targetTag);  
             if (tIdx < 0) tIdx = tgtNode._tags.length;
             
             let r = e.currentTarget.getBoundingClientRect(); 
             if (e.clientX - r.left >= r.width / 2) tIdx++; 
             tgtNode._tags.splice(tIdx, 0, dragItem.name); 
-            saveDataAndRenderAll(); 
+            saveCompState(); render(); refreshCompUI(); 
         }
 
         function triggerBatchAddMenu(e, type, path, forcedX, forcedY) {
             if(e) { e.preventDefault(); e.stopPropagation(); }
             batchTarget = { type, path };
             const menu = document.getElementById('batch-add-menu');
+            
+            // 核心功能：右键 + 号时，如果是根目录级别，动态显示出导出/导入工作区选项
+            const showIO = (type === 'root');
+            document.getElementById('ws-io-separator').style.display = showIO ? 'block' : 'none';
+            document.getElementById('ws-export-btn').style.display = showIO ? 'flex' : 'none';
+            document.getElementById('ws-import-btn').style.display = showIO ? 'flex' : 'none';
+
             menu.style.display = 'flex';
             setSafePosition(menu, e ? e.clientX : forcedX, e ? e.clientY : forcedY);
+            renderSVGs(menu);
+        }
+
+        async function exportCurrentWorkspace() {
+            document.getElementById('batch-add-menu').style.display = 'none';
+            let wsData = currentTree();
+            let res = await pywebview.api.export_workspace(JSON.stringify(wsData, null, 2), configData.currentWs);
+            if (res && res.success) showToast(t('toast_export_ok'), 'success');
+            else if (res && !res.success && res.msg !== "Cancelled") showToast(t('toast_export_fail'), 'error');
+        }
+
+        function importToWorkspace() {
+            document.getElementById('batch-add-menu').style.display = 'none';
+            document.getElementById('import-ws-file').click();
+        }
+
+        function handleImportWorkspace(e) {
+            let file = e.target.files[0]; if (!file) return;
+            let reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    let data = JSON.parse(evt.target.result);
+                    let tree = currentTree();
+                    for (let k in data) {
+                        if (k === '_compState') continue;
+                        if (!tree[k]) tree[k] = data[k];
+                        else {
+                            let existingTags = tree[k]._tags || [];
+                            let newTags = data[k]._tags || [];
+                            newTags.forEach(tRaw => { if (!existingTags.some(et => parseTag(et).name === parseTag(tRaw).name)) existingTags.push(tRaw); });
+                            tree[k]._tags = existingTags;
+                            if (data[k]._bg_color) tree[k]._bg_color = data[k]._bg_color;
+                            if (data[k]._alias) tree[k]._alias = data[k]._alias;
+                            for (let child in data[k]) {
+                                if (child.startsWith('_')) continue;
+                                if (!tree[k][child]) tree[k][child] = data[k][child];
+                                else {
+                                    let cExistingTags = tree[k][child]._tags || [];
+                                    let cNewTags = data[k][child]._tags || [];
+                                    cNewTags.forEach(tRaw => { if (!cExistingTags.some(et => parseTag(et).name === parseTag(tRaw).name)) cExistingTags.push(tRaw); });
+                                    tree[k][child]._tags = cExistingTags;
+                                    if (data[k][child]._parentBg) tree[k][child]._parentBg = data[k][child]._parentBg;
+                                    if (data[k][child]._alias) tree[k][child]._alias = data[k][child]._alias;
+                                }
+                            }
+                        }
+                    }
+                    initExpandedState(currentTree(), ""); // [修复] 立即扫描并注册新导入节点的展开状态
+                    saveCompState(); render(); refreshCompUI(); 
+                    showToast(t('toast_import_ok'), 'success');
+                } catch (err) { showToast(t('toast_import_err'), 'error'); }
+                e.target.value = '';
+            };
+            reader.readAsText(file);
         }
 
         function executeBatchAddMenu() {
@@ -3302,21 +5063,23 @@ ageM: <= 7 d = modified last 7 days</div>
                 lines.forEach(val => {
                     if (!currentTree()[val]) currentTree()[val] = {"_tags": [], "_bg_color": ""};
                 });
-                saveDataAndRenderAll();
+                initExpandedState(currentTree(), ""); // [修复] 注册新批量根组
+                saveCompState(); render(); refreshCompUI();
             } else if (batchTarget.type === 'tag') {
                 let node = getNodeByPath(batchTarget.path);
                 if (!node._tags) node._tags = [];
                 lines.forEach(val => {
                     if (!node._tags.includes(val)) node._tags.push(val);
                 });
-                saveDataAndRenderAll();
+                saveCompState(); render(); refreshCompUI();
             } else if (batchTarget.type === 'subgroup') {
                 let node = getNodeByPath(batchTarget.path);
                 lines.forEach(val => {
                     if(!node[val]) node[val] = {"_tags": []};
                 });
                 state.expandedGroups[batchTarget.path] = true;
-                saveDataAndRenderAll();
+                initExpandedState(currentTree(), ""); // [修复] 注册新批量子组
+                saveCompState(); render(); refreshCompUI();
             }
             showToast(t("toast_batch_add_ok"), "success");
             closeBatchModal();
@@ -3367,11 +5130,12 @@ ageM: <= 7 d = modified last 7 days</div>
             showToast(t("toast_batch_add_ok"), "success");
         }
         
-        function openQuickEdit(x, y, defVal, cb) { 
+        function openQuickEdit(x, y, defVal, cb, placeholderHint = '') { 
             qCallback = cb; 
             const qe = document.getElementById('quick-edit');
             const qInput = document.getElementById('edit-input');
             qInput.value = defVal; 
+            qInput.placeholder = placeholderHint || "Enter 确认 / Esc 取消"; // 新增占位符支持
             qe.style.display = 'block'; 
             setSafePosition(qe, x, y);
             setTimeout(() => { qInput.focus(); qInput.select(); }, 50); 
@@ -3379,6 +5143,477 @@ ageM: <= 7 d = modified last 7 days</div>
         function getLighterColor(hex) { if (!hex || hex === 'transparent') return '#00bcd4'; let r = parseInt(hex.slice(1,3), 16), g = parseInt(hex.slice(3,5), 16), b = parseInt(hex.slice(5,7), 16); r = Math.min(255, r + 40); g = Math.min(255, g + 40); b = Math.min(255, b + 40); return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1); }
         function getContrastColor(hex) { if (!hex || hex === 'transparent') return ''; let c = hex.startsWith('#') ? hex.slice(1) : hex; if (c.length === 3) c = c.split('').map(x => x + x).join(''); let r = parseInt(c.slice(0, 2), 16), g = parseInt(c.slice(2, 4), 16), b = parseInt(c.slice(4, 6), 16); let yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000; return yiq >= 128 ? '#111111' : '#FFFFFF'; }
 
+        function getLighterColor(hex) { if (!hex || hex === 'transparent') return '#00bcd4'; let r = parseInt(hex.slice(1,3), 16), g = parseInt(hex.slice(3,5), 16), b = parseInt(hex.slice(5,7), 16); r = Math.min(255, r + 40); g = Math.min(255, g + 40); b = Math.min(255, b + 40); return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1); }
+        function getContrastColor(hex) { if (!hex || hex === 'transparent') return ''; let c = hex.startsWith('#') ? hex.slice(1) : hex; if (c.length === 3) c = c.split('').map(x => x + x).join(''); let r = parseInt(c.slice(0, 2), 16), g = parseInt(c.slice(2, 4), 16), b = parseInt(c.slice(4, 6), 16); let yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000; return yiq >= 128 ? '#111111' : '#FFFFFF'; }
+
+        // --- 新增：智能主题颜色映射引擎 (HSL 亮度自适应翻转) ---
+        function getMappedColor(hex, currentTheme) {
+            if (!hex || hex === 'transparent' || !hex.startsWith('#')) return hex;
+            let c = hex.slice(1);
+            if (c.length === 3) c = c.split('').map(x => x + x).join('');
+            if (c.length !== 6) return hex;
+
+            // 1. Hex 转 RGB
+            let r = parseInt(c.slice(0, 2), 16) / 255, g = parseInt(c.slice(2, 4), 16) / 255, b = parseInt(c.slice(4, 6), 16) / 255;
+            let max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h = 0, s = 0, l = (max + min) / 2;
+
+            // 2. RGB 转 HSL
+            if (max !== min) {
+                let d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+
+            // 3. 核心：根据主题进行亮度 (Lightness) 翻转
+            let isDarkColor = l < 0.55; 
+            if (currentTheme === 'light' && isDarkColor) {
+                // 【调整明度】：把 0.85 降低为 0.70 或 0.75。数值越小，颜色越深、越厚重。
+                l = 0.78 + (l * 0.1); 
+                
+                // 【调整饱和度】：加入这一行。乘以 1.2 表示把原颜色的饱和度放大 20%，让颜色更鲜艳不发灰。
+                // (Math.min确保饱和度不会超过最大值1)
+                s = Math.min(1, s * 1.2); 
+            } else if (currentTheme === 'dark' && !isDarkColor) {
+                // 如果在暗色主题下遇到亮色 -> 映射为安全的暗色区间 (0.15 ~ 0.3)
+                l = 0.15 + ((1 - l) * 0.15);
+            } else {
+                return hex; // 颜色已经适配当前主题，直接放行
+            }
+
+            // 4. HSL 重新转回 Hex
+            let hue2rgb = (p, q, t) => {
+                if (t < 0) t += 1; if (t > 1) t -= 1;
+                if (t < 1/6) return p + (q - p) * 6 * t;
+                if (t < 1/2) return q;
+                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            };
+
+            let q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            let p = 2 * l - q;
+            let rr = Math.round(hue2rgb(p, q, h + 1/3) * 255);
+            let gg = Math.round(hue2rgb(p, q, h) * 255);
+            let bb = Math.round(hue2rgb(p, q, h - 1/3) * 255);
+
+            let toHex = x => { let hx = x.toString(16); return hx.length === 1 ? '0' + hx : hx; };
+            return `#${toHex(rr)}${toHex(gg)}${toHex(bb)}`.toUpperCase();
+        }
+        
+        // ==========================================
+        // --- 标签全局检索系统 (增强版) ---
+        // ==========================================
+        let flattenedTagsCache = [];
+        let currentSearchIndex = -1; // 用于键盘上下键选择
+
+        // 构建缓存 (提取标签路径、别名)
+        function buildTagCache() {
+            flattenedTagsCache = [];
+            let tree = currentTree();
+            
+            function traverse(node, currentPath, displayPath) {
+                if (node._tags) {
+                    node._tags.forEach(tRaw => {
+                        let pt = parseTag(tRaw);
+                        if (pt.name !== '?*' && pt.name !== '""') {
+                            flattenedTagsCache.push({
+                                raw: tRaw,
+                                name: pt.name,
+                                alias: pt.alias,
+                                descs: pt.descs,
+                                path: currentPath,
+                                displayPath: displayPath ? `${displayPath} / ` : ""
+                            });
+                        }
+                    });
+                }
+                for (let k in node) {
+                    if (!k.startsWith('_')) {
+                        let dn = (state.showAlias && node[k]._alias) ? node[k]._alias : sysT(k);
+                        traverse(node[k], currentPath ? currentPath + '/' + k : k, displayPath ? `${displayPath} / ${dn}` : dn);
+                    }
+                }
+            }
+            if (tree["未分类"]) traverse({"未分类": tree["未分类"]}, "未分类", sysT("未分类"));
+            for(let k in tree) { if(k !== "未分类" && !k.startsWith('_')) traverse(tree[k], k, sysT(k)); }
+        }
+
+        // 【记忆即刻生效修补】
+        function toggleSearchMemory(isMem) {
+            configData.searchMemory = isMem;
+            if (isMem) {
+                // 隔离记录：读取当前工作区并加上后缀
+                let ws = configData.currentWs;
+                configData['lastSearchQuery_' + ws] = document.getElementById('tag-search-input').value.trim().toLowerCase();
+                let modeEl = document.querySelector('input[name="search_mode"]:checked');
+                configData['lastSearchMode_' + ws] = modeEl ? modeEl.value : 'fuzzy';
+            }
+            debouncedSaveConfig();
+        }
+
+        function toggleSearchMemory(isMem) {
+            configData.searchMemory = isMem;
+            if (isMem) {
+                // 【逻辑升级】隔离记录：不仅记录文字和模式，一并记录三大范围勾选状态
+                let ws = configData.currentWs;
+                configData['lastSearchQuery_' + ws] = document.getElementById('tag-search-input').value.trim().toLowerCase();
+                let modeEl = document.querySelector('input[name="search_mode"]:checked');
+                configData['lastSearchMode_' + ws] = modeEl ? modeEl.value : 'fuzzy';
+                
+                // 【找到这段并补充 InGroup】
+                configData['lastSearchInGroup_' + ws] = document.getElementById('search-in-group').checked; // [新增]
+                configData['lastSearchInTag_' + ws] = document.getElementById('search-in-tag').checked;
+                configData['lastSearchInRemark_' + ws] = document.getElementById('search-in-remark').checked;
+                configData['lastSearchInDesc_' + ws] = document.getElementById('search-in-desc').checked;
+            }
+            debouncedSaveConfig();
+        }
+
+        function openTagSearch(e) {
+            e.stopPropagation();
+            buildTagCache(); 
+            const modal = document.getElementById('tag-search-modal');
+            const input = document.getElementById('tag-search-input');
+            const memToggle = document.getElementById('search-memory-toggle');
+            
+            modal.style.display = 'flex';
+            setSafePosition(modal, e.clientX - 190, e.clientY + 20);
+            
+            // 【逻辑升级】恢复记忆设定（读取包含范围勾选的状态）
+            memToggle.checked = !!configData.searchMemory;
+            if (configData.searchMemory) {
+                let ws = configData.currentWs;
+                let savedQuery = configData['lastSearchQuery_' + ws];
+                let savedMode = configData['lastSearchMode_' + ws] || 'fuzzy';
+                
+                // 【找到这段并补充 sGroup】
+                let sGroup = configData['lastSearchInGroup_' + ws]; // [新增]
+                let sTag = configData['lastSearchInTag_' + ws];
+                let sRem = configData['lastSearchInRemark_' + ws];
+                let sDesc = configData['lastSearchInDesc_' + ws];
+                
+                // 只要不是明确保存过 false，默认就是勾选状态 (true)
+                document.getElementById('search-in-group').checked = sGroup !== false; // [新增]
+                document.getElementById('search-in-tag').checked = sTag !== false; 
+                document.getElementById('search-in-remark').checked = sRem !== false;
+                document.getElementById('search-in-desc').checked = sDesc !== false;
+                
+                if (savedQuery) {
+                    input.value = savedQuery;
+                    let rb = document.querySelector(`input[name="search_mode"][value="${savedMode}"]`);
+                    if (rb) rb.checked = true;
+                } else {
+                    input.value = '';
+                }
+            } else {
+                input.value = '';
+                document.getElementById('search-in-tag').checked = true;
+                document.getElementById('search-in-remark').checked = true;
+                document.getElementById('search-in-desc').checked = true;
+            }
+            
+            currentSearchIndex = -1; // 重置选中项
+            doTagSearch(); // 立即触发一次渲染
+            
+            setTimeout(() => { 
+                input.focus(); 
+                input.select(); 
+            }, 50);
+        }
+
+        function closeTagSearch() {
+            document.getElementById('tag-search-modal').style.display = 'none';
+        }
+
+        // 监听面板内的点击，防止冒泡导致误关
+        document.getElementById('tag-search-modal').addEventListener('mousedown', function(e) {
+            e.stopPropagation();
+        });
+
+        // 修改原有的全局点击拦截规则：点击其他地方关闭搜索框
+        document.addEventListener('mousedown', e => {
+            const tagSearchModal = document.getElementById('tag-search-modal');
+            if (tagSearchModal && tagSearchModal.style.display === 'flex' && !tagSearchModal.contains(e.target) && !e.target.closest('button[data-i18n-title="search_tags"]')) {
+                tagSearchModal.style.display = 'none';
+            }
+        });
+
+        // 【智能高亮核心算法】
+        function highlightText(text, query, mode, highlightClass) {
+            if (!query) return _h(text);
+            if (mode === 'exact') {
+                // 【终极降维方案】：完全不写任何带反斜杠的正则字面量代码！
+                // 动态生成反斜杠字符 (ASCII 92)，利用字符串切割拼接，完美绕过 Python 审查
+                let bs = String.fromCharCode(92); 
+                let specialChars = ['.', '*', '+', '?', '^', '$', '{', '}', '(', ')', '|', '[', ']', bs];
+                let escapedQuery = query;
+                for (let i = 0; i < specialChars.length; i++) {
+                    escapedQuery = escapedQuery.split(specialChars[i]).join(bs + specialChars[i]);
+                }
+                const regex = new RegExp(`(${escapedQuery})`, 'gi');
+                return _h(text).replace(regex, `<span class="${highlightClass}">$1</span>`);
+            } else {
+                // 模糊匹配字符高亮
+                let result = '';
+                let qIdx = 0;
+                let qLower = query.toLowerCase();
+                for (let i = 0; i < text.length; i++) {
+                    let char = text[i];
+                    if (qIdx < qLower.length && char.toLowerCase() === qLower[qIdx]) {
+                        result += `<span class="${highlightClass}">${_h(char)}</span>`;
+                        qIdx++;
+                    } else {
+                        result += _h(char);
+                    }
+                }
+                return result;
+            }
+        }
+
+        function doTagSearch() {
+            const query = document.getElementById('tag-search-input').value.trim().toLowerCase();
+            const mode = document.querySelector('input[name="search_mode"]:checked').value;
+            const resultsContainer = document.getElementById('tag-search-results');
+            
+            // 【补充 inGroup 变量】
+            let inGroup = document.getElementById('search-in-group').checked;
+            let inTag = document.getElementById('search-in-tag').checked;
+            let inRemark = document.getElementById('search-in-remark').checked;
+            let inDesc = document.getElementById('search-in-desc').checked;
+            
+            // 实时储存勾选状态
+            if (configData.searchMemory) {
+                let ws = configData.currentWs;
+                configData['lastSearchQuery_' + ws] = query;
+                configData['lastSearchMode_' + ws] = mode;
+                configData['lastSearchInTag_' + ws] = inTag;
+                configData['lastSearchInRemark_' + ws] = inRemark;
+                configData['lastSearchInDesc_' + ws] = inDesc;
+                debouncedSaveConfig();
+            }
+
+            if (!query) {
+                resultsContainer.innerHTML = `<div style="padding: 10px; color: var(--text-muted); font-size: 12px; text-align: center;">${t('search_no_input')}</div>`;
+                return;
+            }
+
+            // --- 核心：智能打分引擎 ---
+            let scoredResults = [];
+            for (let i = 0; i < flattenedTagsCache.length; i++) {
+                let item = flattenedTagsCache[i];
+                let score = 0;
+                let isMatch = false;
+
+                // 【补充提取路径名 gLow】
+                let gLow = item.displayPath ? item.displayPath.toLowerCase() : "";
+                let nLow = item.name.toLowerCase();
+                let aLow = item.alias ? item.alias.toLowerCase() : "";
+
+                // 智能打分器：判断匹配并计算权重得分
+                const checkMatch = (text, weight) => {
+                    if (!text) return 0;
+                    if (mode === 'exact') {
+                        let idx = text.indexOf(query);
+                        if (idx > -1) {
+                            isMatch = true;
+                            if (text === query) return weight * 100;         // 完全一致：绝对最高分
+                            if (idx === 0) return weight * 10;               // 开头匹配：次高分
+                            return weight + (50 / (text.length || 1));       // 包含匹配：越短分越高
+                        }
+                    } else {
+                        // 模糊匹配逻辑
+                        let p = 0, q = 0, firstMatchIdx = -1;
+                        let continuous = 0, maxContinuous = 0;
+                        while (p < text.length && q < query.length) {
+                            if (text[p] === query[q]) {
+                                if (firstMatchIdx === -1) firstMatchIdx = p;
+                                continuous++;
+                                maxContinuous = Math.max(maxContinuous, continuous);
+                                q++;
+                            } else {
+                                continuous = 0;
+                            }
+                            p++;
+                        }
+                        if (q === query.length) {
+                            isMatch = true;
+                            if (text === query) return weight * 100;
+                            if (firstMatchIdx === 0) return weight * 10;
+                            // 模糊匹配加分：连字越多、总长度越短，分越高
+                            return weight + maxContinuous + (50 / (text.length || 1));
+                        }
+                    }
+                    return 0;
+                };
+
+                // 分别在勾选的维度中计算得分 (基础权重：标签名100，备注50，描述10)
+                // 【在调用 checkMatch 的地方，增加对 gLow 的计算】
+                // 分组名的权重设为 30（次于备注，高于描述）
+                if (inGroup) score += checkMatch(gLow, 30);
+                if (inTag) score += checkMatch(nLow, 100);
+                if (inRemark && item.alias) score += checkMatch(aLow, 50);
+                if (inDesc && item.descs && item.descs.length > 0) {
+                    let bestDescScore = 0;
+                    for (let d of item.descs) {
+                        let dScore = checkMatch(d.toLowerCase(), 10);
+                        if (dScore > bestDescScore) bestDescScore = dScore;
+                    }
+                    score += bestDescScore;
+                }
+
+                if (isMatch) {
+                    scoredResults.push({ item: item, score: score, index: i });
+                }
+            }
+
+            // 根据得分降序排列，同分则按原本在树状图里的顺序排列
+            scoredResults.sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                return a.index - b.index;
+            });
+
+            // 提取排序后的结果
+            let results = scoredResults.map(sr => sr.item);
+
+            const MAX_RESULTS = 100;
+            let displayResults = results.slice(0, MAX_RESULTS);
+
+            if (displayResults.length === 0) {
+                resultsContainer.innerHTML = `<div style="padding: 10px; color: var(--text-muted); font-size: 12px; text-align: center;">${t('search_no_match')}</div>`;
+                return;
+            }
+
+            // --- 渲染逻辑 ---
+            let html = '';
+            displayResults.forEach((item, idx) => {
+                // 【将原来死板的 _h(item.displayPath) 替换为支持高亮的 highlightText】
+                // 这里我为你借用了 hl-desc (蓝色) 作为路径的高亮色，清爽且有辨识度
+                let pathHtml = highlightText(item.displayPath, inGroup ? query : "", mode, 'hl-desc'); 
+                
+                let nameHtml = highlightText(item.name, inTag ? query : "", mode, 'hl-match');
+                let aliasHtml = item.alias ? `<span style="opacity: 0.7; margin-left: 4px; font-size: 12px;">(${highlightText(item.alias, inRemark ? query : "", mode, 'hl-remark')})</span>` : '';
+                
+                let descMatchHtml = '';
+                if (inDesc && query && item.descs && item.descs.length > 0) {
+                    let qLow = query.toLowerCase();
+                    let matchedD = item.descs.find(d => {
+                        let tLow = d.toLowerCase();
+                        if (mode === 'exact') return tLow.includes(qLow);
+                        
+                        let p = 0, q = 0;
+                        while (p < tLow.length && q < qLow.length) {
+                            if (tLow[p] === qLow[q]) q++;
+                            p++;
+                        }
+                        return q === qLow.length;
+                    });
+                    
+                    if (matchedD) {
+                        descMatchHtml = `<div style="font-size: 11px; color: var(--text-muted); margin-top: 4px; background: rgba(128,128,128,0.1); padding: 3px 6px; border-radius: 4px; display: inline-block;">[${t('match_desc')}] ${highlightText(matchedD, query, mode, 'hl-desc')}</div>`;
+                    }
+                }
+
+                let tooltipHtml = '';
+                if (item.alias || (item.descs && item.descs.length > 0)) {
+                    let sTitle = state.showAlias ? item.name : item.alias;
+                    let sTitleColor = state.showAlias ? 'var(--hl-tag)' : 'var(--hl-remark)';
+                    
+                    if (sTitle) tooltipHtml += `<div><strong style="color:${sTitleColor};">${_h(sTitle)}</strong></div>`;
+                    if (item.descs && item.descs.length > 0) {
+                        if (sTitle) tooltipHtml += `<div style="border-top:1px solid var(--border-color); margin: 6px 0;"></div>`;
+                        tooltipHtml += `<div style="color:var(--text-muted); line-height:1.4;">` + item.descs.map(d => _h(d)).join('<div style="border-top:1px dashed var(--border-color); margin: 4px 0; opacity: 0.5;"></div>') + `</div>`;
+                    }
+                }
+                let hoverAttr = tooltipHtml ? `onmouseenter="showTooltip(event, '${_e(tooltipHtml)}')" onmousemove="moveTooltip(event)" onmouseleave="hideTooltip()"` : '';
+                
+                html += `
+                <div class="search-result-item" data-idx="${idx}" onclick="activateSearchedTag('${item.path}', '${item.name}')" ${hoverAttr}>
+                    <div class="search-path-col" title="${_e(item.displayPath)}">${pathHtml}</div>
+                    <div class="search-tag-col" style="display: flex; flex-direction: column; justify-content: center;">
+                        <div>${nameHtml} ${aliasHtml}</div>
+                        ${descMatchHtml}
+                    </div>
+                </div>`;
+            });
+            
+            if (results.length > MAX_RESULTS) {
+                html += `<div style="padding: 8px; color: var(--primary); font-size: 11px; text-align: center; border-top: 1px dashed var(--border-color);">${t('search_limit').replace('{n}', MAX_RESULTS)}</div>`;
+            }
+
+            resultsContainer.innerHTML = html;
+            currentSearchIndex = -1; 
+        }
+
+        // --- 键盘劫持与导航逻辑 ---
+        document.getElementById('tag-search-input').addEventListener('keydown', function(e) {
+            const results = document.querySelectorAll('.search-result-item');
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                closeTagSearch();
+                return;
+            }
+            if (results.length === 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                currentSearchIndex = (currentSearchIndex + 1) % results.length;
+                updateSearchSelection(results);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                currentSearchIndex = (currentSearchIndex - 1 + results.length) % results.length;
+                updateSearchSelection(results);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (currentSearchIndex >= 0 && currentSearchIndex < results.length) {
+                    results[currentSearchIndex].click();
+                } else if (results.length > 0) {
+                    results[0].click(); // 没主动选择时，默认触发第一条
+                }
+            }
+        });
+
+        function updateSearchSelection(resultsList) {
+            resultsList.forEach((el, idx) => {
+                if (idx === currentSearchIndex) {
+                    el.classList.add('selected');
+                    // 确保选中项滚动到视野内
+                    el.scrollIntoView({ block: 'nearest' });
+                } else {
+                    el.classList.remove('selected');
+                }
+            });
+        }
+
+        function activateSearchedTag(path, tag) {
+            let key = `${path}|${tag}`;
+            
+            state.tagStates[key] = 1;
+            if (!clickOrder.includes(key)) clickOrder.push(key);
+
+            let parts = path.split('/');
+            let curP = "";
+            parts.forEach(p => { 
+                curP += (curP ? "/" : "") + p; 
+                state.expandedGroups[curP] = true; 
+            });
+
+            // 【Bug修复】：彻底解绑，只开启“仅显示激活组”，关闭“仅展开激活组”
+            state.activeOnly = false;
+            document.getElementById('btn-active').classList.remove('active-green');
+            
+            state.filterOnly = true; 
+            document.getElementById('btn-filter').classList.add('active-green');
+
+            saveCompState();
+            render();
+            refreshCompUI();
+        }
+        
         // ======= 版本更新与链接逻辑 =======
         const CURRENT_VERSION = '/*__INIT_VERSION__*/';
         
@@ -3503,8 +5738,11 @@ if __name__ == '__main__':
                     scale = dpi / 96.0
 
                     rect = wintypes.RECT()
-                    res = ctypes.windll.dwmapi.DwmGetWindowAttribute(hwnd, 9, ctypes.byref(rect), ctypes.sizeof(rect))
-                    if res == 0:
+                    # 【高维修复】：放弃 DwmGetWindowAttribute(..., 9)，改用标准的 GetWindowRect！
+                    # DWM 属性 9 获取的是“不包含不可见调整边框”的视觉大小，而 create_window 接收的是包含边框的总大小。
+                    # 反复把剥除边框的视觉尺寸喂给生成引擎，就会导致窗口不断被“吃掉”边框厚度而越来越小。
+                    # GetWindowRect 获取的绝对物理边界，完美对称了窗口创建所需的尺寸。
+                    if ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(rect)):
                         w = int((rect.right - rect.left) / scale)
                         h = int((rect.bottom - rect.top) / scale)
                         x = int(rect.left / scale)
