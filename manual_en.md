@@ -1,166 +1,220 @@
 # XYplorerTagHelper User Guide
 
 ## Table of Contents
-- [🏗️ I. Software Architecture & Underlying Logic](#️-i-software-architecture--underlying-logic)
-- [⚙️ II. Initial Configuration & Workspace Management](#️-ii-initial-configuration--workspace-management)
+
+- [🏗️ I. Software Architecture and Underlying Logic](#️-i-software-architecture-and-underlying-logic)
+- [⚙️ II. Initial Configuration and Workspace Management (Workspace)](#️-ii-initial-configuration-and-workspace-management-workspace)
   - [1. Basic Settings](#1-basic-settings)
   - [2. Advanced Workspace Operations](#2-advanced-workspace-operations)
 - [🎛️ III. Four Core Action Buttons (Top Action Buttons)](#️-iii-four-core-action-buttons-top-action-buttons)
   - [1. 🔍 Search](#1--search)
-  - [2. 🏷️ Tag / Untag](#2-️-tag--untag)
-  - [3. 📖 Read Tags](#3--read-tags)
+  - [2. 🏷️ Apply Tag / Remove Tag (Tag)](#2-️-apply-tag--remove-tag-tag)
+  - [3. 📖 Read Tags (Read)](#3--read-tags-read)
   - [4. 🗑️ Clear](#4-️-clear)
 - [🎛️ IV. Composite Filter Area (Top Module)](#️-iv-composite-filter-area-top-module)
-  - [1. Button States & L/R Click Mutex Logic](#1-button-states--lr-click-mutex-logic)
-  - [2. Drag-and-Drop Sorting (Custom UI)](#2-drag-and-drop-sorting-custom-ui)
+  - [1. Button States and Left/Right Click Mutually Exclusive Logic](#1-button-states-and-leftright-click-mutually-exclusive-logic)
+  - [2. Drag and Drop Sorting (Free UI Customization)](#2-drag-and-drop-sorting-free-ui-customization)
   - [3. Deep Editing of Custom Extensions](#3-deep-editing-of-custom-extensions)
   - [4. Smart Text Input](#4-smart-text-input)
-- [🌳 V. Tag Tree & Visual Management (Bottom Module)](#-v-tag-tree--visual-management-bottom-module)
-  - [1. Advanced Tag Selection Logic](#1-advanced-tag-selection-logic)
-  - [2. Powerful Drag & Drop Reorganization](#2-powerful-drag--drop-reorganization)
-  - [3. Toolbar on the Right of Tag Groups](#3-toolbar-on-the-right-of-tag-groups)
-  - [4. Omnipresent Right-Click Menus](#4-omnipresent-right-click-menus)
+- [🌳 V. Tag Tree and Visual Management (Bottom Module)](#-v-tag-tree-and-visual-management-bottom-module)
+  - [1. Advanced Click Logic for Tags](#1-advanced-click-logic-for-tags)
+  - [2. Powerful Drag & Drop Reorganization Mechanism](#2-powerful-drag--drop-reorganization-mechanism)
+  - [3. Detailed Explanation of the "Toolbar" on the Right Side of Tag Groups](#3-detailed-explanation-of-the-toolbar-on-the-right-side-of-tag-groups)
+  - [4. Ubiquitous Context Menus](#4-ubiquitous-context-menus)
 - [⚠️ VI. Core Operation Precautions](#️-vi-core-operation-precautions)
+- [🤖 VII. Local AI Smart Tagging: Step-by-Step Configuration Guide](#-vii-local-ai-smart-tagging-step-by-step-configuration-guide)
+- [📅 Appendix: v1.2.5 Release Notes Summary](#-appendix-v125-release-notes-summary)
 
----
+------
 
-[**XYplorerTagHelper**](https://github.com/C21H21NO2S/XYplorerTagHelper) appears to be an open-source tagging assistant on GitHub, but it is actually a **full-featured Visual Search Builder for XYplorer**. It translates complex file types, paths, comments, and multi-tag logic into intuitive "point, click, and drag" operations, compiling them in real-time into XYplorer's advanced search syntax.
+**[XYplorerTagHelper](https://github.com/C21H21NO2S/XYplorerTagHelper)** is ostensibly an open-source tag helper tool on GitHub, but in reality, it is a **full-featured Visual Search Builder for XYplorer**. It transforms complex file types, paths, remarks, and multiple tag logics into intuitive "point-and-click and drag-and-drop" actions, compiling them in real-time into XYplorer's advanced search syntax.
 
-## 🏗️ I. Software Architecture & Underlying Logic
+## 🏗️ I. Software Architecture and Underlying Logic
 
-* **Technical Architecture:** Adopts a lightweight `pywebview` architecture. The frontend is a modern UI built with pure HTML/CSS/JS (supporting smooth dark/light dual themes), while the backend is Python. It has zero dependency on large third-party frameworks, ensuring extremely fast startup and low memory usage.
-* **State Machine Logic:** Every click (left/right), input, and drag is stored in a global state tree. The engine parses this tree in real-time to compile boolean search syntax, such as `tags:A & !B /types={:Image}`.
-* **Communication & Execution:** The compiled syntax is silently sent via Python to `XYplorer.exe` as a command line execution (`/feed="::goto..."`). Reading and writing tags are achieved through two-way communication using internal scripts and the system clipboard.
+- **Technical Architecture:** Built on a lightweight `pywebview` architecture. The front end is a modern UI constructed purely with HTML/CSS/JS (supporting smooth dark/light dual themes), and the back end is Python. It has no heavy third-party framework dependencies throughout, ensuring extremely fast startup times and low memory usage.
+- **State Machine Logic:** Every click (left/right), input, or drag you perform is stored in a global state tree. The engine parses this tree in real-time to compile boolean search syntax such as `tags:A & !B /types={:Image}`.
+- **Communication Execution:** The compiled syntax is silently sent to `XYplorer.exe` via Python as a command line argument (`/feed="::goto..."`) for execution. The tag reading and writing functionality achieves two-way communication by invoking internal scripts and the system clipboard.
 
----
+------
 
-## ⚙️ II. Initial Configuration & Workspace Management
+## ⚙️ II. Initial Configuration and Workspace Management (Workspace)
 
 The software supports multi-workspace management. Data, tag tree structures, and filter states are **completely independent and do not interfere with each other** across different workspaces.
 
-### 1. Basic Settings
+## 1. Basic Settings
 
-* Click the **"⚙️ (Gear)"** icon in the top right corner of the interface to enter system settings.
-* **XYplorer Path:** You must accurately enter the path to XYplorer (either the `.exe` file path or its folder); otherwise, search commands cannot be sent.
-* **UI Language & Theme:** Supports seamless switching between English/Simplified Chinese/Traditional Chinese and light/dark themes.
+- Click the **"⚙️ (Gear)"** icon in the top right corner of the interface to enter system settings.
+- **XYplorer Path:** You must accurately fill in the path to XYplorer (can be the `.exe` file path or the folder it resides in), otherwise search commands cannot be sent.
+- **UI Language and Theme:** Supports seamless switching between Simplified Chinese / English / Traditional Chinese and Light / Dark themes.
 
-### 2. Advanced Workspace Operations
+## 2. Advanced Workspace Operations
 
-* **Drag-and-Drop Sorting:** The workspace tabs at the top can be directly dragged left or right with the **left mouse button** to arrange their order as desired.
-* **Right-Click Menu (Core):** **Right-click** on any workspace tab to bring up the advanced menu:
-  * **Modify Tab Color:** Set an exclusive theme color block for different workspaces for easy visual separation.
-  * **Rename / Delete:** Deletion includes an anti-accidental touch confirmation. Note: The system strictly requires at least one workspace to be retained.
-  * **Duplicate Workspace:** Perfectly clones all tag group structures and color configurations of the current workspace, making it ideal as an initialization template for new projects.
+- **Drag and Drop Sorting:** The workspace tabs at the top support directly holding the **left mouse button and dragging left or right** to adjust the tab order as you please.
+- **Rename Workspace:** After triggering a rename, the name on the top workspace tab will synchronize and update immediately without requiring a reload.
+- **Workspace Import/Export:** **Right-click** on the "+" button at the far right of the tag group button bar to access the newly added "Export Current Workspace" and "Import to Current Workspace" features. Official presets or AI batch-generated tag group data can be quickly imported using this feature. *(Official preset tag groups download: [Workspace Presets](https://github.com/C21H21NO2S/XYplorerTagHelper/tree/main/Workspace))*。
+- **Context Menu (Core):** **Right-click** on any workspace tab to bring up the advanced menu:
+  - **Change Tab Color:** Set a dedicated theme color block for different workspaces to facilitate visual isolation.
+  - **Rename / Delete:** Deleting will prompt a confirmation to prevent accidental touches. Note: The system strictly requires at least one workspace to be kept.
+  - **Duplicate Workspace:** Perfectly clones all tag group structures and color configurations of the current workspace, highly suitable as an initialization template for a new project. *(Note: v1.2.5 has fixed the bug where duplicating a workspace would occasionally spawn a "ghost workspace")*.
 
----
+------
 
 ## 🎛️ III. Four Core Action Buttons (Top Action Buttons)
 
-The four large buttons at the top of the interface are the "execution engine" of the tool. They translate the visual state you built in the modern UI panel below into actual commands that XYplorer understands.
+The four large buttons located at the top of the interface are the "execution engine" of the entire tool. They are responsible for translating the visual states you build in the modern UI panel below into actual commands that XYplorer can understand.
 
-### 1. **🔍 Search**
+## 1. **🔍 Search**
 
-* **Function:** Automatically compiles all active filter conditions on the panel (including file types, custom extensions, paths, advanced composite tags, etc.) into XYplorer's advanced search syntax, and dispatches it to execute a full-disk or specific-directory search.
-* **Note:** The search logic strictly follows your click states on the panel: Left-click (Green) means include/OR, Right-click (Red) means exclude/NOT. After every successful search, the system automatically saves your inputted path, name, and comments into the history dropdown menus.
+- **Function:** Automatically compiles all active filter conditions on the panel into XYplorer's advanced search syntax and dispatches it for execution.
+- **Precautions:** Search logic strictly follows your click states on the panel: Left click (Green) represents inclusion or OR, and Right click (Red) represents exclusion (NOT).
 
-### 2. **🏷️ Tag / Untag**
+## 2. **🏷️ Apply Tag / Remove Tag (Tag)**
 
-* **Function:** Batch modify tags of the currently selected files in XYplorer. **Supports simultaneously completing "adding new tags" and "precisely erasing old tags" in a single click.**
-* **Core Operation Logic:**
-  * **Left-click Highlight (Blue 🔵):** Marked for **Addition**. This tag will be written to the selected files.
-  * **Right-click Highlight (Red 🔴):** Marked for **Removal**. If the selected files currently contain this tag, it will be precisely erased.
-* **Note:** * The underlying engine intelligently prioritizes "Remove" commands before executing "Add" commands.
-  * Before clicking, **you must ensure XYplorer is the active window and at least one file is selected**. If no files are selected, or if there are no active Blue/Red tags on the interface (e.g., only Green 🟢 highlighted by middle-click), the system will block the operation and pop up an error prompt.
+- **Function:** Batch modifies the tags of the currently selected files in XYplorer. **Supports completing both "adding new tags" and "precisely erasing old tags" simultaneously in a single click**.
+- **Core Operation Logic:**
+  - **Left Click Highlight (Blue 🔵):** Marked for **Addition**. This tag will be written to the selected files.
+  - **Right Click Highlight (Red 🔴):** Marked for **Removal**. If the selected files currently contain this tag, it will be precisely erased.
+- **Smart Tagging Module (Advanced/AI):** **Right-click** the "Tag" button at the top to summon the brand-new advanced processing menu. Includes:
+  - Batch Apply UCS Tags (Note: Filenames must begin with a standard UCS CatID).
+  - Batch Convert Filenames to UCS Tags.
+  - AI Filename matches UCS Tags (Inactive).
+  - AI Filename auto-generate tags - En/Zh (Active).
+  - AI Filename auto-generate tags (Active).
+  - AI Text content auto-generate tags (Active).
+- **Precautions:** You must ensure that XYplorer is the active window and that at least one file is selected.
 
-### 3. **📖 Read Tags**
+## 3. **📖 Read Tags (Read)**
 
-* **Function:** Extracts existing tags from the currently selected file in XYplorer, and automatically highlights, categorizes, and expands the corresponding tag tree hierarchy in the helper panel.
-* **Note:** This function uses the system clipboard for data transfer. If the read tag text is extremely large (e.g., over 500 characters or containing multiple lines of abnormal text), the system will pop up a safety confirmation window to prevent massive erroneous activations, allowing you to preview and manually confirm before writing to the UI.
+- **Function:** Extracts the existing tags of the currently selected files in XYplorer, and automatically highlights, categorizes, and expands the corresponding tag tree hierarchy in the helper panel.
 
-### 4. **🗑️ Clear**
+## 4. **🗑️ Clear**
 
-* **Function:** One-click state reset. Instantly clears all highlight states (Green, Red, Blue) in the composite filter area and tag tree, empties all text input boxes, and restores the workspace to its initial standby state.
-* **Note:** This operation only clears the **search filter conditions on the current interface**; it will absolutely NOT delete any of your group names, tag configurations, or workspace history data, nor will it affect the real file tags in XYplorer.
+- **Function:** One-click state reset. Instantly clears all highlight states (Green, Red, Blue) in the composite filter area and tag tree, empties all text input boxes, and restores the workspace to its initial standby state.
 
----
+------
 
 ## 🎛️ IV. Composite Filter Area (Top Module)
 
-This is the core area for building filter conditions like file types, paths, names, and comments.
+This is the core area for building filter conditions such as file types, paths, names, remarks, etc.
 
-### 1. Button States & L/R Click Mutex Logic
+## 1. Button States and Left/Right Click Mutually Exclusive Logic
 
-In panels like "Types", "Custom Ext.", and "Rating", the button operation logic is highly rigorous:
+- **Left Click (Include / OR):** Button turns **Green** 🟢. Indicates this condition is included when searching.
+- **Right Click (Exclude / NOT):** Button turns **Red** 🔴. Indicates this condition is excluded when searching.
 
-* **Left-click (Include / OR):** Button turns **Green** 🟢. Indicates the condition is included in the search. *Note: Left-click activation features smart mutex, automatically canceling all excluded (Red) states under the same category.*
-* **Right-click (Exclude / NOT):** Button turns **Red** 🔴. Indicates the condition is excluded from the search. *Note: Right-click exclusion forces the clearing of all active (Green) states under that category.*
+## 2. Drag and Drop Sorting (Free UI Customization)
 
-### 2. Drag-and-Drop Sorting (Custom UI)
+- **Type and Extension Sorting:** Hold down preset type buttons or custom extension buttons, and **drag left or right** to adjust their display order.
+- **Labels Sorting:** After syncing XYplorer labels, you can also drag left or right to rearrange the order of label colors.
 
-The composite area panels highly support customization:
+## 3. Deep Editing of Custom Extensions
 
-* **Types and Extensions Sorting:** Click and hold preset type buttons like "Text", "Image", or your own custom extension buttons, and **drag left/right** to adjust their arrangement order on the interface.
-* **Labels Sorting:** After clicking "Sync XYplorer Labels" to fetch configurations, it also supports left/right dragging to rearrange the order of label colors.
+- **Batch Add (Right Click):** **Right-click on the "➕ (Plus)" button** on the right side of the custom extension area to summon the batch add menu.
+- **Edit Mode:** Click the **"✏️ (Pencil)"** icon inside the panel to enter extension edit mode (left click to rename, click the red X in the top right corner to delete).
 
-### 3. Deep Editing of Custom Extensions
+## 4. Smart Text Input
 
-* **Batch Add (Right-click):** **Right-click on the "➕ (Plus)" button** on the right side of the custom extensions area to bring up the batch add menu, allowing one-click import of common extensions (like Images, Documents) or pasting a custom list.
-* **Edit Mode:** Click the **"✏️ (Pencil)"** icon in the panel to enter extension edit mode.
-  * **Rename:** **Left-click** any extension button to pop up an input box; modify and hit Enter.
-  * **Delete:** Click the red **"X"** in the top right corner of the button to delete.
-  * *(Note: Please click the pencil icon again to exit after modifications are complete; otherwise, normal left/right click filtering operations cannot be performed)*
+- **Path/Name/Remark:** Supports smart composite logic. Typing `A+B,C-D` in the input box will be automatically converted by the engine into strict XYplorer syntax: `(A and B) or (C and not D)`.
+- **Syntax Improvements:** The latest version supports directly searching for tags containing the "&" symbol; the underlying layer has been deeply optimized to avoid conflicts with complex boolean logic symbols like AND/OR/NOT, &, |, and quotes (").
 
-### 4. Smart Text Input
+------
 
-* **Path/Name/Comment:** Supports smart composite logic. Typing `A+B,C-D` in the input box will automatically be converted by the engine into strict XYplorer syntax: `(A AND B) OR (C AND NOT D)`.
+## 🌳 V. Tag Tree and Visual Management (Bottom Module)
 
----
+This is the core workflow area for managing tag categories, applying tags, and reading tags.
 
-## 🌳 V. Tag Tree & Visual Management (Bottom Module)
+## 1. Advanced Click Logic for Tags
 
-This is the core workflow area for managing tag categories, tagging, and reading tags.
+- **Left Click:** Turns **Blue** 🔵 (Must include this tag).
+- **Right Click:** Turns **Red** 🔴 (Must exclude this tag).
+- **Middle Click:** Turns **Green** 🟢 (OR logic, as long as it contains any one of the multiple blue tags).
+- **Quick Rename:** You can now use **Alt + Middle Click** on a tag or tag group to quickly rename it.
+- **Alias and Remark System:** Hovering the mouse over a tag will display alias/remark/description hints. Use **Ctrl + Middle Click** to quickly set translation or remark information.
 
-### 1. Advanced Tag Selection Logic
+## 2. Powerful Drag & Drop Reorganization Mechanism
 
-* **Left-click:** Turns **Blue** 🔵 (MUST contain this tag).
-* **Right-click:** Turns **Red** 🔴 (MUST exclude this tag).
-* **Middle-click:** Turns **Green** 🟢 (OR logic, as long as it contains any one of the multiple blue tags).
+- **Tag Transfer:** Drag a tag button and drop it into the dashed box area of another group.
+- **Group Rearrangement and Parent-Child Hierarchy Conversion:** Drag the "Group Name" area and judge the drop point based on the **highlighted indicator line** (Yellow line above, Yellow line below, or full row background highlight to make it a child group).
 
-### 2. Powerful Drag & Drop Reorganization
+## 3. Detailed Explanation of the "Toolbar" on the Right Side of Tag Groups
 
-The entire tag tree supports free drag-and-drop rearrangement and hierarchy modification just like a file manager:
+- **Search Tags:** Added a tag search system supporting searches for tag groups, the tags themselves, remarks, and descriptions. The system will independently remember the last search query and mode (exact/fuzzy) for each workspace.
+- **🧹 Clear:** One-click to clear the highlighted activation state of all tags in the tree diagram.
+- **↕️ Expand/Collapse All:** Click to control the overall collapse state. Now supports shortcuts: **Alt + Left Click** to force expand all groups; **Alt + Right Click** to force collapse all groups. The system will automatically remember your previous expand/collapse state.
+- **⏺ Solid Circle / ⭕ Outline Circle:** Locate activated groups and Focus Mode (hides inactive groups).
+- **Toggle Display Alias/Remark:** Added a button to toggle the alias/remark display on the interface with one click, supporting independent memory of the previous state per workspace.
+- **Enable/Disable Hover Tooltip:** Toggle whether the hover tooltip box is displayed, also supporting independent workspace memory.
 
-* **Tag Button Dragging:** Click and hold a tag button, drag it into the dashed box area of another group and release it to **transfer the tag to the new group**.
-* **Group Rearrangement & Parent-Child Hierarchy Conversion:** Click and hold the "Group Name" area (Header) of a group and drag. Pay attention to the **highlight prompt lines** of the target group:
-  * **Top Solid Yellow Line:** Places it as the **previous sibling group** of the target.
-  * **Bottom Solid Yellow Line:** Places it as the **next sibling group** of the target.
-  * **Full Row Background Highlight (Center):** Places it **inside** the target group, making it a **subgroup** of the target.
-  * *(Note: The "Uncategorized" group in the root directory is protected by the system and cannot be dragged and converted into a subgroup)*
+## 4. Ubiquitous Context Menus
 
-### 3. Toolbar on the Right of Tag Groups
+- **Group Name Context Menu:** Allows you to change category colors, batch create subgroups, and cross-region transfer (move/copy to other workspaces).
+- **Batch State Control:** Added quick state options in the group name context menu to allow one-click "Select all tags in group (OR)", "Exclude all tags in group (NOT)", and "Clear group state".
 
-On the right side of the text "🏷️ Tag Groups", there is a row of view-control artifacts:
-
-* **🧹 Clear:** One-click clear of all highlighted active states of tags in the tree.
-* **↕️ Expand/Collapse All:** One-click control of the overall collapse state of the tag tree.
-* **⏺ Solid Circle (Expand Active Only):** Intelligently collapses irrelevant groups, forces expansion, and **tracks and locates** the path of the group where tags are currently highlighted and active.
-* **⭕ Hollow Circle (Focus Mode):** Directly **hides** all inactive groups, instantly refreshing the interface to show only the operating context.
-* **✏️ Pencil (Edit Mode):** Once entered, **left-click** a group name or tag to directly rename it; click the red X to delete.
-* **➕ Plus Sign (New Root Group):** Left-click to create a single root group; **right-click** to paste multi-line text to batch generate multiple root groups.
-* **⌨ Mouse & Keyboard Interaction:** **Alt + Left-click** on a group name: Expand subgroups; **Alt + Right-click** on a group name: Collapse subgroups; **Alt + Middle-click** on a group name or tag: Rename.
-
-### 4. Omnipresent Right-Click Menus
-
-* **Top Four Operation Buttons (Search/Tag/Read/Clear):** **Right-click** to customize the background colors of these four core buttons, creating your preferred visual focus.
-* **Group Name Right-Click Menu:** Right-click on any group name:
-  * **Modify Category Color:** Set the background color for that group.
-  * **Batch Create Subgroups:** Paste multi-line text to generate tree-like child nodes in one click.
-  * **Cross-Workspace Transfer:** Select "Move to Workspace" or "Copy to Workspace" to uproot the group and all its subgroups/tags and transfer them to another workspace.
-
----
+------
 
 ## ⚠️ VI. Core Operation Precautions
 
-1. **Prerequisite for Tagging:** Before using the "Tag" function, please ensure XYplorer is active and **at least one file is selected**. If no file is selected, XYplorer will ignore the tag command.
-2. **Clipboard Limits for Reading Tags:** The "Read Tags" function works by copying the file's tags to the clipboard. If a huge number of files are read at once and the tags are extremely complex (over 500 characters), the software will pop up a "Batch Confirmation Window" to prevent misoperation, allowing you to manually confirm the read tag details before executing activation.
-3. **System Data Security:** All configurations and tag data are saved in ` .json` format in the `Data` folder of the software directory. Although the software has a built-in debounce auto-save mechanism, it is recommended to use **"Export Workspace Data"** in "⚙️ Settings" for manual backup before performing large-scale structural rearrangements (large-scale drag-and-drop, batch renaming).
+1. **Prerequisite for Tagging:** Before using the "Apply Tag" function, please ensure XYplorer is the active window and **at least one file is selected**. If no file is selected, XYplorer will ignore the tag command.
+2. **Clipboard Limitations for Reading Tags:** If reading a massive number of files at once with highly complex tags (exceeding 500 characters), the software will pop up a "Batch Confirmation Window" to prevent misoperation.
+3. **System Data Security:** All configuration and tag data are saved in `.json` format under the `Data` folder in the software directory. Before performing large-scale structural rearrangements, it is recommended to manually back up using "Export Workspace Data".
+
+------
+
+## 🤖 VII. Local AI Smart Tagging: Step-by-Step Configuration Guide
+
+By integrating a local Large Language Model (LLM), XYplorerTagHelper can automatically extract precise tags based on the "filename" or "file content" and automatically translate them into a language consistent with the software interface. The entire process runs **purely locally**, requires no internet connection, consumes zero API fees, and absolutely protects your file privacy!
+
+## 💡 1. Model Recommendation Guide
+
+- 🥇 **Top Recommendation: `qwen2.5:3b`**
+
+  The perfect balance of speed and precision! It can highly accurately understand long filenames, provide authentic translations, and generates at extremely fast speeds, making it the best choice for daily use.
+
+- 🥈 **Low-spec Alternative: `qwen2.5:1.5b`**
+
+  Extremely lightweight, taking up very little memory (around 1GB). Ideal for older computers or those with tight RAM, outputs words instantly.
+
+- ⚠️ **Special Note: `qwen3:1.7b`**
+
+  As a new-generation model, its instruction-following capability is very strong, but in current local API tests, its generation speed is slightly slower than version 2.5. If you pursue the latest tech, you may download and test it yourself.
+
+## 🚀 2. Installation and Configuration Steps (Only 3 Steps)
+
+**Step 1: Install the Local AI Engine (Ollama)**
+
+1. Visit the official Ollama website: https://ollama.com/.
+2. Download the Windows version and double-click to install.
+3. Once installed, an "alpaca" icon will appear in your taskbar, indicating the engine is running in the background.
+
+**Step 2: Download the AI Model**
+
+1. Press `Win + R` in Windows, type `cmd`, and press Enter to open the command prompt window.
+2. Enter the command and press Enter to begin downloading (using the top recommended model as an example): `ollama run qwen2.5:3b`.
+3. When the download is complete, `>>>` will appear. You can type "Hello" to test it. Once the test is successful, simply close the black window (Ollama will serve silently in the background).
+
+**Step 3: Bind AI in XYplorerTagHelper**
+
+1. Open the `XYplorerTagHelper` software, and click the ⚙️ **Settings button** in the top right corner.
+2. Locate the **AI Module Settings** area:
+   - **AI API URL (Ollama):** Change to `http://127.0.0.1:11434/api/generate` or `http://localhost:11434/api/generate`.
+   - **AI Model Name:** Fill in the exact name you downloaded, for example: `qwen2.5:3b`.
+3. Click **"Save Settings"**.
+
+## 🎉 3. How to Use AI Smart Tagging?
+
+1. Select the files you need to tag in XYplorer (supports batch selecting multiple files).
+2. In `XYplorerTagHelper`, **right-click** the **"Tag"** button at the top.
+3. In the pop-up menu, select the AI-exclusive options with the orange icons:
+   - 🧠 **AI Filename matches UCS Tags (No Active):** Strictly selects the most appropriate words from the left-side dictionary to apply to the file.
+   - 🧠 **AI Filename auto-generate tags - En/Zh (Active):** AI freely extracts tags, provides bilingual remarks in English and Chinese, and automatically activates and categorizes them into the current tag group.
+   - 🧠 **AI Filename auto-generate tags (Active):** AI extracts tags based on the filename, automatically translates (controlled by the interface language), and activates/categorizes them.
+   - 🧠 **AI Text content auto-generate tags (Active):** Specifically for text files, AI reads the beginning of the document to extract core tags.
+4. After clicking, the bottom right corner will prompt "AI is thinking...", quietly wait for the AI to finish tagging massive amounts of files!
+
+------
+
+## 📅 Appendix: v1.2.5 Release Notes Summary
+
+- **Added:** Workspace import/export functionality, tag group batch select all/exclude/clear state, Alt+Left/Right click global expand/collapse, Alt+Middle click quick rename, Ctrl+Middle click alias/remark/description system and display toggle controls.
+- **Enhanced:** Memorized multi-dimensional tag search system, introduced UCS (Universal Category System) and local AI large model smart tagging menu.
+- **Optimized:** Automatically remembers tag group expansion states, seamlessly refreshes workspace UI renaming, improved compatibility conflicts for the "&" symbol in complex boolean logic searches, and fixed the bug where ghost tabs appeared when duplicating workspaces.
