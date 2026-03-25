@@ -1,0 +1,110 @@
+{
+  "Music Genre": {
+    "_alias": "",
+    "_bg_color": "",
+    "_tags": [],
+    "Classical & Traditional": {
+      "_alias": "",
+      "_tags": [
+        "Bugle Call@@@Short tunes played on a bugle; used in militaries for communication.",
+        "Classical Music_Misc@@@Part of a broad generalization about the structure and function of music throughout history across the globe, describing traditions distinct from Traditional Folk Music and popular music.",
+        "March_Misc@@@Strong and regular rhythm originally written to walk in step easier or to back events like parades or marches.",
+        "Marching Band_Misc@@@Covering the music of Western-derived marching bands, primarily used for entertainment, competition, military, and parade settings, typically involving large-scale orchestras featuring a variety of instruments.",
+        "Parlour Music@@@Early form of light, sentimental popular music; popular in USA and Europe from the late 1700s to the 1870s."
+      ],
+      "_parentBg": "transparent"
+    },
+    "Folk, Country & World": {
+      "_alias": "",
+      "_tags": [
+        "Country_Misc@@@American genre derived from Southern and Appalachian forms of American Folk Music and later Rock and Pop influences, with a focus on the life and culture of rural America.",
+        "Folk_Misc@@@Rooted in mostly oral traditions of the peoples of the world, encompassing international Traditional Folk Music as well as Western Contemporary Folk which arose in the 1940s.",
+        "Reggae / Ska / Dancehall_Misc@@@Umbrella for related forms of Jamaican Music which have grown beyond their regional roots to become global phenomena.",
+        "Regional Music_Misc@@@Music of regional cultural traditions, that is or was predominantly played and produced in these regions.",
+        "Singer-Songwriter_Misc@@@Heavily focused on lyrics and songwriting, with musical accompaniment tending to take lower precedence.",
+        "Worldbeat@@@Pairs elements from diverse sources from across the globe with contemporary, uplifting Westernised production, created primarily for a Western audience."
+      ],
+      "_parentBg": "transparent"
+    },
+    "Hip Hop & R&B": {
+      "_alias": "",
+      "_tags": [
+        "Beatboxing@@@Form of vocal percussion developed during the 1980s, primarily involving the art of producing drum beats, rhythm, and musical sounds using one's mouth, lips, tongue, voice, and more.",
+        "Hip Hop_Misc@@@Emerged primarily on the United States East Coast in African-American communities in the late 1970s; emphasizes rhythmic beat patterns and a type of spoken vocal delivery known as rapping.",
+        "R&B_Misc@@@Umbrella of styles covering the most popular forms of Black American music from the late 1940s, when the term Rhythm & Blues first appeared; includes the developments of Soul and Funk in the '60s and '70s, and the Contemporary R&B of the 1980s onward."
+      ],
+      "_parentBg": "transparent"
+    },
+    "Jazz & Blues": {
+      "_alias": "",
+      "_tags": [
+        "Blues_Misc@@@Originated toward the end of the 19th century in African American communities in the United States, particularly the Deep South; drew on traditional Spirituals and Work Song; highly influential to the whole of Western popular music.",
+        "Jazz_Misc@@@Originating in African American communities in the Southern United States around the turn of the 20th century, building on New Orleans Brass Band ensemble and influences from Ragtime and Blues to become a very popular style by the emergence of Swing in the 1930s."
+      ],
+      "_parentBg": "transparent"
+    },
+    "Pop, Electronic & Dance": {
+      "_alias": "",
+      "_tags": [
+        "Ambient Pop@@@Emphasizes texture and atmosphere with a degree of structural experimentation, drawing on Dream Pop, Neo-Psychedelia, and Post-Rock while tending towards more minimal, repetitive arrangements which may incorporate elements of Electronic or Krautrock.",
+        "Ambient_Misc@@@Emphasizes texture and tone over traditional musical structure, aimed at evoking a particular atmosphere or mood.",
+        "Dance_Misc@@@Rooted in Disco and developed largely within Electronic Dance Music; emphasizes rhythm and is generally produced for play by DJs at clubs, parties, or festivals.",
+        "Darkwave_Misc@@@Expands on the dark, introspective and sorrowful atmosphere of Gothic Rock; borrowing aspects from Electronic and other non-Rock influences.",
+        "Electronic_Misc@@@Uses non-traditional electronic instrumentation and sound manipulation technology as the primary backbone of a composition.",
+        "Mashup@@@Songs created by mixing parts of two or more recordings together.",
+        "Pop_Misc@@@Umbrella of popular styles closely tied to mass production and mass marketing, focusing on catchiness and accessibility through melody, rhythm, lyrics, and hooks.",
+        "Toypop@@@Avant-garde, naive, and child-like; explores the sonic capabilities of toy instruments."
+      ],
+      "_parentBg": "transparent"
+    },
+    "Religious & Spiritual": {
+      "_alias": "",
+      "_tags": [
+        "Gospel_Misc@@@Arising from vocal Christian tradition often featuring emotive performances, layered accompaniments, and themes of faith and salvation.",
+        "Hymns_Misc@@@Performed and written with the purpose of praise, adoration, and prayer, often addressed to deities or other cultural figures.",
+        "Mantra_Misc@@@Sounds, words or phrases, often repeatedly chanted, used in religions originating in the Indian subcontinent, and spiritual practices influenced by them.",
+        "New Age_Misc@@@Broad genre centered on peaceful, meditative melodies, using a wide variety of instrumentation.",
+        "Sacred Singing Circle@@@Phenomenon that originally began in hippie gatherings, notably beginning with the counter-culture Rainbow Gatherings of the 1970s, features loose musical jams with varied and spontaneous performances."
+      ],
+      "_parentBg": "transparent"
+    },
+    "Rock, Metal & Punk": {
+      "_alias": "",
+      "_tags": [
+        "Dark Cabaret@@@Dark, moody style incorporating elements of Cabaret in a modern context, with varied instrumentation.",
+        "Industrial & Noise_Misc@@@Umbrella encompassing Noise and Industrial, as well as later derivatives that combine the latter aesthetics with other styles and in more accessible directions which fall under Post-Industrial.",
+        "Metal_Misc@@@Driving and distorted riffs, aggressive drumming, vigorous vocals, and an all-around show of brute force in its early days, since branching into dozens of subgenres.",
+        "Psychedelia_Misc@@@Umbrella of styles intended to replicate or enhance the altered state of consciousness brought on by the use of psychedelic drugs, originating in the 1960s.",
+        "Punk_Misc@@@Musical and cultural product of Punk Rock known for its simplistic, brash playstyle and anti-establishment themes.",
+        "Rock_Misc@@@Typically uses a verse-chorus structure with a backbeat rhythm and the electric guitar at the forefront; generally heavier and/or faster than its predecessors."
+      ],
+      "_parentBg": "transparent"
+    },
+    "Sound Design & Misc": {
+      "_alias": "",
+      "_tags": [
+        "ASMR@@@Recordings intended to induce a pleasurable tingling sensation in the listener.",
+        "Children's Music_Misc@@@Recorded for an intended audience of children.",
+        "Easy Listening_Misc@@@Typically instrumental, including lush arrangements and melodies played by orchestras or big bands aiming for light entertainment.",
+        "Experimental_Misc@@@Most radical approaches throughout history, featuring non-traditional production methods resulting in sounds and styles that go largely beyond traditional boundaries.",
+        "Field Recordings_Misc@@@Material recorded outside of a recording studio for the purpose of capturing the audible illustration of an environment.",
+        "Jingles@@@Short, melodic phrases, traditionally used in advertisements, and later in ringtones and video games.",
+        "Mechanical Music@@@Generated by self-playing devices, which read and reproduce music through purely mechanical means with no major electronically controlled elements.",
+        "Scenes & Movements_Misc@@@",
+        "Sound Effects_Misc@@@Non-musical audio works, including recorded sounds and sounds recreated synthetically or by other means, which are either sounds of known objects or abstract noise manifestations."
+      ],
+      "_parentBg": "transparent"
+    },
+    "Vocal & Theatrical": {
+      "_alias": "",
+      "_tags": [
+        "Audio Documentary@@@Form of documentary that uses audio to document or explore a subject or theme.",
+        "Comedy_Misc@@@Range of styles, both musical and non-musical, that always set out to make the listener laugh through humor.",
+        "Hanmai@@@Chinese performance style featuring a performer shouting lyrics over an upbeat backing track.",
+        "Musical Theatre and Entertainment_Misc@@@Range of styles of theatre individually popular in the United States or in various countries in Europe, mostly from the 19th century to the mid-20th century.",
+        "Spoken Word_Misc@@@Usually unaccompanied vocal readings."
+      ],
+      "_parentBg": "transparent"
+    }
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "Music Genre": {
+    "_alias": "音乐流派",
+    "_bg_color": "",
+    "_tags": [],
+    "Classical & Traditional": {
+      "_alias": "古典与传统音乐",
+      "_tags": [
+        "Bugle Call@@军号@@@Short tunes played on a bugle; used in militaries for communication.@@@用军号吹奏的短曲；在军队中用于通信。",
+        "Classical Music_Misc@@古典音乐_其它@@@Part of a broad generalization about the structure and function of music throughout history across the globe, describing traditions distinct from Traditional Folk Music and popular music.@@@这是对全球历史上音乐结构和功能的广泛概括的一部分，描述了区别于传统民间音乐和流行音乐的音乐传统。",
+        "March_Misc@@进行曲_其它@@@Strong and regular rhythm originally written to walk in step easier or to back events like parades or marches.@@@强劲而有规律的节奏，最初为便于齐步行进或为游行、阅兵等活动伴奏而创作。",
+        "Marching Band_Misc@@行进乐队_其它@@@Covering the music of Western-derived marching bands, primarily used for entertainment, competition, military, and parade settings, typically involving large-scale orchestras featuring a variety of instruments.@@@涵盖源自西方的军乐队音乐，主要用于娱乐、竞赛、军事和游行场合，通常涉及包含多种乐器的大型管弦乐队。",
+        "Parlour Music@@客厅音乐@@@Early form of light, sentimental popular music; popular in USA and Europe from the late 1700s to the 1870s.@@@早期形式的轻松、感伤流行音乐；18世纪末至19世纪70年代流行于美国和欧洲。"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Folk, Country & World": {
+      "_alias": "民谣、乡村与世界音乐",
+      "_tags": [
+        "Country_Misc@@乡村音乐_其它@@@American genre derived from Southern and Appalachian forms of American Folk Music and later Rock and Pop influences, with a focus on the life and culture of rural America.@@@源自美国南方和阿巴拉契亚地区民间音乐形式，后受摇滚与流行乐影响的美国音乐类型，聚焦美国乡村生活与文化。",
+        "Folk_Misc@@民谣_其它@@@Rooted in mostly oral traditions of the peoples of the world, encompassing international Traditional Folk Music as well as Western Contemporary Folk which arose in the 1940s.@@@根植于世界各民族的口头传统，涵盖国际传统民间音乐以及20世纪40年代兴起的西方当代民谣。",
+        "Reggae / Ska / Dancehall_Misc@@雷鬼 / 斯卡 / 舞厅音乐_其它@@@Umbrella for related forms of Jamaican Music which have grown beyond their regional roots to become global phenomena.@@@涵盖牙买加音乐的相关形式，这些形式已超越其地域根源，成为全球现象。",
+        "Regional Music_Misc@@地方音乐_其它@@@Music of regional cultural traditions, that is or was predominantly played and produced in these regions.@@@地区文化传统的音乐，主要在这些地区演奏和创作，或曾经如此。",
+        "Singer-Songwriter_Misc@@创作歌手_其它@@@Heavily focused on lyrics and songwriting, with musical accompaniment tending to take lower precedence.@@@极度注重歌词和歌曲创作，音乐伴奏往往处于次要地位。",
+        "Worldbeat@@世界节拍@@@Pairs elements from diverse sources from across the globe with contemporary, uplifting Westernised production, created primarily for a Western audience.@@@将来自全球各地的多元元素与当代、积极向上的西式制作相结合，主要为西方观众创作。"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Hip Hop & R&B": {
+      "_alias": "嘻哈与节奏蓝调",
+      "_tags": [
+        "Beatboxing@@节奏口技@@@Form of vocal percussion developed during the 1980s, primarily involving the art of producing drum beats, rhythm, and musical sounds using one's mouth, lips, tongue, voice, and more.@@@一种在20世纪80年代发展起来的人声打击乐形式，主要涉及用嘴、唇、舌、嗓音等制造鼓点、节奏和音乐声音的艺术。",
+        "Hip Hop_Misc@@嘻哈_其它@@@Emerged primarily on the United States East Coast in African-American communities in the late 1970s; emphasizes rhythmic beat patterns and a type of spoken vocal delivery known as rapping.@@@主要于20世纪70年代末在美国东海岸的非裔美国人社区兴起；强调节奏感强烈的节拍模式和一种被称为说唱的念白式演唱。",
+        "R&B_Misc@@节奏蓝调_其它@@@Umbrella of styles covering the most popular forms of Black American music from the late 1940s, when the term Rhythm & Blues first appeared; includes the developments of Soul and Funk in the '60s and '70s, and the Contemporary R&B of the 1980s onward.@@@涵盖自1940年代末\"节奏布鲁斯\"一词首次出现以来最流行的美国黑人音乐风格的统称；包括1960至1970年代灵魂乐和放克的发展，以及1980年代至今的当代节奏布鲁斯。"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Jazz & Blues": {
+      "_alias": "爵士与蓝调",
+      "_tags": [
+        "Blues_Misc@@蓝调_其它@@@Originated toward the end of the 19th century in African American communities in the United States, particularly the Deep South; drew on traditional Spirituals and Work Song; highly influential to the whole of Western popular music.@@@起源于19世纪末美国非裔社区，尤其是美国南部腹地；借鉴了传统灵歌和工作歌；对整个西方流行音乐影响深远。",
+        "Jazz_Misc@@爵士乐_其它@@@Originating in African American communities in the Southern United States around the turn of the 20th century, building on New Orleans Brass Band ensemble and influences from Ragtime and Blues to become a very popular style by the emergence of Swing in the 1930s.@@@起源于20世纪初美国南部的非裔美国人社区，以新奥尔良铜管乐队合奏为基础，并受到拉格泰姆和布鲁斯的影响，到20世纪30年代摇摆乐兴起时已成为非常流行的风格。"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Pop, Electronic & Dance": {
+      "_alias": "流行、电子与舞曲",
+      "_tags": [
+        "Ambient Pop@@氛围流行@@@Emphasizes texture and atmosphere with a degree of structural experimentation, drawing on Dream Pop, Neo-Psychedelia, and Post-Rock while tending towards more minimal, repetitive arrangements which may incorporate elements of Electronic or Krautrock.@@@强调质感和氛围，带有一定程度的结构实验性，借鉴梦幻流行、新迷幻和后摇滚，倾向于更简约、重复的编曲，可能融入电子或德国摇滚元素。",
+        "Ambient_Misc@@氛围音乐_其它@@@Emphasizes texture and tone over traditional musical structure, aimed at evoking a particular atmosphere or mood.@@@强调质感和音色胜过传统音乐结构，旨在唤起特定的氛围或情绪。",
+        "Dance_Misc@@舞曲_其它@@@Rooted in Disco and developed largely within Electronic Dance Music; emphasizes rhythm and is generally produced for play by DJs at clubs, parties, or festivals.@@@植根于迪斯科，并主要在电子舞曲中发展；强调节奏，通常为DJ在俱乐部、派对或音乐节上播放而制作。",
+        "Darkwave_Misc@@暗潮_其它@@@Expands on the dark, introspective and sorrowful atmosphere of Gothic Rock; borrowing aspects from Electronic and other non-Rock influences.@@@拓展了哥特摇滚黑暗、内省和悲伤的氛围；借鉴了电子乐及其他非摇滚流派的影响。",
+        "Electronic_Misc@@电子音乐_其它@@@Uses non-traditional electronic instrumentation and sound manipulation technology as the primary backbone of a composition.@@@使用非传统的电子乐器和声音处理技术作为乐曲的主要骨架。",
+        "Mashup@@混搭@@@Songs created by mixing parts of two or more recordings together.@@@通过将两个或多个录音片段混合在一起而创作的歌曲。",
+        "Pop_Misc@@流行音乐_其它@@@Umbrella of popular styles closely tied to mass production and mass marketing, focusing on catchiness and accessibility through melody, rhythm, lyrics, and hooks.@@@与大规模生产和营销紧密相连的流行风格总称，注重通过旋律、节奏、歌词和记忆点实现朗朗上口和易于接受。",
+        "Toypop@@玩具流行@@@Avant-garde, naive, and child-like; explores the sonic capabilities of toy instruments.@@@前卫、天真、童趣；探索玩具乐器的声音可能性。"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Religious & Spiritual": {
+      "_alias": "宗教与灵性音乐",
+      "_tags": [
+        "Gospel_Misc@@福音音乐_其它@@@Arising from vocal Christian tradition often featuring emotive performances, layered accompaniments, and themes of faith and salvation.@@@源于基督教声乐传统，常以情感充沛的表演、层次丰富的伴奏以及信仰与救赎为主题。",
+        "Hymns_Misc@@赞美诗_其它@@@Performed and written with the purpose of praise, adoration, and prayer, often addressed to deities or other cultural figures.@@@以赞美、敬仰和祈祷为目的进行表演和创作，通常献给神明或其他文化人物。",
+        "Mantra_Misc@@真言唱颂_其它@@@Sounds, words or phrases, often repeatedly chanted, used in religions originating in the Indian subcontinent, and spiritual practices influenced by them.@@@声音、词语或短语，常被反复吟诵，用于起源于印度次大陆的宗教以及受其影响的灵修实践。",
+        "New Age_Misc@@新世纪音乐_其它@@@Broad genre centered on peaceful, meditative melodies, using a wide variety of instrumentation.@@@以平和、冥想的旋律为核心，使用多种乐器的大类音乐。",
+        "Sacred Singing Circle@@神圣合唱圈@@@Phenomenon that originally began in hippie gatherings, notably beginning with the counter-culture Rainbow Gatherings of the 1970s, features loose musical jams with varied and spontaneous performances.@@@最初始于嬉皮士聚会，特别是20世纪70年代反主流文化的\"彩虹聚会\"，以松散的音乐即兴演奏和多样、自发的表演为特色。"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Rock, Metal & Punk": {
+      "_alias": "摇滚、金属与朋克",
+      "_tags": [
+        "Dark Cabaret@@黑暗卡巴莱@@@Dark, moody style incorporating elements of Cabaret in a modern context, with varied instrumentation.@@@一种黑暗、忧郁的风格，在现代语境中融入了卡巴莱元素，配器多样。",
+        "Industrial & Noise_Misc@@工业与噪音_其它@@@Umbrella encompassing Noise and Industrial, as well as later derivatives that combine the latter aesthetics with other styles and in more accessible directions which fall under Post-Industrial.@@@一个涵盖噪音音乐和工业音乐的伞状术语，也包括后来将后者的美学与其他风格结合、并走向更易接受方向的衍生流派，这些属于后工业音乐范畴。",
+        "Metal_Misc@@金属乐_其它@@@Driving and distorted riffs, aggressive drumming, vigorous vocals, and an all-around show of brute force in its early days, since branching into dozens of subgenres.@@@早期以强劲失真的连复段、侵略性的鼓点、有力的演唱和全方位的蛮力展示为特征，后来发展出数十种子流派。",
+        "Psychedelia_Misc@@迷幻音乐_其它@@@Umbrella of styles intended to replicate or enhance the altered state of consciousness brought on by the use of psychedelic drugs, originating in the 1960s.@@@迷幻风格旨在复制或增强由迷幻药物引发的意识改变状态，起源于20世纪60年代。",
+        "Punk_Misc@@朋克_其它@@@Musical and cultural product of Punk Rock known for its simplistic, brash playstyle and anti-establishment themes.@@@朋克摇滚的音乐与文化产物，以其简单、粗粝的演奏风格和反体制主题而闻名。",
+        "Rock_Misc@@摇滚乐_其它@@@Typically uses a verse-chorus structure with a backbeat rhythm and the electric guitar at the forefront; generally heavier and/or faster than its predecessors.@@@通常采用主歌-副歌结构，带有反拍节奏，并以电吉他为主导；普遍比其前身更重型和/或更快。"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Sound Design & Misc": {
+      "_alias": "音效设计与杂项",
+      "_tags": [
+        "ASMR@@ASMR (自发性知觉经络反应)@@@Recordings intended to induce a pleasurable tingling sensation in the listener.@@@旨在为听者诱发愉悦的酥麻感的录音。",
+        "Children's Music_Misc@@儿童音乐_其它@@@Recorded for an intended audience of children.@@@以为儿童为目标听众而录制。",
+        "Easy Listening_Misc@@轻音乐_其它@@@Typically instrumental, including lush arrangements and melodies played by orchestras or big bands aiming for light entertainment.@@@通常为器乐曲，包含由管弦乐团或大乐队演奏的丰富编曲和旋律，旨在提供轻松的娱乐。",
+        "Experimental_Misc@@实验音乐_其它@@@Most radical approaches throughout history, featuring non-traditional production methods resulting in sounds and styles that go largely beyond traditional boundaries.@@@历史上最激进的手法，采用非传统的制作方法，产生的声音和风格在很大程度上超越了传统界限。",
+        "Field Recordings_Misc@@田野录音_其它@@@Material recorded outside of a recording studio for the purpose of capturing the audible illustration of an environment.@@@在录音室外录制，旨在捕捉环境声音的素材。",
+        "Jingles@@广告短歌@@@Short, melodic phrases, traditionally used in advertisements, and later in ringtones and video games.@@@短小、旋律化的乐句，传统上用于广告，后来用于手机铃声和电子游戏。",
+        "Mechanical Music@@机械音乐@@@Generated by self-playing devices, which read and reproduce music through purely mechanical means with no major electronically controlled elements.@@@由自动演奏设备生成，通过纯机械方式读取和再现音乐，没有主要的电子控制元件。",
+        "Scenes & Movements_Misc@@场景与运动_其它@@@@@@",
+        "Sound Effects_Misc@@音效_其它@@@Non-musical audio works, including recorded sounds and sounds recreated synthetically or by other means, which are either sounds of known objects or abstract noise manifestations.@@@非音乐类音频作品，包括录制的声音以及通过合成或其他方式重现的声音，这些声音要么来自已知物体，要么是抽象的噪音表现形式。"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Vocal & Theatrical": {
+      "_alias": "人声与戏剧",
+      "_tags": [
+        "Audio Documentary@@音频纪录片@@@Form of documentary that uses audio to document or explore a subject or theme.@@@一种使用音频来记录或探索某个主题或题材的纪录片形式。",
+        "Comedy_Misc@@喜剧_其它@@@Range of styles, both musical and non-musical, that always set out to make the listener laugh through humor.@@@涵盖音乐与非音乐等多种风格，始终旨在通过幽默逗笑听众。",
+        "Hanmai@@喊麦@@@Chinese performance style featuring a performer shouting lyrics over an upbeat backing track.@@@一种中国表演风格，表演者在欢快的伴奏音乐上喊出歌词。",
+        "Musical Theatre and Entertainment_Misc@@音乐剧与娱乐_其它@@@Range of styles of theatre individually popular in the United States or in various countries in Europe, mostly from the 19th century to the mid-20th century.@@@指在美国或欧洲各国分别流行的一系列戏剧风格，主要流行于19世纪至20世纪中叶。",
+        "Spoken Word_Misc@@口语念白_其它@@@Usually unaccompanied vocal readings.@@@通常是无伴奏的人声朗读。"
+      ],
+      "_parentBg": "transparent"
+    }
+  }
+}

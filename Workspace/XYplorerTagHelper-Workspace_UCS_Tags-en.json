@@ -1,0 +1,1291 @@
+{
+  "Flora, Fauna & Humans": {
+    "_alias": "",
+    "_bg_color": "",
+    "_tags": [],
+    "Animals": {
+      "_alias": "",
+      "_tags": [
+        "Animals_Misc@@@Other animals not finding a clear category.",
+        "Amphibian@@@Technically any amphibian, but most likely used for frogs and toads.",
+        "Animals_Aquatic@@@All manner of marine and sea animals, not just mammals, but anything that lives in water.",
+        "Bat@@@Bat chirps, echolocation and communicative vocalization. Wings would go under WINGS-MISC.",
+        "Cat Domestic@@@Domesticated house cats. See also ANIMALS-CAT WILD.",
+        "Cat Wild@@@Wild cats as opposed to domesticated cats. Tigers and Lions.",
+        "Dog@@@All Domesticated dogs, excluding wild dogs. Pet dogs. See also ANIMALS-WILD DOG for non-domesticated dogs.",
+        "Dog Wild@@@Wild dogs and canines like Wolves, Foxes, Coyotes etc.",
+        "Animals_Farm@@@Domesticated mammals you'd find on a farm. For farm birds see BIRDS-FOWL. See also AMBIENCE-FARM.",
+        "Animals_Horse@@@All members of the horse family, including donkeys and mules. See also FOOTSTEPS-HORSE and EQUIPMENT-BRIDLE.",
+        "Animals_Insect@@@All manner of traditional insect sounds, crickets, cicada, flies and bees. And singular insect recordings. See also AMBIENCE-INSECT now for dense ambience style recordings.",
+        "Primate@@@All members of the primate family except humans. Apes, Chimps, etc.",
+        "Reptile@@@All reptiles including snakes, turtles and lizzards.",
+        "Rodent@@@All manner 'gnawing' animals like rats and mice. Rodents.",
+        "Wild@@@Any wild animal not explicitly defined by the list, and not domesticated. Wolves and Coyotes now to go ANIMALS-DOG WILD@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Birds": {
+      "_alias": "",
+      "_tags": [
+        "Birds_Misc@@@Bird sounds not fitting another category in this list.",
+        "Bird Of Prey@@@Birds that prey on vertebrates, especially rodents. Raptors.",
+        "Crow@@@Birds in Corvid family, which includes crows and ravens.",
+        "Fowl@@@Landfowl, wildfowl and waterfowl, also poultry. Ground feeding and many water feeding birds.",
+        "Sea@@@Birds that live mostly near the ocean. Seagulls, pelicans.",
+        "Songbird@@@Specifically singing birds, warblers, robins, thrushes, what you imagine pretty dawn chorus birds.",
+        "Birds_Tropical@@@Birds living in tropical locations, jungle and tropical rainforest birds. Parrots and Toucans.",
+        "Wading@@@Long-legged, long-billed birds that feed primarily in shallow water. Think Herons and Egrets.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Creatures": {
+      "_alias": "",
+      "_tags": [
+        "Creatures_Misc@@@Creature sounds not fitting another category in this list.",
+        "Creatures_Aquatic@@@Giant mutant squids or sea monsters, kraken, leviathans.",
+        "Avian@@@Alien or Fantasy birds, or weird birdlike creatures. A giant mutant parakeet would go here.",
+        "Beast@@@Big four legged creatures and beasts. Wooly Mammoth, a mutant elephant, Mumakil.",
+        "Blob@@@Gelatinous and gooey type creatures, gelatinous cube.",
+        "Dinosaur@@@Dinosaurs of all types, Jurassic Park.",
+        "Dragon@@@Game of Thrones, Lord of the Rings, dragons of all types. See also CREATURES-REPTILIAN.",
+        "Creatures_Elemental@@@Creatures based on elements, rock giants, fire creatures, ice monsters, such a the Balrog, or a Rock Giant.",
+        "Creatures_Ethereal@@@Ghosts, spirits, ethereal vocals and wispy movement, apparitions.",
+        "Humanoid@@@Human sized mythical creatures, so zombies and vampires, elves etc. Troll, Ogres, Orcs. Two legged creatures.",
+        "Insectoid@@@Giant spiders or other insect like creatures. The creature from The Fly. A giant Tarantula.",
+        "Monster@@@Godzilla, scary monsters, horror monsters. See also CREATURES-HUMANOID.",
+        "Reptilian@@@Giant lizards and snakes, large giant hissing monsters.",
+        "Small@@@Specifically small mythical creatures. Fairies, pixies, small rodent like creatures, etc. Distinguished by small size.",
+        "Creatures_Source@@@Source recordings meant for creature design, like prop recordings, human voice packs for design, etc.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Crowds": {
+      "_alias": "",
+      "_tags": [
+        "Crowds_Misc@@@Crowd sounds not fitting another category in this list. See also MOVEMENT-CROWD.",
+        "Angry@@@Crowds of upset or angry people, as in a riot, protest, a schoolyard fight. See also AMBIENCE-PROTEST.",
+        "Applause@@@Crowds where the applause is predominantly featured. Use CROWDS-CHEERING for recordings that are mainly vocals.",
+        "Battle@@@Crowds in battle, fighting, yelling screaming, dying. If including gunfire, explosions. use AMBIENCE-WARFARE.",
+        "Crowds_Celebration@@@Crowds celebrating holidays, parties, rowdy crowds. If not clean, use AMBIENCE-CELEBRATION.",
+        "Cheering@@@Could include applause, but cheering crowds where the crowd vocals are predominant. Overlap with CROWDS-CELEBRATION.",
+        "Children@@@Relatively clean vocals of children together, playing in a playground, in a school classroom, recess, school hallway. See also AMBIENCE-SCHOOL.",
+        "Conversation@@@A small enough group chat that you can discern words, smaller and less active than a walla. A chatter.",
+        "Laughter@@@Crowds laughing, a comedy show, canned television laughter, groups of kids laughing, at a party for example.",
+        "Crowds_Loop Group@@@For loop group type walla, usually performed for or to picture, specific environments, specific callouts. See also ARCHIVED-LOOP GROUP for official loop group recordings.",
+        "Panic@@@Distressed crowds, mixed screams and crying and reactions… crowds in a natural disaster or crowds in a giant monster attack...",
+        "Quiet@@@Very quiet crowds, mostly mumbling or murmuring. Like crowds whispering in church or a courtroom scene. See also VOICES-WHISPER for single person recordings.",
+        "Crowds_Reaction@@@Big Ooos, and Aaahs and Booos, big group responses to events happening. Shocked reactions.",
+        "Crowds_Singing@@@Singing during sporting events, New Year's Eve crowds singing Auld Lang Syne, Christmas carols. Not large choral music, which would go in MUSICAL category.",
+        "Crowds_Sport@@@Clean crowds at sporting events, Baseball, football. For mixed ambience used AMBIENCE-SPORT. A sports chant.",
+        "Walla@@@Specifically very clean crowd walla, with non-discernible words. See also various AMBIENCE categories.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Farts": {
+      "_alias": "",
+      "_tags": [
+        "Farts_Misc@@@Fart sounds not fitting another category in this list.",
+        "Farts_Designed@@@Fake or designed farts, whoopie cushion, flarp, mouth farts.",
+        "Farts_Real@@@Real recordings of farts.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Human": {
+      "_alias": "",
+      "_tags": [
+        "Human_Misc@@@Human sounds not fitting another category in this list.",
+        "Human_Blow@@@Blowing air, blowing up a balloon, blowing out candles, etc. See also HUMAN-BREATH for less forceful breathing.",
+        "Breath@@@Breathing, normal to heavy, big inhales, sighs.",
+        "Burp@@@Human belches, burps.",
+        "Cough@@@Human coughs and coughing.",
+        "Heartbeat@@@Heartbeats, both literal as in a Dr. office, and stylized or designed heartbeats.",
+        "Kiss@@@Human kissing.",
+        "Pee@@@Human urinating.",
+        "Skin@@@Human skin, Scratching, handshakes, skin on skin action, back rubbing, etc.",
+        "Sneeze@@@Human sneezing.",
+        "Sniff@@@Human sniffing, smelling.",
+        "Snore@@@Human snoring.",
+        "Spit@@@Human spits.",
+        "Vomit@@@Human vomiting.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Vegetation": {
+      "_alias": "",
+      "_tags": [
+        "Vegetation_Misc@@@Vegetation and Foliage sounds not fitting another category in this list.",
+        "Grass@@@Individual movement of grass elements in a studio or exterior environment.",
+        "Leaves@@@Individual movement of leaf elements in a studio or exterior environment. Jumping into a pile of leaves.",
+        "Tree@@@Individual movement of tree and branch elements in a studio or exterior environment.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Voices": {
+      "_alias": "",
+      "_tags": [
+        "Voices_Misc@@@The Voice category is for single voices. Groups of people go into the CROWDS categories.",
+        "Alien@@@Weird alien vocals here.",
+        "Baby@@@Very young babies through toddler, non-word vocals, cut vocals.",
+        "Cheer@@@A single person cheering. For a group use CROWDS-CHEERING.",
+        "Child@@@Various vocals for a child or a teenager. For non-discernible vocals for a very young child use VOICES-BABY.",
+        "Crying@@@A single person crying.",
+        "Efforts@@@A single fight and vocal efforts, single grunts, and things like that. Boxing match vocals, tennis grunts.",
+        "Female@@@Any generic female vocal or dialog or misc vocal that doesn't fit somewhere else.",
+        "Futzed@@@P.A. Speakers, Airport announcements, Hospital announcements.",
+        "Voices_Historical@@@For storing famous speeches, famous news broadcasts, presidential speeches.",
+        "Laugh@@@A single person laughing.",
+        "Male@@@Any generic male vocal or dialog or misc vocal that doesn't fit somewhere else.",
+        "Voices_Reaction@@@A single Ooo or Aah and things of that nature.",
+        "Scream@@@A single scream or yell, battle cry, agonizing death.",
+        "Voices_Singing@@@A single voice singing, a child singing. For a crowd, use CROWDS-SINGING",
+        "Whisper@@@A single whispering voice. The crowd equivalent would be CROWDS-QUIET.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Wings": {
+      "_alias": "",
+      "_tags": [
+        "Wings_Misc@@@Wing sounds not fitting another category in this list.",
+        "Bird@@@Bird wing flaps, hummingbirds, pigeon wings. Group or single.",
+        "Wings_Creature@@@Dragon wings, fairy wings, any manner of creature and monster wings.",
+        "Wings_Insect@@@Fly and bee wings, dragonflies, moths, butterflies. Any insect wings. Some overlap and confusion with ANIMALS-INECTS likely.@@@"
+      ],
+      "_parentBg": "transparent"
+    }
+  },
+  "Life & Objects": {
+    "_alias": "",
+    "_bg_color": "",
+    "_tags": [],
+    "Bells": {
+      "_alias": "",
+      "_tags": [
+        "Bells_Misc@@@Bell sounds not fitting another category in this list.",
+        "Bells_Animal@@@Bells attached to animals, like cow and sheep bells, or a dog or cat collar with a bell on it.",
+        "Doorbell@@@Mechanical doorbells. Would also maybe electronic doorbells in here as well to avoid confusion probably. Also see ALARMS-BUZZERS for a door buzzer.",
+        "Gong@@@A large flat circular disc hit with a mallet. With v8.2 of the list most of these would now go into MUSICAL-BELLS instead.",
+        "Handbell@@@Small to medium hand bells, dinner bells. Musical bells like HANDBELLS and CARILLION now go into MUSICAL-BELLS.",
+        "Large@@@Large bells like a church bell or tower bell, or city hall bells, Big Ben. Any large bell.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Clocks": {
+      "_alias": "",
+      "_tags": [
+        "Clocks_Misc@@@Clock sounds not fitting another category in this list. Also see ALARMS-CLOCK",
+        "Clocks_Chime@@@Chimes, bells specifically for a clock, Grandfather clock chimes. Alarm clocks would go to ALARMS-CLOCK.",
+        "Mechanics@@@Clocks winding, complex mechanical clock mechanisms.",
+        "Tick@@@Analog ticking clocks and watches of all sizes, also mechanical stop watches.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Doors": {
+      "_alias": "",
+      "_tags": [
+        "Doors_Misc@@@Door sounds not fitting another category in this list.",
+        "Doors_Antique@@@Very old sounding doors, as in an old castle or abbey. But massive doors of this type probably to DOOR-DUNGEON.",
+        "Doors_Appliance@@@Appliance doors such as oven, dishwasher, refrigerator or microwave.",
+        "Cabinet@@@Cabinet doors, such as kitchen cabinet, tool cabinets.",
+        "Composite@@@Fiberglass, wood steel combination, doors that don't sound like a specific material. A modern front door. Some confusion or overlap with DOORS-WOOD likely.",
+        "Doors_Creak@@@Door creaks, wood or metal, overlap with WOOD-FRICTION and METAL-FRICTION, but specifically door creaks.",
+        "Dungeon@@@That big old classic wood and/or metal heavy dungeon, castle type door.",
+        "Doors_Electric@@@Electric doors of all kinds, garage doors, big soundstage doors, sliding store doors. See also DOORS-REVOLVING.",
+        "Gate@@@Non-motorized gates, metal or wood. So a garden gate, a park gate. A farm gate.",
+        "Doors_Glass@@@Glass doors, manual shopping store doors, glass home front doors. Most store doors would probably fit here.",
+        "Doors_Hardware@@@Door knobs, door locks, deadbolts, chain locks, push bars. Lock Picking, Doorknob Jiggles.",
+        "Doors_Hitech@@@James bond type doors, something not quite sci-fi but more advanced, Modern lab, or air sealed chamber, vaults. See also SCIFI-DOOR.",
+        "Doors_Hydraulic & Pneumatic@@@Self closing doors, lots of office and store doors are of this type. Also automatic doors if hydraulic or pneumatic.",
+        "Doors_Knock@@@Knocking on various door surfaces.",
+        "Doors_Metal@@@Metal doors, like a vault door or heavy door. PRISON doors have their own category, as they are quite specific sounding.",
+        "Doors_Plastic@@@Doors made out of plastic. Not very common but maybe a door to a child's play house.",
+        "Doors_Prison@@@Big metal jail and prison doors. Sliding prison doors, or swinging jail doors.",
+        "Revolving@@@Classic revolving doors used as entries to hotels, banks, malls.",
+        "Sliding@@@Manual sliding doors, such as a patio door, sliding shower doors. Electric sliding doors to DOORS-ELECTRIC.",
+        "Stone@@@Mostly a fantasy type door, but think Gates of Moria, big tombstone vault doors.",
+        "Swinging@@@Swinging doors, like old-west saloon or church pulpit doors. Doors on swinging springs.",
+        "Doors_Wood@@@Wood doors, home, school, most general door category probably.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Drawers": {
+      "_alias": "",
+      "_tags": [
+        "Drawers_Misc@@@Drawer sounds not fitting another category in this list.",
+        "Drawers_Metal@@@Metal drawers like on a toolbox.",
+        "Drawers_Plastic@@@Plastic drawers, maybe on a parts bin.",
+        "Drawers_Wood@@@Kitchen drawers, bathroom drawers. Most drawers would probably fall into this category.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Food & Drink": {
+      "_alias": "",
+      "_tags": [
+        "Food & Drink_Misc@@@Food and Drink sounds not fitting another category in this list.",
+        "Cooking@@@Things overtly related to cooking, baking, preparation, chopping.",
+        "Drinking@@@Specifically drinking, would also cover animals drinking, dogs lapping water, a horse drinking.",
+        "Eating@@@Specifically eating, would also cover animals eating, a dog eating or a horse eating. Swallowing, chewing.",
+        "Glassware@@@Glass and bottle movement, specifically at a restaurant or bar. Isolated glassware recordings.",
+        "Ingredients@@@Nuts, seeds, grains, things like that. Raw food recordings often used for other design purposes, vegetable recordings. See also GORE-SOURCE.",
+        "Kitchenware@@@Pots and pans movement, big metal bowls, prep bowls.",
+        "Food & Drink_Pour@@@Pouring liquid, water, beer, wine, champagne, etc. Some overlap with WATER-POUR, but specifically consumption liquids.",
+        "Tableware@@@Silverware and/or plate movement, in a restaurant or dinner at home. GLASSWARE it's own subcategory.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Games": {
+      "_alias": "",
+      "_tags": [
+        "Games_Misc@@@Game sounds not fitting another category in this list. Cards would go here. Jenga.",
+        "Arcade@@@Not for arcade ambience, which would go under AMBIENCE-AMUSMENT, but for specific Pinball machines, upright video games, games of skill like Skeeball.",
+        "Board@@@Board games with pieces, think Monopoly, Risk, chess, checkers.",
+        "Casino@@@Casino slot machines, Keno machines, roulette, craps.",
+        "Video@@@Console video games from Atari to PS5, designed fake video games for consoles like Playstation.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Objects": {
+      "_alias": "",
+      "_tags": [
+        "Objects_Misc@@@Object sounds not fitting another category in this list.",
+        "Bag@@@Bags and purses, shopping bags, lunch bags. Really any bag, except Luggage which would go to OBJECTS-LUGGAGE.",
+        "Book@@@Books, magazines, sounds relating to these. Handling particularly. Some overlap or confusion with PAPER-HANDLE.",
+        "Coin@@@Coins land, toss, drop, handle. Coins being counted, sorted. A bag of coins.",
+        "Container@@@Boxes, tupperware, jewelry boxes, things that hold things, lids, handling, opens and closes.",
+        "Fashion@@@Shoes, belts, clothes, actions involding fashion objects. Makeup, lipstick, etc. Some overlap possible with CLOTH categories. See also OBJECTS-JEWELRY. And OBJECTS-BAG.",
+        "Furniture@@@Chairs movement, couch movement, things like that. Wood chair creaks could go in WOOD-FRICTION.",
+        "Objects_Garden@@@Flower pots, bird feeders, things that you might find and use in a garden. See also TOOLS-GARDEN and MACHINES-GARDEN.",
+        "Objects_Gym@@@Objects found in a fitness center or school gym, maybe a yoga mat, dumbells. See also MACHINES-GYM.",
+        "Household@@@Cleaning products, hangers, towel racks, things around the house that don't fit somewhere else.",
+        "Jewelry@@@Bracelets, necklaces, rings.",
+        "Keys@@@Keys jingling, keys movement in lock.",
+        "Luggage@@@Suitcases, luggage related sounds, handling, opening, packing.",
+        "Objects_Medical@@@Common objects in hospital or medical office.",
+        "Objects_Office@@@Things found in an office, staplers, paper cutter etc. Not machines like a printer which would go in MACHINES-OFFICE.",
+        "Packaging@@@Items commonly used in packaging or packing, so bubblewrap, styrofoam, labels, food packaging.",
+        "Tape@@@Tape and other tacky sticky type sounds as well. Velcro probably better into CLOTH-RIP as that matches the 'sound' better.",
+        "Umbrella@@@Umbrella opens and closes. Not for rain on umbrella, which would go in RAIN-CLOTH.",
+        "Wheeled@@@Non-motorized wheeled carts and dollies. Shopping cart, food cart, baggage cart, baby stroller, dolly, wheelchairs.",
+        "Writing@@@Any writing object or performance of writing on any surface. Pens, pencils, crayons, markers.",
+        "Zipper@@@Pant zippers, bag zippers, luggage zippers.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Sports": {
+      "_alias": "",
+      "_tags": [
+        "Sports_Misc@@@Sport sounds not fitting another category in this list.",
+        "Court@@@Sports played on a court indoors or out, such a basketball, tennis.",
+        "Field@@@Sports played on a field outdoors such as soccer and football.",
+        "Sports_Gym@@@Sports played or performed primarily in a gym and/or ring, such as boxing, wrestling, gymnastics. See also SPORTS-INDOOR.",
+        "Indoor@@@Various indoor sports not able to be categorized elsewhere.",
+        "Skate@@@Wheeled skating sports like skateboarding or roller skating, rollerblading.",
+        "Track & Field@@@Track and field sports, as in running, long jump, pole vault. Think common summer Olympic games.",
+        "Sports_Water@@@Sports played in or on water, swimming, diving. Aquatic sports.",
+        "Winter@@@Sports on snow or ice such as hockey, ice skating, snowboard and skiing.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Tools": {
+      "_alias": "",
+      "_tags": [
+        "Tools_Misc@@@Tool sounds not fitting another category in this list.",
+        "Tools_Garden@@@Hand tools used in a garden, rakes, hoes, etc. Also see MACHINES-GARDEN for powered machines. See also OBJECTS-GARDEN for non-tools.",
+        "Hand@@@Hand tools, not requiring power. Hammers, wrenches, pliers. See also TOOLS-GARDEN.",
+        "Pneumatic@@@Air tools, such as jackhammers, air ratchets, nail guns. The air-wrench sound in a tire shop.",
+        "Power@@@Tools that require power. A sander, electric drill, dremel tool, circular saw.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Toys": {
+      "_alias": "",
+      "_tags": [
+        "Toys_Misc@@@Toy sounds not fitting another category in this list.",
+        "Toys_Electronic@@@Remote controlled car, slot cars. Any kids toy that required power. See also AIRCRAFT-REMOTE CONTROLLED.",
+        "Toys_Mechanical@@@Wind up robots, things like that. Toys with some mechanism or mechanical component.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Whistles": {
+      "_alias": "",
+      "_tags": [
+        "Whistles_Misc@@@Whistle sounds not fitting another category in this list.",
+        "Whistles_Human@@@Human whistles, wolf-whistles. See also CARTOON-WHISTLES.",
+        "Whistles_Mechanical@@@Train whistles, referee whistles, tea pot whistles, etc, any whistle not made by a human.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Windows": {
+      "_alias": "",
+      "_tags": [
+        "Windows_Misc@@@Window sounds not fitting another category in this list.",
+        "Covering@@@Window curtains, blinds, shutters. So a window covering, not the window itself.",
+        "Windows_Hardware@@@Window latches, cranks, locks. Window hardware.",
+        "Windows_Knock@@@Knocking on various window surfaces, knocking on GLASS.",
+        "Windows_Metal@@@Metal framed windows, open and close.",
+        "Windows_Plastic@@@Plastic framed windows, plexiglass windows. Vinyl framed windows, open and close.",
+        "Windows_Wood@@@Wood framed windows, open and close.@@@"
+      ],
+      "_parentBg": "transparent"
+    }
+  },
+  "Machines & Technology": {
+    "_alias": "",
+    "_bg_color": "",
+    "_tags": [],
+    "Alarms": {
+      "_alias": "",
+      "_tags": [
+        "Alarms_Misc@@@Alarm sounds not fitting another category in this list.",
+        "Bell@@@All alarms which use bells, a school bell, fire alarm bell, a railroad crossing bell.",
+        "Buzzer@@@All alarms using buzzers, or buzzers in general even if not technically an alarm, would probably go here. A front door buzzer.",
+        "Clock@@@Specifically alarm clocks, digital or analog. A bit of overlap with ALARMS-BELL, but clock alarms of all kinds probably best to go here.",
+        "Alarms_Electronic@@@All electronic alarms, pure electronic tone alarms. Home burglar alarms, smoke detectors, etc. Car alarms would go to VEHICLES-ALARMS.",
+        "Alarms_Siren@@@Mechanical sirens, like old klaxons. Vehicle sirens such a police, fire and ambulance to go to VEHICLES-SIREN.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Chemicals": {
+      "_alias": "",
+      "_tags": [
+        "Chemicals_Misc@@@Chemical sounds not fitting another category in this list.",
+        "Acid@@@Chemical acid burning and sizzling, bubbling. A vat of acid.",
+        "Chemicals_Reaction@@@Chemical reactions, chemistry set, bubbling, foaming, bunsen burner reactions. Overlap perhaps with LIQUID & MUD category.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Communications": {
+      "_alias": "",
+      "_tags": [
+        "Communications_Misc@@@Communication sounds not fitting another category in this list.",
+        "Audio Visual@@@Various AV devices such a projector or tape recorder, video cameras here too. Some overlap or confusion with COMMUNICATIONS-CAMERA.",
+        "Camera@@@Still camera shutters, automatic winding, old flash-bulbs. Movie and video cameras to COMMUNICATIONS-AV.",
+        "Cellphone@@@Cellphones and Smartphones., clicks and rings, tones.",
+        "Microphone@@@Feedback and mic bumps and handling. Megaphones would go here too.",
+        "Phonograph@@@Turntable, Victrola, motors and mechanics. STATIC has its own subcategory here.",
+        "Radio@@@Tuning, radio and shortwave sounds. STATIC has its own subcategory here. A radio broadcast would go here too. Overlap with VOICES-FUTZED.",
+        "Static@@@Static from any electronic source, radio, CB, television, optical noise, phonograph noise.",
+        "Telemetry@@@Fax machine tones, modem tones, telegraph, teletype. UI is it's own category",
+        "Telephone@@@Old school rotary dial and digital telephones. Technically any telephone that isn't a mobile or cell phone.",
+        "Television@@@Television programs, on and off, channel changes, TV Remote controls. STATIC has its own subcategory here. A television broadcast would go here too. Overlap with VOICES-FUTZED.",
+        "Transceiver@@@Walkie Talkies, CBs, Ham Radios, all two-way transceivers and radios go here. Put voices into VOICES-FUTZED.",
+        "Typewriter@@@Old school typewriters, not modern computer keyboards.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Computers": {
+      "_alias": "",
+      "_tags": [
+        "Computers_Misc@@@Computer sounds not fitting another category in this list. Printers would go to MACHINES-OFFICE.",
+        "Hard Drive@@@Laptop or other hard drive seeking sounds, data reading.",
+        "Keyboard & Mouse@@@Typing on computer keyboard, and mouse movement.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Electricity": {
+      "_alias": "",
+      "_tags": [
+        "Electricity_Misc@@@Electric sounds not fitting another category in this list.",
+        "Arc@@@A longer movement of electricity, think Jacob's ladder, or a power station switching arc when decoupled.",
+        "Buzz & Hum@@@Ground hum, buzzes, steady electrical hums, guitar pickup hum, amp hum. Any steady electric hum or buzz.",
+        "Electromagnetic@@@Electromagnetic field recordings specifically.",
+        "Sparks@@@Think sparklers, or a downed power line emitting sparks, welding... A singular spark would probably be a ZAP.",
+        "Zap@@@A short, shocking fast percussive electrical sound. Or a repetition of short fast sounds. A taser is a series of ZAPS.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Equipment": {
+      "_alias": "",
+      "_tags": [
+        "Equipment_Misc@@@Equipment sounds not fitting another category in this list. See also TOOLS and OBJECT categories.",
+        "Bridle & Tack@@@Equipment for animals use. Horse bridle, reigns, leashes, harnesses, dog leashes, saddle straps.",
+        "Equipment_Hitech@@@Hi-Tech gear, things like spacesuits, complex suits with lots of gizmos or complex parts.",
+        "Equipment_Recreational@@@Recreational gear, like backpacks, hiking gear, rock climbing harnesses, camping tents. Specifically outdoor recreation. See also OBJECTS-GYM.",
+        "Equipment_Sport@@@Gear worn while playing sports, American football shoulder pads, hockey gear, etc.",
+        "Tactical@@@Military and police belts, bandoliers, ammo belts. Military gear, troop gear.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Lasers": {
+      "_alias": "",
+      "_tags": [
+        "Lasers_Misc@@@Laser sounds not fitting another category in this list.",
+        "Beam@@@Steady laser beams, not a laser gun. So a James Bond style laser, a scientific laser.",
+        "Gun@@@Classic laser guns, blasters, laser cannons. That thing that Ben Burtt made famous.",
+        "Lasers_Impact@@@Classic laser impact sounds, from blaster hits.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Machines": {
+      "_alias": "",
+      "_tags": [
+        "Machines_Misc@@@Machine sounds not fitting another category in this list. See also MOTOR category.",
+        "Machines_Amusement@@@Theme park rides such as rollercoasters and carnival rides. Carnival game machines. General ambiences to go in AMBIENCE-AMUSEMENT.",
+        "Machines_Antique@@@Old mechanical sewing machines, ancient looms, olive presses, a bit ambiguous but a very old mechanical machine.",
+        "Machines_Appliance@@@General appliances, refrigerator, stove, oven, vacuum cleaner... AC and fans have their own category.",
+        "Machines_Construction@@@A machine for construction that isn't a vehicle or a tool. For example a cement mixer, a woodchipper.",
+        "Elevator@@@Elevator movement and doors would go here.",
+        "Escalator@@@Escalators and moving walkways would go here.",
+        "Fan@@@Fans of all types, box fans, ceiling fans. For air conditioning use MACHINES-HVAC.",
+        "Machines_Garden@@@Powered landscaping machines, lawnmowers, weed-whackers, edgers, hedge trimmers. See also TOOLS-GARDEN and OBJECTS-GARDEN.",
+        "Machines_Gym@@@Exercise bikes, weight machines, treadmill, all things fitness. See also OBJECTS-GYM",
+        "Machines_Hitech@@@Think cool James Bond machines, big elaborate death traps, maybe Rube Goldberg type machines. See also SCIFI-MACHINE.",
+        "Hvac@@@Furnaces, Air Conditioners. Fans go in MACHINES-FAN. A close up gas furnace flame would go to FIRE-GAS.",
+        "Machines_Industrial@@@Big industrial presses, factory machines, industrial robots, any heavy manufacturing machines.",
+        "Machines_Mechanism@@@Complex mechanical smaller machines and gadgets, puzzle boxes that open portals to hell. Usually smaller devices.",
+        "Machines_Medical@@@Machines typically found in a hospital, medical lab or Doctor's office.",
+        "Machines_Office@@@Machines typically found in an office, such as printers and copy machines.",
+        "Pump@@@Air or water pumps, fish tank aquarium pumps, sump pumps. Air compressors would fall into this category.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Mechanical": {
+      "_alias": "",
+      "_tags": [
+        "Mechanical_Misc@@@Mechanical sounds not fitting another category in this list.",
+        "Mechanical_Click@@@Short clicks, could be from button presses, things like that. Some confusion and overlap with MECHANICAL-SWITCH.",
+        "Gears@@@A toothed cog, turning or grinding gears, complex gear mechanisms. Small clock gears would go in CLOCKS-MECHANICS.",
+        "Mechanical_Hydraulic & Pneumatic@@@Various hydraulic or pneumatic sounds, like on a self-closing door. Isolated hydraulics and pneumatics. See also DOORS-HYDRAULIC & PNEUMATIC for a complete door.",
+        "Latch@@@Latch, as in a briefcase latch, or a luggage latch.",
+        "Lever@@@A sliding or switching lever. Train track lever, lever to turn on an electric chair. Old Frankenstein machine levers, breaker levers.",
+        "Lock@@@A padlock, bicycle lock, or a locking mechanism. Door locks to go into DOORS-HARDWARE.",
+        "Pulley@@@An isolated recording of a pulley, or system of pulleys.",
+        "Ratchet@@@That sound a ratchet makes.",
+        "Relay@@@Old train station counting board flipping. A old communications relay board.",
+        "Roller@@@Like a rolling conveyor belt, or something on a roller.",
+        "Switch@@@Basic and heavy switches, light switches, power switches. Some overlap or confusion with MECHANICAL-CLICK.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Motors": {
+      "_alias": "",
+      "_tags": [
+        "Motors_Misc@@@Motor sounds not fitting another category in this list.",
+        "Motors_Antique@@@Old motors, usually combustion, so old oil pump engines, old compressors. An antique gas pump for example.",
+        "Combustion@@@Non-vehicle combustion engines. Combustion motors, generators. Isolated engine recordings.",
+        "Motors_Electric@@@Non-vehicle electric motors. Any motor that runs on electricity. An isolated electric motor. See also TOOLS-POWER.",
+        "Servo@@@Specifically servo motors, from robot, to radio controlled servos. Clean isolated servos.",
+        "Turbine@@@Turbines, water or air. That classic 'whine' power up and down are usually turbines. A jet engine is a turbine.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Robots": {
+      "_alias": "",
+      "_tags": [
+        "Robots_Misc@@@Robot sounds not fitting another category in this list.",
+        "Robots_Movement@@@Complex robot movement, servos, possible robot hovering and flying. See also MOTORS-SERVO.",
+        "Robots_Vocal@@@Droid and robot vocals, R2D2 would go here. Any manner of vocalizing robot. More expressive than a beep/UI. Robot language.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "User Interface": {
+      "_alias": "",
+      "_tags": [
+        "User Interface_Misc@@@User Interface sounds not fitting another category in this list.",
+        "Alert@@@An alert tone or chime or notification. Something that gets Attention of User, startup chimes.",
+        "Beep@@@Interface beeps, beeps while interacting with various technology, phones, computers. Also see BEEPS category.",
+        "User Interface_Click@@@Typing clicks, button press clicks, response to input.",
+        "Data@@@User interface calculations, scanning, thinking, text displayed on screen. Screen gak or garble.",
+        "Glitch@@@On Screen Glitches or Static. Malfunctioning computer or OS.",
+        "Motion@@@User interface slides, swipes, scrolls. Open, Close, Appear, DIsappear.@@@"
+      ],
+      "_parentBg": "transparent"
+    }
+  },
+  "Materials & Actions": {
+    "_alias": "",
+    "_bg_color": "",
+    "_tags": [],
+    "Ceramics": {
+      "_alias": "",
+      "_tags": [
+        "Ceramics_Misc@@@Ceramics sounds not fitting another category in this list.",
+        "Ceramics_Break@@@Ceramics break of a more singular nature, a plate shatter, breaking, cracking, crunching. Mostly for single items breaking. See also CERAMICS-CRASH & DEBRIS.",
+        "Ceramics_Crash & Debris@@@Ceramics destruction of more of a group nature, multiple crashes and debris. See also CERAMICS-BREAK.",
+        "Ceramics_Friction@@@Ceramics friction, scraping, squeaking, screeching.",
+        "Ceramics_Handle@@@Ceramics handling, picking up a coffee mug, handling a plant pot. Some overlap with CERAMICS-MOVEMENT.",
+        "Ceramics_Impact@@@Ceramics impacts without breaking, so hits drops, clunks and clinks. See also CERAMICS-BREAK.",
+        "Ceramics_Movement@@@Ceramics single or group movement, so dragging, shaking and rattling. See also CERAMICS-HANDLE.",
+        "Ceramics_Tonal@@@Ceramics ringing, as in being bowed.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Chains": {
+      "_alias": "",
+      "_tags": [
+        "Chains_Misc@@@Chain sounds not fitting another category in this list.",
+        "Chains_Break@@@Chain snapping or breaking, that sharp sound of a chain failing.",
+        "Chains_Handle@@@Chain handling, repairing a bike chain, a prisoner moving around in chains. Some overlap with CHAINS-MOVEMENT.",
+        "Chains_Impact@@@Chain impacts, such a big chain hit or slam, or a tension snap of a chain being pulled taut.",
+        "Chains_Movement@@@Chain handling, particularly being pulled through pulleys or across surfaces. See also CHAINS-HANDLE.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Cloth": {
+      "_alias": "",
+      "_tags": [
+        "Cloth_Misc@@@Cloth sounds not fitting another category in this list.",
+        "Flap@@@Cloth flapping, as in a flag flapping, or superman's cape. Also ship sails and parachutes.",
+        "Cloth_Handle@@@Cloth handling, grabbing a jacket, clothy arm grabs, etc. Some overlap with CLOTH-MOVEMENT. See also possibly OBJECTS-FASHION.",
+        "Cloth_Impact@@@Cloth impacts, throwing a jacket forcefully to the floor, a wet towel snap. Some overlap with CLOTH-MOVEMENT possible.",
+        "Cloth_Movement@@@Varied cloth movement except flapping which has its own category. Variety of cloth movement. Cloth zuzz. See also CLOTH-FLAP.",
+        "Cloth_Rip@@@Various cloth rips and tears, short to long. Velcro would best fit here too.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Fight": {
+      "_alias": "",
+      "_tags": [
+        "Fight_Misc@@@Fight sounds not fitting another category in this list.",
+        "Bodyfall@@@Bodyfalls, but probably also body scuffles on ground, from simple to complex. On any surface.",
+        "Fight_Cloth@@@Active or big scuffling cloth, big fight cloth movement.",
+        "Grab@@@Big arm grabs, hand or arm blocks as well as they're similar sounds, grappling during wrestling or martial arts.",
+        "Fight_Impact@@@Fight impacts, blocks, kicks and punches. BODYFALLS has its own subcategory here, as do GRABS.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Footsteps": {
+      "_alias": "",
+      "_tags": [
+        "Footsteps_Misc@@@Footstep sounds not fitting another category in this list.",
+        "Footsteps_Animal@@@Individual animal footsteps, dog, elephant. Group animals like a herd or stampede to MOVEMENT-ANIMALS. See also FOOTSTEPS-HORSE,",
+        "Footsteps_Creature@@@Monster feet, Put dinosaur feet in here too, but also for small fantasy creatures.",
+        "Footsteps_Horse@@@All manner of horse feet, from single to running.",
+        "Footsteps_Human@@@Human feet, any surface, barefoot, shoes, it all goes here.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Glass": {
+      "_alias": "",
+      "_tags": [
+        "Glass_Misc@@@Glass sounds not fitting another category in this list.",
+        "Glass_Break@@@Glass singular breaks, so a bottle smash, or a window shatter.",
+        "Glass_Crash & Debris@@@Glass crashes and debris, so multiple items crashing, and isolated glass shards and debris.",
+        "Glass_Friction@@@Glass friction, such as a scrape or squeak. Could be some overlap with GLASS-TONAL.",
+        "Glass_Handle@@@Glass objects being handled, grabbing a bottle or glass. Some overlap with GLASS-MOVEMENT.",
+        "Glass_Impact@@@Glass impacts without breaking, so a bottle hit that doesn't break, a bottle dropping to the ground but not breaking.",
+        "Glass_Movement@@@Glass movement, such as a case of bottles rattling, or a bottle rolling on the floor. See also GLASS-HANDLE.",
+        "Glass_Tonal@@@Glass tonal sounds, like bowed blass, a glass harmonica, or a bowed crystal bowl.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Gore": {
+      "_alias": "",
+      "_tags": [
+        "Gore_Misc@@@Gore sounds not fitting another category in this list.",
+        "Blood@@@Gore blood sounds, dripping and flowing. Likely some overlap with LIQUID & MUD, but this for particularly 'gory' versions.",
+        "Bone@@@Gore bones, bones crunching, snapping, break. Put creature JAW SNAPS here too.",
+        "Burn@@@Gore flesh sizzling, possible overlap with FIRE-SIZZLING, but this more exaggerated for flesh burning.",
+        "Flesh@@@Gore flesh tearing, ripping, peeling. Very graphic flesh sounds. A monster ripping someone apart.",
+        "Ooze@@@Gore gross oozing liquid, open wounds, possible overlap with LIQUID categories, but this hyperreal and over the top.",
+        "Gore_Source@@@Recordings meant as source for GORE sounds, smashing a watermelon, stabbing a pumpkin, etc.",
+        "Gore_Splat@@@Gore splats, gross splats of gooey stuff. A body or head exploding and hitting the wall. Hyperreal.",
+        "Squish@@@Gore squishes, disgusting squishes or flesh and organs. A dinosaur stepping on a person and squishing them.",
+        "Stab@@@Gore sharp stabs and sword pulls. That classic sound of someone being impaled. More crunchy than a SQUISH.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Leather": {
+      "_alias": "",
+      "_tags": [
+        "Leather_Misc@@@Leather sounds not fitting another category in this list.",
+        "Leather_Creak@@@Leather creaks, jacket and bag creaks, saddle movements. Any creaking leather.",
+        "Leather_Handle@@@Leather handling, picking up a leather bag, putting on a leather jacket maybe. Some overlap with LEATHER-MOVEMENT possible.",
+        "Leather_Impact@@@Hits and impacts of leather, leather bag or saddle dropping.",
+        "Leather_Movement@@@Movement of Leather, definitely overlap with LEATHER-CREAK and LEATHER-HANDLE.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Metal": {
+      "_alias": "",
+      "_tags": [
+        "Metal_Misc@@@Metal sounds not fitting another category in this list.",
+        "Metal_Break@@@Metal breaking, snaps, cracks, rips, shatters.",
+        "Metal_Crash & Debris@@@Metal crashing and debris. Complex metal crashes, group metal crashes, metal debris falls.",
+        "Metal_Friction@@@Metal friction, stress, so scrapes, creaks, squeaks, squeals, screeches. Metal sounds caused by friction.",
+        "Metal_Handle@@@Metal handling, handling metal objects. Some overlap with METAL-MOVEMENT possible.",
+        "Metal_Impact@@@Metal single item impacts, so anvil hits, dropping something that doesn't break. Clangs, clunks, bangs.",
+        "Metal_Movement@@@Metal movement, so drag, roll, rattle, shake. Single or metal items moving. Or movement on a metal surface. See also METAL-HANDLE.",
+        "Metal_Tonal@@@Metal tonal, resonating, ringing, wronks and warps. Bending sheet metal, a singing bowl ringing, metal shinging.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Movement": {
+      "_alias": "",
+      "_tags": [
+        "Movement_Misc@@@Movement sounds not fitting another category in this list.",
+        "Activity@@@Crowds moving but also performing activities, cleaning, moving boxes. Clean recordings with no vocals. See MOVEMENT-HUMAN for Single activity.",
+        "Movement_Animal@@@Group animal movement, individual feet go to FOOTSTEPS-ANIMAL or FOOTSTEPS-HORSE. But think herds of grazing animals, stampedes.",
+        "Movement_Creature@@@Slithering Dragons, Gooey Zombie Movement.",
+        "Crowd@@@Groups of people milling or walking. Usually mostly just recordings of group footsteps in real locations. No vocals. Compare to MOVEMENT-ACTIVITY.",
+        "Movement_Human@@@Movement of single human, aside from footsteps, standing, sitting, shuffe. Some overlap or confusion with FOOTSTEP-HUMAN or MOVEMENT-ACTIVITY.",
+        "Movement_Insect@@@Group insects, footsteps, movement, swarms, spiders, locusts. Swarms of flying insects here too, bees, flies. Overlap with ANIMALS-INSECT or AMBIENCE-INSECT.",
+        "Presence@@@Very light movement, people in church adjusting, people on church pews. Again, recordings without vocals. Compare to MOVEMENT-ACTIVITY and MOVEMENT-CROWD.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Paper": {
+      "_alias": "",
+      "_tags": [
+        "Paper_Misc@@@Paper and Cardboard. Paper sounds not fitting another category in this list.",
+        "Flutter@@@Paper and Cardboard. Tossing a group of pages or a book in the air, money flutters as it falls to the ground. Confetti.",
+        "Paper_Friction@@@Paper and Cardboard. Sliding paper or scraping paper.",
+        "Paper_Handle@@@Paper and Cardboard. Page turns, magazine handling. Books dropping. Handling paper money. Some overlap or confusion with OBJECTS-BOOK.",
+        "Paper_Impact@@@Paper and Cardboard. Heavy paper hits, a rolled up newspaper thwack, a magazine hitting something.",
+        "Paper_Rip@@@Paper and Cardboard. Ripping paper, paper tears.",
+        "Paper_Tonal@@@Paper and Cardboard. Not very common, but tonal paper sounds.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Plastic": {
+      "_alias": "",
+      "_tags": [
+        "Plastic_Misc@@@Plastic sounds not fitting another category in this list.",
+        "Plastic_Break@@@Plastic breaking, crunches, rips, shatters.",
+        "Plastic_Crash & Debris@@@Plastic crashing, groups items falling, group destruction, plastic debris.",
+        "Plastic_Friction@@@Plastic friction, such as scrapes, creaks, squeaks, screeching.",
+        "Plastic_Handle@@@Plastic handling, handling a toy or remote control. Some overlap with PLASTIC-MOVEMENT possible.",
+        "Plastic_Impact@@@Plastic item impact. Hit, drop, big plastic impacts where item does not break. Dropping a plastic object.",
+        "Plastic_Movement@@@Plastic movement, dragging plastic or drag on plastic, rattles, shakes. See also PLASTIC-HANDLE.",
+        "Plastic_Tonal@@@Plastic tonal sounds, with a musical quality. Probably pretty rare.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Rope": {
+      "_alias": "",
+      "_tags": [
+        "Rope_Misc@@@Rope sounds not fitting another category in this list.",
+        "Rope_Creak@@@Rope stretches and creaks, people hanging from nooses.. Ship rope creaks. Tension of rope stretches.",
+        "Rope_Handle@@@Rope handling, tying knots, rigging up a ship sail. Possible overlap with ROPE-MOVEMENT.",
+        "Rope_Impact@@@Rope impacts, tossing ropes to ground, ropes banging violently in the wind. Possible overlap with ROPE-MOVEMENT.",
+        "Rope_Movement@@@Ropes zuzzing, moving across objects, zipline. See also ROPE-HANDLE.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Rubber": {
+      "_alias": "",
+      "_tags": [
+        "Rubber_Misc@@@Rubber sounds not fitting another category in this list.",
+        "Rubber_Crash & Debris@@@Rubber items crashing, or rubber debris landing.",
+        "Rubber_Friction@@@Rubber squeaks, balloon squeaks, a rubber shoe squeak.",
+        "Rubber_Handle@@@Rubber handling, rubber objects being manipulated or handled. Some overlap with RUBBER-MOVEMENT",
+        "Rubber_Impact@@@Rubber impacts, drops, bounces. Hitting a balloon or rubber ball.",
+        "Rubber_Movement@@@Rubber movement, dragging rubber or drag on rubber. Rubber flapping. See also RUBBER-HANDLE.",
+        "Rubber_Tonal@@@Rubber movement with a tonal quality, a musical quality.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Wood": {
+      "_alias": "",
+      "_tags": [
+        "Wood_Misc@@@Wood sounds not fitting another category in this list.",
+        "Wood_Break@@@Wood breaks, shatters, cracks, crunches. Any destruction of wood that breaks the piece.",
+        "Wood_Crash & Debris@@@Group wood crashes and debris, and pieces falling, as in after an explosion.",
+        "Wood_Friction@@@Wood stress, especially creaks. But also scrapes, squeaks.",
+        "Wood_Handle@@@Handling a wooden object, picking up, setting down, etc. Some overlap or confusion with WOOD-MOVEMENT.",
+        "Wood_Impact@@@Singular wood hits, drops, impacts, board hits. Group wood destruction goes into CRASH. Resonant wood bonks or hits. Hitting your head on a doorframe.",
+        "Wood_Movement@@@Wood movement including rattles, drag, slides, rolls. Group pieces of wood moving together.",
+        "Wood_Tonal@@@Tonal bowed wood sounds, ringing wood.@@@"
+      ],
+      "_parentBg": "transparent"
+    }
+  },
+  "Nature & Environment": {
+    "_alias": "",
+    "_bg_color": "",
+    "_tags": [],
+    "Air": {
+      "_alias": "",
+      "_tags": [
+        "Air_Misc@@@Air sounds not fitting another category in this list.",
+        "Air_Blow@@@Steady air blows, like from a compressed can of air.",
+        "Air_Burst@@@Sharp air releases, pressure releases, a tennis call can popping open, a fire extinguisher",
+        "Hiss@@@Slow air releases, a flat tire, leak in an air pipe.",
+        "Air_Suction@@@Air being sucked in, a vacuum sucking in air, the rush of air in a shopvac.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Dirt & Sand": {
+      "_alias": "",
+      "_tags": [
+        "Dirt & Sand_Misc@@@Dirt, Sand and Earth sounds not fitting another category in this list.",
+        "Dirt & Sand_Crash & Debris@@@Dirt or sand settling, as in after an explosion, big sprays of dirt and sand. DUST has its own subcategory.",
+        "Dust@@@Settling dust, dust clouds, much lighter sound than DIRT & SAND-DEBRIS",
+        "Dirt & Sand_Handle@@@Handling dirt & sand, hands digging through dirt, children making a sand castle. Some overlap with DIRT & SAND-MOVEMENT.",
+        "Dirt & Sand_Impact@@@Big hits and impacts of dirt of sand, dirt clods. Think the huge dirt ball impacts in WHERE THE WILD THINGS ARE.",
+        "Dirt & Sand_Movement@@@Pouring, flowing of dirt or sand, a big sand pour. See also DIRT & SAND-HANDLE.",
+        "Dirt & Sand_Tonal@@@Singing sand dunes. Probably pretty rare.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Fire": {
+      "_alias": "",
+      "_tags": [
+        "Fire_Misc@@@Fire sounds not fitting another category in this list.",
+        "Burning@@@Covers normal fire burning, mostly roars, not isolate fire crackle, which have their own category. See also new FIRE-TURBULENT category.",
+        "Fire_Burst@@@A sharp and loud release of fire, covers fire bursts, big flare ups. Think a backdraft explosion of fire. A flamethrower. Usually a single event.",
+        "Crackle@@@Specifically crackly fire elements, isolated crackle, or a very crackly fire, good for layering to other fire.",
+        "Gas@@@Gas burners as you'd find in a kitchen stove or gas grill. That sort of hissy or airy fire burn. Crematoriums and furnaces.",
+        "Ignite@@@Fire ignites, including matches, lighters. That initial spark of ignition of a fire.",
+        "Sizzle@@@Glowing red pokers, fuses, coal embers when extinguished, sauna rocks when water is poured on them. Glowing red hot.",
+        "Torch@@@Constant torches and torch movement, that phasey fire sound as a torch is moved around.",
+        "Fire_Turbulent@@@Wildly whooshing turbulent violent fire. Larger than just burning, think fire tornado. Extreme moving fire.",
+        "Fire_Whoosh@@@Big whooshy fire events like a fireball through the air.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Geothermal": {
+      "_alias": "",
+      "_tags": [
+        "Geothermal_Misc@@@Geothermal sounds not fitting another category in this list.",
+        "Fumarole@@@Geothermal steam vent. A hole, crack or fizzure releasing gases.",
+        "Geyser@@@Geysers and eruptions, as you'd find in Yellowstone.",
+        "Lava@@@Lava flows, crackles, could be some overlap with FIRE, but overtly lava sounding things go here.",
+        "Mud Pots@@@Mudpots and paint pots, popping liquidy mud sounds.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Ice": {
+      "_alias": "",
+      "_tags": [
+        "Ice_Misc@@@Ice sounds not fitting another category in this list.",
+        "Ice_Break@@@Ice cracks, breaks, shatters. Any ice breaking that is fairly singular or isolated, large or small.",
+        "Ice_Crash & Debris@@@Ice large crashes and isolated debris go here. Iceberg calving.",
+        "Ice_Friction@@@Dry ice may go here, but often it's a metallic sound too, but ice scrapes, squeaks, creaks.",
+        "Ice_Handle@@@Ice handling, picking up ice. Some overlap with ICE-MOVEMENT possible.",
+        "Ice_Impact@@@Pieces of ice dropping (without breaking). Ice hits, solid ice impacts that don't break.",
+        "Ice_Movement@@@Ice sliding or rattling, maybe an object sliding across ice. See also ICE-HANDLE.",
+        "Ice_Tonal@@@Tonal ice sounds, probably fairly rare, but that ice ping on a frozen lake would be one example.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Liquid & Mud": {
+      "_alias": "",
+      "_tags": [
+        "Liquid & Mud_Misc@@@Mud and thicker than water sounds not fitting another category in this list.",
+        "Liquid & Mud_Bubbles@@@Mud and thicker than water, thick bubbles, viscous liquid. Things like Oil, gloopy thick liquids.",
+        "Liquid & Mud_Impact@@@Mud and thicker than water, Splats and hit. Things like Oil, gloopy thick liquids.",
+        "Liquid & Mud_Movement@@@Mud and thicker than water, oozing, slime, glooping. Things like Oil, gloopy thick liquids.",
+        "Liquid & Mud_Suction@@@Thicker than water, disgusting liquidy suction, plunger sucks. Things like Oil, gloopy thick liquids.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Natural Disaster": {
+      "_alias": "",
+      "_tags": [
+        "Natural Disaster_Misc@@@Natural Disaster sounds not fitting another category in this list.",
+        "Avalanche@@@Composite big movements of sliding, falling earth, landslides, mudslides. This category often for big hollywood versions of these types of sound.",
+        "Earthquake@@@Composite and complex earthquake rumbles and rattles. This category often for big hollywood versions of these types of sound.",
+        "Tornado@@@Composite tornado sounds, layered and created massive tornadoes. This category often for big hollywood versions of these types of sound.",
+        "Tsunami@@@Composite tidal wave or tsunami scenes, layered and created. This category often for big hollywood versions of these types of sound.",
+        "Typhoon@@@Composite typhoons, cyclones or hurricanes. Massive swirling storms. This category often for big hollywood versions of these types of sound.",
+        "Volcano@@@Composite big volcano eruptions. Lava, lava bombs, eruptions. This category often for big hollywood versions of these types of sound. See also GEOTHERMAL-LAVA.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Rain": {
+      "_alias": "",
+      "_tags": [
+        "Rain_Cloth@@@Rain on cloth, like a person's clothes, or more likely a patio umbrella, awning.",
+        "Concrete@@@Rain on asphalt or concrete or patio tile. Rain on a hard slappy solid surface.",
+        "Rain_General@@@General downpour, rain on mixed materials.",
+        "Rain_Glass@@@Rain on a glass roof like a sunroof, or rain blown against a window as well.",
+        "Rain_Interior@@@Interior recordings of Rain, from inside house or barn, or vehicle.",
+        "Rain_Metal@@@Rain on a metal surface, so exterior rain on a car, or metal sheet, metal roof.",
+        "Rain_Plastic@@@Rain on plastic or vinyl surfaces, like a grill cover, or a plastic shed.",
+        "Rain_Vegetation@@@Rain on plants, leaves and grass. Jungle or tropical rain on plant leaves.",
+        "Rain_Water@@@Rain on water, puddles, lakes, ponds.",
+        "Rain_Wood@@@Rain on wood surfaces, so a deck for example.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Rocks": {
+      "_alias": "",
+      "_tags": [
+        "Rocks_Misc@@@Rock sounds not fitting another category in this list.",
+        "Rocks_Break@@@Rock cracks, breaks, rips or shatters. More isolated and singular cracks and breaks.",
+        "Rocks_Crash & Debris@@@Rock crashes and debris, so a huge rock crash, collapse. Or isolated debris. See also NATURAL DISASTER-AVALANCHE.",
+        "Rocks_Friction@@@Rock creaks, scrapes... the stress of rock about to break.",
+        "Rocks_Handle@@@Rock handing, picking up or digging through rocks, bricks. Some overlap with ROCKS-MOVEMENT possible.",
+        "Rocks_Impact@@@Rock falling, dropping without breaking, or something hit with a rock, a big rock impact.",
+        "Rocks_Movement@@@Rock dragging, or dragging across a rock surface, rocks shaking or rattling. See also ROCKS-HANDLE.",
+        "Rocks_Tonal@@@Tonal rocks, probably pretty rare. Singing rocks.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Snow": {
+      "_alias": "",
+      "_tags": [
+        "Snow_Misc@@@Snow sounds not fitting another category in this list.",
+        "Snow_Crash & Debris@@@Snow big crashes, a big fall of snow, a roof full of snow collapsing. See also NATURAL DISASTER-AVALANCE for the extreme version of this.",
+        "Snow_Friction@@@Snow scrapes, squeaks. Skiing on snow, sledding.",
+        "Snow_Handle@@@Snow being handled, a snowball being formed, etc. Digging out of show with your hands. Some overlap with SNOW-MOVEMENT.",
+        "Snow_Impact@@@A big impact of snow, like a roof full of snow falling. Or smaller like a snowball. Jumping into a pile of snow.",
+        "Snow_Movement@@@Dragging something through snow, rolling in snow. See also SNOW-HANDLE.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Water": {
+      "_alias": "",
+      "_tags": [
+        "Water_Misc@@@Water sounds not fitting another category in this list.",
+        "Water_Bubbles@@@Single or continuous bubbles. Water boiling on a stove, fish tank bubbles.",
+        "Drain@@@Draining gurgling water, pulling in air with it as it drains, think a kitchen sink drain, or a storm drain, shower drain.",
+        "Drip@@@Water dripping, slow to fast. A cave drip, a leaking pipe dripping or a kitchen faucet dripping.",
+        "Fizz@@@That sound of Alka-Seltzer in a cup, air fizzing in water. Carbonated beverages.",
+        "Flow@@@General water flowing, in our case as in a river, creek or stream. Steady water. Rapids would fall under WATER-TURBULENCE, and WATERFALL has its own subcategory",
+        "Fountain@@@Water features and fountains, trickles or flows for a fountain, splashy fountains. From tiny to large city fountains.",
+        "Water_Impact@@@Percussive water impact, large crash or slam of water, as in huge wave hitting an object. Bigger and sharper than a SPLASH",
+        "Lap@@@Water splashing against something like against the side of a boat or canoe, or a dock. Also meant for very small waves lapping on shore, like gentle very small waves at night.",
+        "Water_Movement@@@Movement in water but not underwater (see WATER-UNDERWATER) Drags through water, swimming movements, sweeps of objects through water. Thrashing in water.",
+        "Plumbing@@@Household plumbing, like a sink running, a toilet flush, the shower running. DRAIN has its own subcategory.",
+        "Water_Pour@@@Pouring water, onto ground, into a cup. Overlap with FOOD & DRINK-POUR.",
+        "Splash@@@Water splashes of all kind, a person diving into a pool, a whale cresting, throwing a rock into water.",
+        "Spray@@@Big sprays of a wave crash, to a hose spray.",
+        "Water_Steam@@@Very wet hisses, radiators, saunas. Hot wet steam.",
+        "Surf@@@The general roar of the ocean, not the sport. Constant ocean roaring waves.",
+        "Water_Turbulent@@@Very big splashy water. Whirlpools, big rapids on a river. Dangerous water.",
+        "Water_Underwater@@@Specifically underwater sounds, flows, current and movement, Swimming underwater. See also AMBIENCE-UNDERWATER and WATER-MOVEMENT as well.",
+        "Waterfall@@@Waterfalls from small cascading ones to Niagara falls.",
+        "Wave@@@For general water waves, distinct waves. General ocean roar to go in WATER-SURF, and tiny waves to WATER-LAPPING. See also NATURAL DISASTERS-TSUNAMI.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Weather": {
+      "_alias": "",
+      "_tags": [
+        "Weather_Misc@@@Weather sounds not fitting another category in this list. See also NATURAL DISASTER category.",
+        "Hail@@@Hail on various surfaces.",
+        "Storm@@@Composite storms, wind, rain, thunder, where elements aren't isolated. Mixed storm composite recordings. Also see WIND-TURBULENT for wind only elements and NATURAL-DISASTER.",
+        "Thunder@@@Thunder and lightning, dry, wet, distant rumbles to sharp thunder cracks. Combination RAIN & THUNDER may best go into WEATHER-STORM@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Wind": {
+      "_alias": "",
+      "_tags": [
+        "Wind_Designed@@@Designed or manufactured or artificial winds, wind machines, synth winds.",
+        "Wind_General@@@Base and general wind category.",
+        "Gust@@@For more singular gusts or buffets, accents to cut into other winds. Usually shorter. A constant buffeting wind better off in the GENERAL or TURBULENT category.",
+        "Wind_Interior@@@Interior wind, through window, or crack in door. Wind through chimney or vent pipe, but see also WIND-TONAL for overtly tonal winds and whistles.",
+        "Wind_Tonal@@@Wind howls, wind in wires, wind whistles, overtly tonal winds.",
+        "Wind_Turbulent@@@Extremely violent wind, big buffeting, huge storm winds. Possible overlap with NATURAL DISASTER-TORNADO or WEATHER-STORM.",
+        "Wind_Vegetation@@@Wind through foliage, vegetation, grass, trees, leaves, plants.@@@"
+      ],
+      "_parentBg": "transparent"
+    }
+  },
+  "Sound Design & Misc": {
+    "_alias": "",
+    "_bg_color": "",
+    "_tags": [],
+    "Ambience": {
+      "_alias": "",
+      "_tags": [
+        "Ambience_Misc@@@Ambience sounds not fitting another category in this list.",
+        "Air@@@Quiet exterior 'air' with little activity, like exterior room tones, very simple exterior ambiences. The exterior equivalent of a room tone. If noticable activity find a better fitting category.",
+        "Alpine@@@Mountain ambiences, for recordings and ambiences geographically linked to Alpine Environments. Some overlap with AMBIENCE-RURAL.",
+        "Ambience_Amusement@@@Theme parks and carnivals. Beware of possible rights issues with uncleared music. Carnivals, fairs, festivals. Probably arcades too.",
+        "Birdsong@@@Group songbirds, like a dawn chorus of pretty birds, where the birds are the prominent sound. Single birds would go in BIRDS-SONGBIRD.",
+        "Ambience_Celebration@@@Parties, New Years Eve. Not pure crowds, as that would go in CROWDS, but i.e. exterior city new years. Also see AMBIENCES-AMUSEMENT for something like a fair or festival.",
+        "Ambience_Construction@@@Construction scenes with things like jackhammers, cranes, pile drivers, composite construction scene, road construction also.",
+        "Desert@@@Quiet desert ambiences with appropriate insects and birds. Maybe tumbleweeds.",
+        "Ambience_Designed@@@Artificial designed ambience. V8.2 adds AMBIENCE-FANTASY and AMBIENCE-SCIFI which may be better fit for most 'designed' categories.",
+        "Ambience_Emergency@@@Crime scenes, firefighting scenes, accident scenes, with things like firefighters, police, ambulances and medics. Also see VEHICLES-EMERGENCY.",
+        "Fantasy@@@Magical or other wordly composite ambiences, soundscapes, think Middle Earth or Pandora.",
+        "Ambience_Farm@@@Specifically farm ambiences, with animals, maybe tractors working, chickens, etc. Isolated farm animals would go into ANIMALS-FARM.",
+        "Forest@@@Forest recordings or forest composite files. Trees and birds, maybe wind in trees all together. Some overlap with AMBIENCE-RURAL or AMBIENCE-ALPINE.",
+        "Grassland@@@Prairies, meadows, grazing patures, etc. But FARMS has own category if farm animals or human activity are present.",
+        "Ambience_Historical@@@Old West scenes, Roman street scenes. Composite history and ancient ambiences.",
+        "Ambience_Hitech@@@Hi-tech machine rooms. Data centers, control rooms. James Bond type lairs. Spaceship interiors.",
+        "Hospital@@@Hospital ambiences of all kinds, surgery and emergency rooms too. Possibly veterinarian hospitals too.",
+        "Ambience_Industrial@@@Industrial warehouses and factories, plants or any ambience with an industrial feeling.",
+        "Ambience_Insect@@@Thick ambiences of insects, cicada and cricket beds mainly. May contain over sounds but main sound being large presence of insects. See also ANIMALS-INSECT for more isolated sounds.",
+        "Lakeside@@@Ambiences relating to lakes, not isolated lapping, but the lake version of AMBIENCE-SEASIDE. See also WATER-LAPPING.",
+        "Market@@@Busy exterior or interior market activity and crowds. Think vibrant international markets in Istanbul or Africa, but any market.",
+        "Nautical@@@Relating to ships at sea, shipyards, things revolving around ships. (compare to AMBIENCE-SEASIDE). Water only recordings would go to a WATER category.",
+        "Ambience_Office@@@Workplaces, offices, people working, typing, telephones. General offices of various sizes.",
+        "Park@@@Parks, mostly city or suburban, probably usually with some human activity, city activity. Not pure nature sounds.",
+        "Ambience_Prison@@@Prisons and jails, reverberant inmate walla, jail doors, buzzers, that sort of thing.",
+        "Protest@@@Protests, Rallies, Riots. Big mixed ambiences of crowds, shouting, yelling, chanting. Opposed to AMBIENCE-CHEERING.",
+        "Public Place@@@Except for restaurants, for any other usually indoor public places such as stores, lobbies, hotels, malls, museums. Lots of possible overlap with other categories. Use if not fitting elsewhere.",
+        "Religious@@@Church and temples, church services, religious gatherings, pilgrimages. Any ambience relating to religion.",
+        "Residential@@@Something busier than a room tone, an Apartment, a House with some activity from outside etc. Interior with exterior sounds coming through closed or open doors, windows.",
+        "Restaurant & Bar@@@Restaurants and bars, pubs, places of eating and drinking, mixed crowd with glass clinks or silverware.",
+        "Room Tone@@@Simple room tones with little or no activity. Also see now AMBIENCE-RESIDENTIAL if more than just air is present, as it might be a better fit.",
+        "Rural@@@Rural and countryside ambiences that don't fit somewhere else in this list. Nature, away from signs of people, overlap with AMBIENCE-ALPINE, DESERT, FOREST, PRAIRIE, etc.",
+        "School@@@Schools of any age, kindergarten through college, hallways, lockers, voices, school bells.",
+        "Scifi@@@A composite sci-fi ambience, a complex background layered with many sci-fi elements. A complex spacehip bridge, or high-tech lab. See also SCIFI for individual elements.",
+        "Seaside@@@Relating to beach and oceanside scenes with people. (Compare to AMBIENCE-NAUTICAL). Water only recordings would go to a WATER category.",
+        "Ambience_Sport@@@Sporting events, little league baseball to major league. Use CROWDS-SPORT for clean crowd recordings.",
+        "Suburban@@@Suburban streets, average residential neighborhood, not dense like URBAN. Lawnmowers, sprinklers, birds.",
+        "Swamp@@@A wetland often partially or intermittently covered with water; especially : one dominated by woody vegetation. Marshes, although tecnically different, are included here. Any wetland.",
+        "Town@@@Something in between a CITY and a SUBURB. Activity, cars, pedestrians, that 'small town' or village sound. May be confusion between this, AMBIENCE-URBAN and AMBIENCE-SUBURBAN.",
+        "Traffic@@@Specifically traffic without people. Not for a single car by, but for clean busy traffic, clean highway traffic for example. Rush hour where the sound is predominantly cars.",
+        "Transportation@@@Not VEHICLES, but public train stations, airports, bus stations, subway stations. Not the airplane or train itself. But public places centering around transportation.",
+        "Ambience_Tropical@@@Jungles and rainforests, lush animal life and vegetation.",
+        "Tundra@@@Treeless environments where the ground is permanently frozen, arctic, antarctic.",
+        "Underground@@@Subterranean, underground ambiences like sewers, bunkers, tunnels, dungeons, caves.",
+        "Ambience_Underwater@@@Underwater sounding ambiences, deep bubbles and that classic undersea world sound. See also WATER-UNDERWATER.",
+        "Urban@@@Dense cities and environments. New York City or London or Mumbai. Often Dense Traffic, horns, pedestrians, buses, but really any city. Overlap with AMBIENCE-TOWN possible.",
+        "Warfare@@@Battles, warfare, full ambiences here. Not for isolated WEAPONS or VEHICLES which have their own categories. Composite sounds of war.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Archived": {
+      "_alias": "",
+      "_tags": [
+        "Adr@@@Re-recorded lines via the ADR process.",
+        "Asset@@@A delivered or stored asset, most likely for video game use, but something used in the development of a project.",
+        "Bounce@@@Bounces made for picture department, layered bounces.",
+        "Impulse Response@@@Impulse Responses, reverb and otherwise.",
+        "Archived_Loop Group@@@Loop group crowds or lines. Specifically recorded in a loop group envirment and needing to tracked as such.",
+        "Mix@@@Premixes, final mixes, mixdowns, stems.",
+        "Pfx@@@FX Stolen from production takes only. Beware of possible rights issues.",
+        "Production@@@Production takes, dialog lines and other spoken line production takes.",
+        "Raw@@@Raw recording files, for example a load of a full DAT tape.",
+        "Reference@@@Reference material, often restricted, used for reference only. Beware of possible rights issues.",
+        "Scene@@@Pre-built scenes and soundscapes, designed scenes. For example a fully build old-west scene.",
+        "Test Tone@@@Test tones used for calibration, ADR beeps, Pink Noise, Sine wave Sweeps.",
+        "Trademarked@@@For trademarked or copyright sounds that you need to store in your library. Jingles, logos.",
+        "Work In Progress@@@Files that aren't fully metadata'd, or mastered, tag to remind you there is work to do. Recordings awaiting mastering.",
+        "Wtf@@@Literally what it says 'What the F_ck' is THIS sound... Strange otherwise uncategorizable sounds.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Beeps": {
+      "_alias": "",
+      "_tags": [
+        "Beeps_Appliance@@@Microwave oven beeps, dishwasher beeps.",
+        "Beeps_General@@@Beep sounds not fitting another category in this list. User Interface beeps go to UI-BEEPS.",
+        "Lofi@@@Very low fidelity, old 8-bit beeps.",
+        "Beeps_Medical@@@Beeps from various medical devices, EKG, Life Support.",
+        "Timer@@@Specifically timer beeps, counting down. Classic time bomb beeps.",
+        "Beeps_Vehicle@@@Backup beeps from a large truck or construction vehicle.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Cartoon": {
+      "_alias": "",
+      "_tags": [
+        "Cartoon_Misc@@@Cartoon sounds not fitting another category in this list.",
+        "Cartoon_Animal@@@Cartoon animals, made from animals calls, props, etc. Very silly or stylized animals calls for use in Cartoons.",
+        "Boing@@@Cartoon boings, like for a bouncing cartoon character. Roger Rabbit or Tigger from Winnie the Pooh.",
+        "Clang@@@Cartoon clangs, like a funny anvil hit. Most likely a very metallic resonant hit.",
+        "Cartoon_Creak@@@Cartoon creaks, some overlap or confusion with CARTOON-STRETCH possible.",
+        "Cartoon_Horn@@@Cartoon horns, as in bulb horns, clown horns.",
+        "Cartoon_Impact@@@Cartoon hits, bonk, boink, doink..",
+        "Cartoon_Machine@@@Cartoon machines, an overly comical sounding machine or contraption. A Rube Goldberg contraption.",
+        "Musical@@@Cartoon musical phrases. String plucks for a cartoon character sneaking up on another. Perhaps a cartoon musical phrase.",
+        "Pluck@@@Cartoon string plucks, violin plucks, dental floss plucks.",
+        "Pop@@@Cartoon funny pops, mouth pops, suction cup pops.",
+        "Shake@@@Cartoon shake, like a noisemaker toy, maraca.",
+        "Cartoon_Splat@@@Cartoon splats, funny liquid and mud like splats and things.",
+        "Squeak@@@Cartoon squeaks. funny little sounding squeaks of things.",
+        "Stretch@@@Cartoon stretches, funny rubber or other type stretching sounds, exaggerated.",
+        "Cartoon_Swish@@@Cartoon swishes, specifically very funny cartoony swishes.",
+        "Twang@@@Cartoon twangs, that classic ruler twang type sound.",
+        "Cartoon_Vehicle@@@Cartoon vehicles, think Jetsons spaceship or Flintstones cars.",
+        "Cartoon_Vocal@@@Cartoon vocals, specifically very silly. See also CARTOON-ANIMALS for non-human vocals.",
+        "Warble@@@Cartoon warble.",
+        "Whistle@@@Cartoon whistles, most likely slide whistles, other very silly whistles. A Wolf-Whistle.",
+        "Zip@@@Cartoon zips. Very fast 'zip' type sounds, often for fast movement aways.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Designed": {
+      "_alias": "",
+      "_tags": [
+        "Designed_Misc@@@Designed sounds not fitting another category in this list.",
+        "Bass Dive@@@Deep descending bass notes. Bass Drops.",
+        "Boom@@@Deep short and tight, low end stingers, big trailer deep hits. LFE type low end sweeteners.",
+        "Braam@@@Long deep horn like sounds. Like a War of the World's type long sound, or like a long french horn braam type sound.",
+        "Distortion@@@Particulary distored designed sounds and distortion elements.",
+        "Drone@@@Designed drones, eerie tense drones, long stylized sounds with not much activity or movement.",
+        "Eerie@@@Often designed, but tense strange undefined sounds that are eerie, tense, suspenseful. Some overlap with DESIGNED-DRONE possible.",
+        "Designed_Ethereal@@@Ethereal wispy designed sounds. Ghostlike whispers, or heavenly tones. Otherworldly. See also DESIGNED-EERIE.",
+        "Granular@@@Granular synthesis, sounds that have a gritty textural type sound, think PaulStretch, sounds broken down into tiny slices and recompiled.",
+        "Designed_Impact@@@Designed huge impacts, collisions, stylized big hits. Possible overlap with DESIGNED-STINGER.",
+        "Morph@@@A stylized blending of elements, something transitioning into another thing.",
+        "Riser@@@Tension risers, things rising in tone, something similar to a rising string line to create tension.",
+        "Rumble@@@Designed rumbles for layering into a mix. Earthquake rumbles. Composite rumble.",
+        "Rhythmic@@@Stattaco or glitchy machine type loops, things with definied starts, stops, rhythmic stutters.",
+        "Designed_Source@@@For recordings meant to be used as source for other designed sounds, experimental recordings, elements, etc.",
+        "Designed_Stinger@@@Stings, stylized screen sweeteners. Big trailer type sounds. Big shock scare type sounds. Stylized stings, hits and impacts. Overlap with DESIGNED-IMPACT.",
+        "Synthetic@@@Very synthesized sounds, very electronic synth stuff. Raw work files of synth-play.",
+        "Designed_Tonal@@@Designed sounds with a particularly tonal nature. The ringing in your ear of tinnitus for example.",
+        "Designed_Vocal@@@Design specifically around vocals, ghostly whispers, enchanted spells, reversed talking etc. Not for Creatures.",
+        "Designed_Whoosh@@@Stylized designed big whooshes, definite possible overlap confusion with SHOOSHES-WHOOSH, but this for less natural and more stylized versions.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Foley": {
+      "_alias": "",
+      "_tags": [
+        "Foley_Misc@@@Used for 'performed' official and very clean Foley done to picture. For your own wild recordings use FOOTSTEPS and OBJECT categories.",
+        "Foley_Cloth@@@Used for 'performed' official and very clean Foley done to picture. For your own wild recordings use FOOTSTEPS and OBJECT categories.",
+        "Feet@@@Used for 'performed' official and very clean Foley done to picture. For your own wild recordings use FOOTSTEPS and OBJECT categories.",
+        "Hands@@@Used for 'performed' official and very clean Foley done to picture. For your own wild recordings use FOOTSTEPS and OBJECT categories.",
+        "Foley_Prop@@@Used for 'performed' official and very clean Foley done to picture. For your own wild recordings use FOOTSTEPS and OBJECT categories.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Magic": {
+      "_alias": "",
+      "_tags": [
+        "Magic_Misc@@@Magic sounds not fitting another category in this list.",
+        "Angelic@@@Angelic, Holy, Benevolent magic. The opposite of evil. Think choral tones and healing magic.",
+        "Magic_Elemental@@@Magic centered around elements, fire, water, ice. Think the movie Frozen type stuff.",
+        "Evil@@@Evil magic, ominous, dark magic. Voldemort type stuff.",
+        "Poof@@@Shorter magic phrases, often for transforming, short 'turn you into a rabbit' type stuff.",
+        "Shimmer@@@Glassy or chime-like shimmers, waves of particle type magic.",
+        "Spell@@@Something complex for a spell being cast. Think Maleficent swirling green magic or weird vocal-ish spells.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Musical": {
+      "_alias": "",
+      "_tags": [
+        "Musical_Misc@@@Music sounds not fitting another category in this list. Hopefully rarely needed.",
+        "Bells@@@Specifically musical bells, tuned bells, think Tubular bells or hand bells. See also the BELL category for non-musical uses. BELL-GONG is older and this is a better fit.",
+        "Brass@@@Brass musical instruments, trumpets, tuba, french horn.",
+        "Musical_Chime@@@Wind chimes, bell trees, Tinkerbell type magic chimes.",
+        "Choral@@@Choir pieces, choral, not for 'designed type vocally stuff'.",
+        "Experimental@@@Strange or wierdly modified instruments, exotic instruments, prepared instruments like a prepared piano.",
+        "Instrument@@@Various instruments that don't have a home in the other MUSICAL categories.",
+        "Keyed@@@Keyed Instruments, such as pianos and harpsichord. For synthesizer though see MUSICAL-SYNTHESIZED.",
+        "Loop@@@For looping musical phrases, sampled loops.",
+        "Percussion@@@Drums and percussion, including deep timpani or big war drums. Mainly meant for true membrane instruments, also see MUSICAL-TUNED PERCUSSION",
+        "Percussion Tuned@@@Tuned percussion mostly played with mallets, Xylophones, Vibraphones, etc.",
+        "Performance@@@A musical performance, or warm-up, a live musical act, a street musican, high school band. If a mixed ambience, look to AMBIENCE categories, like PUBLIC PLACE.",
+        "Plucked@@@Guitars, Banjos, Harps, instruments that are mainly plucked when played. See also MUSICAL-STRINGED.",
+        "Sample@@@Musical samples. Single triggered samples, not loops, which has its own subcategory here.",
+        "Shaken@@@Shaken musical instruments, rattles, tamourines.",
+        "Song & Phrase@@@Complete musical pieces, songs as ringtones, car music bys. See also MUSICAL-PERFORMANCE which is a better fit for 'live performances'.",
+        "Musical_Stinger@@@A short musical phrase or accent, like a horror 'string' sting. A big pitching cello note. But musical in nature.",
+        "Stringed@@@Bowed string instruments like violin, cello, viola. Harp probably now goes to MUSICAL-PLUCKED.",
+        "Synthesized@@@Synth samples, musical synth performances. Some overlap with MUSICAL-SAMPLE, but this meant for more than simple triggered samples.",
+        "Toy@@@Toys that play musical phrases, also music boxes would go here.",
+        "Woodwind@@@Woodwind instruments like flute, oboe, bassoon, clarinet.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Scifi": {
+      "_alias": "",
+      "_tags": [
+        "Scifi_Misc@@@SCI-FI sounds not fitting another category in this list.",
+        "Scifi_Alarm@@@Overly futuristic alarms, the kind you're hear on a spaceship",
+        "Computer@@@Use Sci-Fi for overtly 'science fiction' type computer sounds, a very futuristic computer. Some overlap with USER INTERFACE.",
+        "Scifi_Door@@@That Star-Trek type door. Spaceship doors.",
+        "Energy@@@Energy particles, vortexes, transporters, holograms, force fields.",
+        "Scifi_Impact@@@A bolt of SciFi energy, a hi-tech energy impact, more futuristic than just an explosion. Overlap with DESIGNED-IMPACT.",
+        "Scifi_Machine@@@Future technology machines, transporters, food replicators.",
+        "Scifi_Mechanism@@@An overly sci-fi sounding gizmo or mechanism. Little unfolding robot or something like that. Similar to MACHINE-MECHANISM but more SciFi.",
+        "Retro@@@Cheesy sci-fi sounds, like from The Jetsons, The Day the Earth Stood Still. Old TV or film sci-fi sounds.",
+        "Spaceship@@@Spaceships here, your best Enterprise and Tie Fighter rip-offs! See also SCIFI-VEHICLE for non-spaceships.",
+        "Scifi_Vehicle@@@Various sci-fi vehicles, like a moon rover, landspeeder, speeder bike, hoverboard, podracer. See also SCIFI-SPACESHIP.",
+        "Weapon@@@Lightsabers, exotic sci-fi weapons. Not a 'blaster' which would go in LASERS-GUN.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Swooshes": {
+      "_alias": "",
+      "_tags": [
+        "Swooshes_Swish@@@A swish is smaller than a Whoosh. Arm Swishes, Sword Swishes. Small objects make Swishes.",
+        "Swooshes_Whoosh@@@A whoosh is larger than a swish. A large object would make a Whoosh. Tanks flying over your head, or an asteroid by. See also DESIGNED-WHOOSH for very stylized whooshes.@@@"
+      ],
+      "_parentBg": "transparent"
+    }
+  },
+  "Transport & Vehicles": {
+    "_alias": "",
+    "_bg_color": "",
+    "_tags": [],
+    "Aircraft": {
+      "_alias": "",
+      "_tags": [
+        "Aircraft_Misc@@@Aircraft not fitting another category in this list.",
+        "Aircraft_Door@@@Aircraft doors, some possible overlap with other DOOR categories, or VEHICLES-DOOR.",
+        "Helicopter@@@For all manner of helicopters, gyrocopters.",
+        "Aircraft_Interior@@@Interior recordings (mainly complex ambiences) of aircraft, from cockpit interiors, to passenger jet interiors.",
+        "Jet@@@All commercial and private jet powered aircraft, military jets would go under AIRCRAFT-MILITARY.",
+        "Aircraft_Mechanism@@@Mechanical components of aircraft, for example landing gear, or levers and switches.",
+        "Aircraft_Military@@@Military aircraft, military fighter jets, stealth bombers, but any military aircraft goes here. Also military drones. Military helicopters could go here or in AIRCRAFT-HELICOPTER.",
+        "Aircraft_Prop@@@Aircraft using props as means of propulsion. A propeller airplane.",
+        "Radio Controlled@@@Toy hobby radio controlled, UAV, quadcopters, RC jets and RC helicopters.",
+        "Rocket@@@Jet powered rockets and rocket engines., missiles.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Boats": {
+      "_alias": "",
+      "_tags": [
+        "Boats_Misc@@@Boat sounds not fitting another category in this list.",
+        "Air Boat@@@Specifically large fan airboats used in swamps. Think the type of boat used in the Everglades. Also hovercraft.",
+        "Bow Wash@@@The waves pushed up by a boat or ship going through the water, a relatively clean recording.",
+        "Boats_Door@@@Boat or Submarine doors. Some possible overlap with over DOOR categories or VEHICLES-DOOR.",
+        "Boats_Electric@@@Any boat powered by electricity. Fairly rare. Possible a a radio controlled boat, or electric trolling motor.",
+        "Fishing@@@Industrial fishing boats, crab boats, trawlers. Simple fishing boats to BOATS-MOTORBOAT.",
+        "Boats_Horn@@@Horns on boats and ships. Fog horns would go in HORNS-AIR category.",
+        "Boats_Interior@@@Interior ambiences on boats and ships, ferries, cruise ships, navy ships.",
+        "Boats_Mechanism@@@All manner of boat mechanisms. Sailing ship rigging, pulleys, ropes, ship wheels. See also BOATS-DOOR.",
+        "Boats_Military@@@Specifically military boats and ships, destroyers, aircraft carriers. Any military boat.",
+        "Motorboat@@@General small boats, personal fishing boats, speedboats, pontoon boats. You average recreational boat.",
+        "Boats_Racing@@@Powered racing boats, not for human powered racing boats, those would go under BOATS-ROWING.",
+        "Rowboat@@@Canoes, rowboats, kayaks probably, human powered boats that use oars and paddles, even racing rowboats.",
+        "Sailboat@@@Composite recordings of rigging and sails, isolated elements to CLOTH-FLAP for close sails, or BOATS-MECHANISM for rigging.",
+        "Ship@@@Large ship, passenger cruise ships, oil tankers, things relating to these.",
+        "Boats_Steam@@@Old steam paddle boats, big steam ship sounds.",
+        "Submarine@@@Relating to a submarine, include sonar pings. Classic 'Dive' alarm would go in ALARMS-SIREN with keyword Klaxon.",
+        "Boats_Underwater@@@Specifically boats and ships recorded underwater, usually hydrophone recordings. SUBMARINES have their own subcategory.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Horns": {
+      "_alias": "",
+      "_tags": [
+        "Horns_Misc@@@Horn sounds not fitting another category in this list, for example hunting calls. Not brass musical instruments which has it's own category in MUSICAL.",
+        "Air Powered@@@Air horns, as in handheld compressed air horns, huge factory air horns. A fog horn. BOATS-HORN has it's own category for ship and ferry horns, as does TRAINS-HORN.",
+        "Horns_Celebration@@@Party horns, from small party horns to vuvuzelas.",
+        "Traditional@@@Rams horns, conches, alpine horns, old traditional horns, medieval battle horns.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Trains": {
+      "_alias": "",
+      "_tags": [
+        "Trains_Misc@@@Train sounds not fitting another category in this list.",
+        "Trains_Brake@@@Screeching metalic train brake wheels, subway brakes. Usually a piercing sound.",
+        "Clack@@@Train clacks isolated, constant clacking of trains passing or running.",
+        "Trains_Door@@@Train doors, sliding doors in passenger or freight trains. Some overlap with general DOORS category and possibly VEHICLES-DOOR.",
+        "Diesel@@@Freight trains, large commercial diesel locomotives.",
+        "Trains_Electric@@@Commuter trains, elevated trains, light rail, SUBWAYS have their own category.",
+        "High Speed@@@Hi-Tech trains, Maglev, monorails, Hyperloops, bullet trains.",
+        "Trains_Horn@@@Train horns, subway horns. A steam train whistle would likely go into WHISTLES-MECHANICAL.",
+        "Trains_Interior@@@Interior trains, from Diesel to Commuter, onboard train sounds.",
+        "Trains_Mechanism@@@Coupling, decoupling and other mechanical sounds relating to trains. Levers, coal tender mechanics that are specific to a train.",
+        "Trains_Steam@@@Old steam powered trains, big smoke stack chugs.",
+        "Subway@@@Subways, overtly 'underground' sounding trains, above group city trains probably best in TRAINS-ELECTRIC",
+        "Tram@@@Trolleys, cable cars trams and streetcars. A Tram is 'pulled' along a cable, so not self-powered. An electric tram would go to TRAINS-ELECTRIC.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Vehicles": {
+      "_alias": "",
+      "_tags": [
+        "Vehicles_Misc@@@Vehicles sounds not fitting another category in this list.",
+        "Vehicles_Alarm@@@Not sirens, but just Car alarms, car alarm arm and disarm chirps.",
+        "Vehicles_Antique@@@Very old vehicles, such a Model A, Model T. Mainly cars, but possible other very old vehicles, trucks, tractors.",
+        "Atv@@@All-Terrain Vehicle, three and four-wheelers, dune buggies, side by side.",
+        "Bicycle@@@Bicycles, recumbent bikes, unicycles too. Any manner of pedal powered bicycle.",
+        "Vehicles_Brake@@@Brake squeals and screeches of all kinds. TRAINS-BRAKE has its own category.",
+        "Bus@@@City buses, school buses, Greyhound buses.",
+        "Car@@@All cars except overtly antique... add ERA to metadata to make searches easier. 1950s, 1960s...",
+        "Vehicles_Construction@@@Cranes, bulldozers, paving vehicles, any construction related vehicle goes here.",
+        "Vehicles_Door@@@Car, van, truck. Their doors all go here.",
+        "Vehicles_Electric@@@Electric golf carts, electric scooters, electric cars. A Tesla. Any variety of electric vehicle, even electric motorcycles.",
+        "Vehicles_Emergency@@@Specifically emegency vehicles like Firetrucks, Ambulances, Police cars. Isolated sirens would go still to VEHICLES-SIREN.",
+        "Vehicles_Farm@@@I'd put farm tractors here, Some overlap possibly with CONSTRUCTION vehicles. A riding lawn mower would best to MACHINES-GARDEN maybe.",
+        "Freight@@@Big Rigs, Lorry, Semi-truck, U-Haul trucks, not for TRAINS, which have their own category.",
+        "Generic By@@@Generic or general vehicle pass bys, not 'traffic'. Bys for a specific car go with that car. For group passbys use AMBIENCE-TRAFFIC.",
+        "Vehicles_Horn@@@Specifically car and vehicles horns. BOATS-HORNS and TRAINS-HORN have their own category. Fog horn would go into HORNS-AIR.",
+        "Vehicles_Interior@@@Interior recordings (ambiences) for car, truck, van interiors, from passenger cars, to back of a moving truck, riding inside a bus.",
+        "Jalopy@@@Backfiring, poorly running vehicle. False starts, sputtering... In foreign language translate to MALFUNCTIONING. See also CARTOON-VEHICLE.",
+        "Vehicles_Mechanism@@@Various mechanisms on a vehicle, like seatbelts, window cranks, door locks.",
+        "Vehicles_Military@@@Overtly military ground vehicles. Tanks and military trucks for example. Armored Personnel Carriers, military Jeeps. See also AIRCRAFT-MILITARY and BOATS-MILITARY.",
+        "Motorcycle@@@Scooters, Motorcycles, Vespas, Motocross… All things 2 wheeled and powered. ATV goes to VEHICLES-ATV.",
+        "Vehicles_Racing@@@Racing cars or drag racing cars. Indy and Formula 1 cars, monster trucks, BOATS-RACING has its own category.",
+        "Vehicles_Siren@@@Police, Firetruck, Ambulance sirens. Any vehicle siren. See also VEHICLES-EMERGENCY if engine sounds are present also.",
+        "Skid@@@Tire skids, peel-outs. Other tire sounds go in VEHICLES-TIRES.",
+        "Suspension@@@Suspension squeaks and rattles, for any car, truck, semi. Suspensions springs. A car or truck on a very rough road.",
+        "Tire@@@Tire rolls on various surfaces, tire whines, no engine sounds, isolated tire sounds. A flat tire flop.",
+        "Truck Van & Suv@@@Passenger Trucks, pickup trucks, Vans and SUVs. Commercial trucks go in VEHICLES-FREIGHT.",
+        "Utility@@@Golf carts, cushmans, traffic, gator, small motorized utility vehicles.",
+        "Wagon@@@Old wood wagon, horse drawn carts, carriages, buggies. A Stagecoach.",
+        "Window@@@Powered windows for any vehicles, crank windows should go in VEHICLES-MECHANISM.@@@"
+      ],
+      "_parentBg": "transparent"
+    }
+  },
+  "Weapons & Explosions": {
+    "_alias": "",
+    "_bg_color": "",
+    "_tags": [],
+    "Bullets": {
+      "_alias": "",
+      "_tags": [
+        "Bullets_Misc@@@Bullet sounds not fitting another category in this list.",
+        "By@@@Bullet pass bys in air, or underwater.",
+        "Bullets_Impact@@@Bullet hits and impacts, on a bullet hit on any material from the ground, to wood, to a person.",
+        "Ricochet@@@Bullet ricochets, that classic old west 'ping' when a bullet bounces off something.",
+        "Shell@@@Bullet shells ejecting and dropping to the ground. See also GUNS-HANDLING for things like loading or unloading a gun.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Destruction": {
+      "_alias": "",
+      "_tags": [
+        "Destruction_Misc@@@Destruction sounds not fitting another category in this list.",
+        "Collapse@@@Buildings and large mixed complex collapses, a barn collapse, Godzilla pushing over a building.",
+        "Destruction_Crash & Debris@@@Mixed crashes, complex crashes involving more than one material. So a combo huge glass and metal crash. See also individual material categories like METAL, WOOD etc.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Explosions": {
+      "_alias": "",
+      "_tags": [
+        "Explosions_Misc@@@Explosion sounds not fitting another category in this list.",
+        "Explosions_Designed@@@Designed or stylized explosions and sweeteners. Hyperreal explosions.",
+        "Explosions_Real@@@Real explosion recordings, realistic explosions, not overly stylized. (FIREWORKS has its own category)@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Fireworks": {
+      "_alias": "",
+      "_tags": [
+        "Fireworks_Misc@@@Firework sounds not fitting another category in this list.",
+        "Commercial@@@Large commercial fireworks, mortars, as on the 4th of July. Full displays or single large mortars.",
+        "Fireworks_Recreational@@@Small store-bought, recreational fireworks, firecrackers and roman candles and bottle rockets.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Guns": {
+      "_alias": "",
+      "_tags": [
+        "Guns_Misc@@@Gun sounds not fitting another category in this list. BULLETS has its own category.",
+        "Guns_Antique@@@Old black powder weapons, muskets.",
+        "Artillery@@@Modern big guns, guns that launch shells. Not CANNONS which have their own group.",
+        "Automatic@@@Fully automatic capable weapons, even when firing singly. Machine guns.",
+        "Cannon@@@Pirate and Civil War cannons, for modern artillery see GUNS-ARTILLERY.",
+        "Guns_Handle@@@Alongside GUN-MECHANISM, but specifically gun handling, grabs, holstering, dropping, catching.",
+        "Guns_Hitech@@@Not quite a sci-fi Laser Gun, but something more advanced than a normal gun, a rail gun for example.",
+        "Guns_Mechanism@@@Gun various mechanical sounds, clips, cocking, bolt slides.",
+        "Pistol@@@Handguns and pistols.",
+        "Rifle@@@Rifles, single shot and semi-automatic.",
+        "Shotgun@@@Shotguns, single, dual, pump.",
+        "Suppressed@@@Silenced Weapons, silencers.@@@"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Weapons": {
+      "_alias": "",
+      "_tags": [
+        "Weapons_Misc@@@Weapon sounds not fitting another category in this list.",
+        "Armor@@@Knights armor movement, hits. Shields, chainmail armor, leather armor with buckles.",
+        "Arrow@@@Arrow slides, arrow impacts. An arrow by would likely be a SWOOSHES-SWISH. See also WEAPONS-BOW.",
+        "Axe@@@Specifically a weaponized ax. Possible overlap with WEAPONS-SWORD or even WEAPON-POLEARM.",
+        "Blunt@@@Blunt weapons, like maces and flails, but also nightsticks.",
+        "Bow@@@Bows and Crossbows, articulation, twangs, bolts being loaded. Bow releases. See also WEAPON-ARROW.",
+        "Knife@@@Smaller knives, WEAPONS-SWORDS has it own subcategory here.",
+        "Polearm@@@A long spear or long poled weapon with sharp components at the end, like a harpoon.",
+        "Siege@@@A siege weapon is a device designed to break or circumvent fortifications, catapults, trebuchets. Ancient artillery.",
+        "Sword@@@Swords, clashing, parrying. Sword rings and hits. STABS would go to GORE category. Sword draws, shings.",
+        "Whip@@@Whip cracks. Make Indiana Jones proud.@@@"
+      ],
+      "_parentBg": "transparent"
+    }
+  },
+  "Uncategorized": {
+    "_alias": "",
+    "_tags": []
+  }
+}

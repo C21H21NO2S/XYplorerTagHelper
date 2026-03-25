@@ -1,0 +1,38 @@
+{
+  "Tag Group1": {
+    "_alias": "Alias or Remark",
+    "_descriptions": [
+      "Group Descriptions1",
+      "Group Descriptions2"
+    ],
+    "_bg_color": "",
+    "_tags": [
+      "TagA@@Alias or Remark@@@Tag Descriptions1@@@Tag Descriptions2",
+      "TagB@@Alias or Remark@@@Tag Descriptions1@@@Tag Descriptions2",
+      "TagC@@Alias or Remark@@@Tag Descriptions1@@@Tag Descriptions2"
+    ],
+    "Subgroup1": {
+      "_alias": "Alias or Remark",
+      "_descriptions": [
+        "Subgroup Descriptions1",
+        "Subgroup Descriptions2"
+      ],
+      "_tags": [
+        "Tag1@@Alias or Remark@@@Tag Descriptions1@@@Tag Descriptions2"
+      ],
+      "_parentBg": "transparent"
+    },
+    "Subgroup2": {
+      "_alias": "Alias or Remark",
+      "_tags": [],
+      "_parentBg": "transparent"
+    }
+  },
+  "Tag Group2": {
+    "_alias": "Alias or Remark",
+    "_bg_color": "",
+    "_tags": [
+      "TagA0@@Alias or Remark@@@Tag Descriptions1@@@Tag Descriptions2"
+    ]
+  }
+}
