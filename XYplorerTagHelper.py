@@ -775,7 +775,10 @@ class Api:
             sel_file = os.path.join(temp_dir, f"xy_sel_ucs_{unique_id}.txt")
             
             safe_sel_file = sel_file.replace("'", "''")
-            cmd_get_sel = f"::writefile('{safe_sel_file}', get('SelectedItemsPathNames', '|'), 'o', 'tu');"
+            
+            # 【核心突破 1：高维探测术】
+            # 使用 report() 获取所有文件的路径与现存标签，瞬间完成 0 延迟。
+            cmd_get_sel = "::if (get('CountSelected') > 0) { writefile('" + safe_sel_file + "', report('{FullName}|||{Tags}<crlf>', 1), 'o', 'tu'); }"
             subprocess.Popen(f'"{exe_path}" /feed="{cmd_get_sel}"')
             
             wait_time = 0
@@ -805,26 +808,42 @@ class Api:
                 self.log_message(self._t('log_ucs_name_cancel', msg), "INFO")
                 return {"success": False, "msg": msg}
                 
-            sel_items = sel_content.split('|')
-            all_files = []
+            # 【修复 XYplorer report() 的换行符】
+            # 因为 report 输出了字面量的 <crlf>，我们需要在此将其替换为真正的换行符
+            sel_content = re.sub(r'(?i)<crlf>', '\n', sel_content)
+            sel_items = sel_content.split('\n')
+            
+            all_files_info = [] # 结构：(文件路径, 是否已有标签)
             
             for item in sel_items:
-                clean_item = item.strip().strip('"').strip("'").strip('\x00')
+                clean_item = item.strip('\r\n\x00')
                 if not clean_item: continue
-                if os.path.isfile(clean_item):
-                    all_files.append(clean_item)
-                elif os.path.isdir(clean_item):
-                    for root, _, files in os.walk(clean_item):
+                
+                parts = clean_item.split('|||')
+                fp = parts[0].strip().strip('"').strip("'")
+                if not fp: continue
+                
+                # 【高维优化：精准提取已有标签集合】
+                existing_tags_set = set()
+                if len(parts) > 1 and parts[1].strip():
+                    # XYplorer 提取出的多标签通常是用逗号分隔的，我们将其切片并转化为严谨的 Set 集合
+                    existing_tags_set = {t.strip() for t in parts[1].split(',') if t.strip()}
+                    
+                if os.path.isfile(fp):
+                    all_files_info.append((fp, existing_tags_set))
+                elif os.path.isdir(fp):
+                    # 针对文件夹，遍历其内部文件（默认视为无标签进行匹配测试）
+                    for root, _, files in os.walk(fp):
                         for file in files:
-                            all_files.append(os.path.join(root, file))
+                            all_files_info.append((os.path.join(root, file), set()))
                             
-            if not all_files:
+            if not all_files_info:
                 msg = self._t('err_no_valid')
                 self.log_message(self._t('log_ucs_name_fail', msg), "ERROR")
                 return {"success": False, "msg": msg}
                 
             self._cancel_flag = False
-            total_files = len(all_files)
+            total_files = len(all_files_info)
             self._update_progress(0, total_files)
                 
             # 【高维优化 1：放弃单标签散装，改为标签组合聚类字典】
@@ -836,7 +855,8 @@ class Api:
                 tl = t.lower()
                 return any(tl.endswith(x) for x in ['_misc', '_general', '_other', '_various', '_通用', '_其它', '_其他', '_杂项'])
             
-            for file_path in all_files:
+            # 注意这里解包的变量变成了 existing_tags
+            for file_path, existing_tags in all_files_info:
                 if getattr(self, '_cancel_flag', False): break
                 basename = os.path.basename(file_path)
                 base_norm = normalize_string(basename)
@@ -892,19 +912,28 @@ class Api:
                         generic_tags = {t for t in limited_final_tags if is_generic_tag(t)}
                         
                         final_tags_to_apply = set()
+                        
                         if specific_tags:
-                            # 只要有任何具体标签，就彻底抛弃 _Misc 等兜底标签
                             final_tags_to_apply = specific_tags
                         else:
-                            # 实在匹配不到具体标签时，才使用 _Misc 标签进行兜底
-                            final_tags_to_apply = generic_tags
+                            # 变量 existing_tags 是集合，如果非空表示已有标签
+                            if not existing_tags:
+                                final_tags_to_apply = generic_tags
+                            else:
+                                pass
                             
                         if final_tags_to_apply:
-                            combo_key = ", ".join(sorted(final_tags_to_apply))
-                            if combo_key not in tag_combo_to_files:
-                                tag_combo_to_files[combo_key] = []
-                            tag_combo_to_files[combo_key].append(file_path)
-                            tagged_count += 1
+                            # 【核心性能优化：量子差集计算】
+                            # 集合减法：只保留那些准备要打、但文件目前还【没有】的标签
+                            tags_to_add = final_tags_to_apply - existing_tags
+                            
+                            # 只有在确切存在需要新增的标签时，才将其编入执行队列
+                            if tags_to_add:
+                                combo_key = ", ".join(sorted(tags_to_add))
+                                if combo_key not in tag_combo_to_files:
+                                    tag_combo_to_files[combo_key] = []
+                                tag_combo_to_files[combo_key].append(file_path)
+                                tagged_count += 1
                         
             if getattr(self, '_cancel_flag', False):
                 return {"success": False, "msg": self._t('batch_cancelled')}
