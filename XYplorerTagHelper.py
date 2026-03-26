@@ -2015,7 +2015,10 @@ html_template = """
         </div>
 
         <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px; flex-shrink: 0;">
-            <span style="font-size: 14px; font-weight: bold; color: var(--primary);" data-i18n="tag_group">🏷️ 标签组</span>
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: bold; color: var(--primary);">
+                <span style="width: 16px; height: 16px; display: flex; align-items: center;" v-html="tag"></span>
+                <span data-i18n="tag_group">标签组</span>
+            </div>
             <div style="flex: 1;"></div>
             <button class="tool-btn" data-i18n-title="clear_tree" onmousedown="event.preventDefault(); clearAll()" ondblclick="event.preventDefault()" v-html="clear"></button>
             <button class="tool-btn" id="btn-toggle" data-i18n-title="toggle_all" onmousedown="event.preventDefault(); toggleAll(event)" ondblclick="event.preventDefault()" oncontextmenu="event.preventDefault()" v-html="expand"></button>
@@ -2151,9 +2154,13 @@ html_template = """
 
     <div id="batch-progress-overlay" class="modal-overlay" style="z-index: 100000; backdrop-filter: blur(3px);">
         <div class="modal-content" style="width: 380px; text-align: center; justify-content: center; padding: 25px;">
-            <h3 style="margin-top: 0; color: var(--primary); font-size: 16px;" data-i18n="batch_processing">🔄 批量处理中...</h3>
-            <p style="color: var(--red); font-weight: bold; font-size: 15px; margin: 15px 0;" data-i18n="batch_warning">
-                ⚠️ XYplorer完成批量打签前请勿操作！
+            <h3 style="margin-top: 0; color: var(--primary); font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <span style="width: 18px; height: 18px; display: flex; align-items: center;" v-html="refresh"></span>
+                <span data-i18n="batch_processing">批量处理中...</span>
+            </h3>
+            <p style="color: var(--red); font-weight: bold; font-size: 15px; margin: 15px 0; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <span style="width: 20px; height: 20px; display: flex; align-items: center;" v-html="warning"></span>
+                <span data-i18n="batch_warning">XYplorer完成批量打签前请勿操作！</span>
             </p>
             <div style="background: var(--bg-input); padding: 12px; border-radius: var(--radius); margin-bottom: 20px;">
                 <span id="batch-progress-status" style="font-size: 13px; color: var(--text-main); font-family: monospace;" data-i18n="batch_status">正在分析文件并生成指令...</span>
@@ -2243,14 +2250,14 @@ ageM: <= 7 d = modified last 7 days</div>
             <div style="display:flex; gap:10px; margin-bottom:15px;">
                 <div style="flex:1;">
                     <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;" data-i18n="ui_theme">界面主题:</div>
-                    <select id="cfg-theme" style="width:100%; box-sizing:border-box;" onchange="applyTheme(this.value, true)">
+                    <select id="cfg-theme" style="width:100%; box-sizing:border-box;">
                         <option value="dark" data-i18n="dark_theme">暗黑 (Dark)</option>
                         <option value="light" data-i18n="light_theme">浅色 (Light)</option>
                     </select>
                 </div>
                 <div style="flex:1;">
                     <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;" data-i18n="ui_lang">界面语言:</div>
-                    <select id="cfg-lang" style="width:100%; box-sizing:border-box;" onchange="applyLang(this.value)">
+                    <select id="cfg-lang" style="width:100%; box-sizing:border-box;">
                         <option value="zh-CN">简体中文</option>
                         <option value="zh-TW">繁體中文</option>
                         <option value="en">English</option>
@@ -2366,7 +2373,11 @@ ageM: <= 7 d = modified last 7 days</div>
             check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
             refresh: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>`,
             selectAll: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><path d="M9 12l2 2 4-4"></path></svg>`,
-            excludeAll: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="15"></line><line x1="15" y1="9" x2="9" y2="15"></line></svg>`
+            excludeAll: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="15"></line><line x1="15" y1="9" x2="9" y2="15"></line></svg>`,
+            tag: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>`,
+            warning: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`,
+            checkCircle: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`,
+            xCircle: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`
         };
         
         const I18N = {
@@ -2404,7 +2415,7 @@ ageM: <= 7 d = modified last 7 days</div>
                 'hint_label': '点击选择标注，支持拖拽排序', 'sync_xy': '同步XYplorer批注', 'has_label': '含标注', 'no_label': '无标注',
                 'hint_rating': '点击选择评分 (支持多选与拖拽)', 'unrated': '未评分',
                 'size': '文件大小', 'date': '日期时间', 'date_c': '创建日期', 'date_m': '修改日期', 'date_a': '访问日期', 'age_c': '创建时间', 'age_m': '修改时间', 'age_a': '访问时间', 'value': '数值',
-                'tag_group': '🏷️ 标签组',
+                'tag_group': '标签组',
                 'edit_color': '修改分类颜色', 'reset_color': '恢复默认颜色', 'reset_uncat': '恢复默认标签', 'add_sub': '新建子组', 'batch_add_sub': '批量新建子组',
                 'move_to': '移动到工作区', 'copy_to': '复制到工作区', 'del_group': '删除分组',
                 'rename_group': '重命名分组', 'collapse_leaf': '折叠子组', 'expand_all_sub': '展开子组', 'add_tag_menu': '新建标签', 'batch_add_tag_menu': '批量新建标签',
@@ -2425,8 +2436,8 @@ ageM: <= 7 d = modified last 7 days</div>
                 'confirm_del_title': '确认删除',
                 'manual_title': '使用指南',
                 'batch_ext_custom': '自定义批量添加...', 'batch_ext_text': '批量添加 文本 后缀', 'batch_ext_image': '批量添加 图像 后缀', 'batch_ext_audio': '批量添加 音频 后缀', 'batch_ext_video': '批量添加 视频 后缀', 'batch_ext_doc': '批量添加 文档 后缀',
-                'batch_processing': '🔄 批量处理中...',
-                'batch_warning': '⚠️ XYplorer完成批量打签前请勿操作！',
+                'batch_processing': '批量处理中...',
+                'batch_warning': 'XYplorer完成批量打签前请勿操作！',
                 'batch_status': '正在分析文件并生成指令...',
                 'batch_cancel': '取消操作',
                 'batch_exit': '退出批量操作',
@@ -2476,7 +2487,7 @@ ageM: <= 7 d = modified last 7 days</div>
                 'hint_label': '點擊選擇標註，支援拖曳排序', 'sync_xy': '同步XYplorer批註', 'has_label': '含標註', 'no_label': '無標註',
                 'hint_rating': '點擊選擇評分 (支援多選與拖曳)', 'unrated': '未評分',
                 'size': '檔案大小', 'date': '日期時間', 'date_c': '建立日期', 'date_m': '修改日期', 'date_a': '存取日期', 'age_c': '建立時間', 'age_m': '修改時間', 'age_a': '存取時間', 'value': '數值',
-                'tag_group': '🏷️ 標籤群組',
+                'tag_group': '標籤群組',
                 'edit_color': '修改顏色', 'reset_color': '恢復預設顏色', 'reset_uncat': '恢復預設標籤', 'add_sub': '新建子群組', 'batch_add_sub': '批次新建子群組',
                 'move_to': '移動到工作區', 'copy_to': '複製到工作區', 'del_group': '刪除群組',
                 'rename_group': '重新命名群組', 'collapse_leaf': '摺疊子群組', 'expand_all_sub': '展開子群組', 'add_tag_menu': '新建標籤', 'batch_add_tag_menu': '批次新建標籤',
@@ -2497,8 +2508,8 @@ ageM: <= 7 d = modified last 7 days</div>
                 'confirm_del_title': '確認刪除',
                 'manual_title': '使用指南',
                 'batch_ext_custom': '自訂批次新增...', 'batch_ext_text': '批次新增 文字 副檔名', 'batch_ext_image': '批次新增 影像 副檔名', 'batch_ext_audio': '批次新增 音訊 副檔名', 'batch_ext_video': '批次新增 視訊 副檔名', 'batch_ext_doc': '批次新增 文件 副檔名',
-                'batch_processing': '🔄 批次處理中...',
-                'batch_warning': '⚠️ XYplorer完成批次打籤前請勿操作！',
+                'batch_processing': '批次處理中...',
+                'batch_warning': 'XYplorer完成批次打籤前請勿操作！',
                 'batch_status': '正在分析檔案並生成指令...',
                 'batch_cancel': '取消操作',
                 'batch_exit': '退出批次操作',
@@ -2548,7 +2559,7 @@ ageM: <= 7 d = modified last 7 days</div>
                 'hint_label': 'Click to select label, drag to sort', 'sync_xy': 'Sync XY Labels', 'has_label': 'Has Label', 'no_label': 'No Label',
                 'hint_rating': 'Click to select rating (multi-select & drag to sort)', 'unrated': 'Unrated',
                 'size': 'File Size', 'date': 'Date/Time', 'date_c': 'Created', 'date_m': 'Modified', 'date_a': 'Accessed', 'age_c': 'Age C', 'age_m': 'Age M', 'age_a': 'Age A', 'value': 'Value',
-                'tag_group': '🏷️ Tags Group',
+                'tag_group': 'Tags Group',
                 'edit_color': 'Edit Color', 'reset_color': 'Reset Color', 'reset_uncat': 'Restore Default Tags', 'add_sub': 'New Subgroup', 'batch_add_sub': 'Batch New Subgroup',
                 'move_to': 'Move to Workspace', 'copy_to': 'Copy to Workspace', 'del_group': 'Delete Group',
                 'rename_group': 'Rename Group', 'collapse_leaf': 'Collapse Leaf Groups', 'expand_all_sub': 'Expand All Subgroups', 'add_tag_menu': 'New Tag', 'batch_add_tag_menu': 'Batch New Tag',
@@ -2569,8 +2580,8 @@ ageM: <= 7 d = modified last 7 days</div>
                 'confirm_del_title': 'Confirm Delete',
                 'manual_title': 'User Guide',
                 'batch_ext_custom': 'Custom Batch Add...', 'batch_ext_text': 'Batch Add Text Exts', 'batch_ext_image': 'Batch Add Image Exts', 'batch_ext_audio': 'Batch Add Audio Exts', 'batch_ext_video': 'Batch Add Video Exts', 'batch_ext_doc': 'Batch Add Doc Exts',
-                'batch_processing': '🔄 Batch Processing...',
-                'batch_warning': '⚠️ Do NOT operate until XYplorer finishes tagging!',
+                'batch_processing': 'Batch Processing...',
+                'batch_warning': 'Do NOT operate until XYplorer finishes tagging!',
                 'batch_status': 'Analyzing files and generating commands...',
                 'batch_cancel': 'Cancel',
                 'batch_exit': 'Exit Batch',
@@ -4425,7 +4436,13 @@ ageM: <= 7 d = modified last 7 days</div>
         }
 
         function finishBatchProgress(success, msg) {
-            document.getElementById('batch-progress-status').innerText = msg;
+            let iconSvg = success ? 'checkCircle' : 'xCircle';
+            let iconColor = success ? 'var(--green)' : 'var(--red)';
+            
+            // 使用 innerHTML 生成带 SVG 的组合结构，保证图标和文字完美垂直居中对齐
+            document.getElementById('batch-progress-status').innerHTML = `<div style="display:flex; align-items:center; justify-content:center; gap:6px;"><span style="width:16px; height:16px; color:${iconColor}; display:flex; align-items:center;" v-html="${iconSvg}"></span><span>${_h(msg)}</span></div>`;
+            renderSVGs(document.getElementById('batch-progress-status'));
+            
             document.getElementById('batch-cancel-btn').style.display = 'none';
             document.getElementById('batch-done-btn').style.display = 'block';
         }
@@ -4441,13 +4458,13 @@ ageM: <= 7 d = modified last 7 days</div>
             }
         }
         
-        // ======= 改写原有的批量执行入口 =======
+        // ======= 改写原有的批量执行入口 (剥除文字内的 Emoji) =======
         function execBatchUCS() {
             document.getElementById('action-btn-ctx-menu').style.display = 'none';
             showBatchProgressOverlay();
             pywebview.api.batch_ucs_tags(configData.xyPath).then(res => {
-                if (res && res.success) finishBatchProgress(true, "✅ " + t("toast_ucs_success").replace('{n}', res.count));
-                else finishBatchProgress(false, "❌ " + t("toast_ucs_fail") + (res ? res.msg : ""));
+                if (res && res.success) finishBatchProgress(true, t("toast_ucs_success").replace('{n}', res.count));
+                else finishBatchProgress(false, t("toast_ucs_fail") + (res ? res.msg : ""));
             });
         }
         
@@ -4455,8 +4472,8 @@ ageM: <= 7 d = modified last 7 days</div>
             document.getElementById('action-btn-ctx-menu').style.display = 'none';
             showBatchProgressOverlay();
             pywebview.api.batch_ucs_name_tags(configData.xyPath).then(res => {
-                if (res && res.success) finishBatchProgress(true, "✅ " + t("toast_ucs_success").replace('{n}', res.count));
-                else finishBatchProgress(false, "❌ " + t("toast_ucs_fail") + (res ? res.msg : ""));
+                if (res && res.success) finishBatchProgress(true, t("toast_ucs_success").replace('{n}', res.count));
+                else finishBatchProgress(false, t("toast_ucs_fail") + (res ? res.msg : ""));
             });
         }
 
@@ -4465,13 +4482,13 @@ ageM: <= 7 d = modified last 7 days</div>
             showBatchProgressOverlay();
             pywebview.api.ai_batch_process(configData.xyPath, mode, domain).then(res => {
                 if (res && res.success) {
-                    finishBatchProgress(true, "✅ " + t("toast_ai_success").replace('{n}', res.count));
+                    finishBatchProgress(true, t("toast_ai_success").replace('{n}', res.count));
                     if ((mode === 'auto_name' || mode === 'auto_content' || mode === 'auto_name_en_zh') && res.tags && res.tags.length > 0) {
                         clearAllActiveTags(); 
                         activateTagsFromText(res.tags);
                     }
                 } else { 
-                    finishBatchProgress(false, "❌ " + t("toast_ai_fail") + (res ? res.msg : "")); 
+                    finishBatchProgress(false, t("toast_ai_fail") + (res ? res.msg : "")); 
                 }
             });
         }
