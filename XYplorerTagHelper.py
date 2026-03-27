@@ -3273,6 +3273,40 @@ ageM: <= 7 d = modified last 7 days</div>
                 } 
             }); 
         }
+
+        // [修复] 补充丢失的类型按钮点击事件，使其能够正常激活"与"(左键)和"非"(右键)
+        function onCompTypeClick(e, type) { 
+            if (isDragAction(e)) return; 
+            let now = Date.now(); if (now - (lastClickTime[`type_${type}`] || 0) < 150) return; lastClickTime[`type_${type}`] = now;
+            
+            let cs = currentCompState();
+            let cur = cs.types[type] || 0; 
+            
+            if (e.button === 0) {
+                let nextState = cur === 1 ? 0 : 1;
+                // 如果左键包含，自动清除所有冲突的排除项
+                if (nextState === 1) {
+                    for (let k in cs.types) {
+                        if (cs.types[k] === 2) delete cs.types[k];
+                    }
+                }
+                cs.types[type] = nextState;
+            } else if (e.button === 2) {
+                let nextState = cur === 2 ? 0 : 2;
+                // 如果右键排除，自动清除所有冲突的包含项
+                if (nextState === 2) {
+                    for (let k in cs.types) {
+                        if (presetTypesMap[k] && k !== '文件夹') {
+                            delete cs.types[k];
+                        } else if (cs.types[k] === 1) {
+                            delete cs.types[k];
+                        }
+                    }
+                }
+                cs.types[type] = nextState;
+            }
+            refreshCompUI(); saveCompState(); 
+        }
         
         function onCustomExtClick(e, ext) { 
             if (isDragAction(e)) return; 
