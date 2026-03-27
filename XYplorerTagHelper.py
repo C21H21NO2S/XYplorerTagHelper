@@ -3665,7 +3665,13 @@ ageM: <= 7 d = modified last 7 days</div>
             getWsList().forEach(ws => { 
                 const isActive = ws === configData.currentWs;
                 let sws = _e(ws);
-                html += `<div class="menu-item ws-list-item ${isActive ? 'active' : ''}" 
+                
+                // [修复] 获取工作区颜色并进行主题自适应映射，让下拉列表也能显示背景色
+                let rawBgColor = (configData.wsColors && configData.wsColors[ws]) ? configData.wsColors[ws] : '';
+                let bgColor = getMappedColor(rawBgColor, configData.theme);
+                let styleStr = (!isActive && bgColor) ? `style="background: ${bgColor};"` : '';
+                
+                html += `<div class="menu-item ws-list-item ${isActive ? 'active' : ''}" ${styleStr}
                               onclick="switchWs('${sws}'); document.getElementById('ws-list-menu').style.display='none';"
                               oncontextmenu="onWsCtx(event, '${sws}'); ">
                             <span class="menu-text">${_h(sysT(ws))}</span>
