@@ -15,7 +15,7 @@ import urllib.error
 # ==========================================
 # 1. 基础配置与本地数据管理 (兼容 PyInstaller 打包)
 # ==========================================
-WINDOW_TITLE = 'XYplorerTagHelper 1.2.5'
+WINDOW_TITLE = 'XYplorerTagHelper 1.2.6'
 
 # 如果是被打包成 .exe 运行，则获取 .exe 所在目录；否则获取当前 .py 脚本所在目录
 if getattr(sys, 'frozen', False):
@@ -617,10 +617,10 @@ class Api:
                 self.log_message(self._t('log_ucs_cancel', msg), "INFO")
                 return {"success": False, "msg": msg}
                 
-            MAX_CHUNK_LEN = 6000
-            sent_cmds = 0
+            # 【高维优化 1：生成智能批处理指令】
+            all_commands = []
+            MAX_CHUNK_LEN = 4000
             for tag, file_list in tag_to_files.items():
-                if self._cancel_flag: break
                 current_chunk = []
                 current_len = 0
                 
@@ -632,25 +632,41 @@ class Api:
                         file_list_str = "|".join(current_chunk)
                         safe_tag = tag.replace("'", "''")
                         safe_file_list_str = file_list_str.replace("'", "''")
-                        tag_cmd = f"::tag '{safe_tag}', '{safe_file_list_str}', 1, 0;"
-                        subprocess.Popen(f'"{exe_path}" /feed="{tag_cmd}"')
-                        sent_cmds += 1
-                        self._update_progress(sent_cmds, total_files)
-                        time.sleep(0.05) 
-                        if self._cancel_flag: break
+                        # 重点：前面加上 4 个空格，为了配合下方的 AutoRun 缩进需求
+                        all_commands.append(f"    tag '{safe_tag}', '{safe_file_list_str}', 1, 0;")
                         current_chunk = []
                         current_len = 0
                 
-                if self._cancel_flag: break
                 if current_chunk:
                     file_list_str = "|".join(current_chunk)
                     safe_tag = tag.replace("'", "''")
                     safe_file_list_str = file_list_str.replace("'", "''")
-                    tag_cmd = f"::tag '{safe_tag}', '{safe_file_list_str}', 1, 0;"
-                    subprocess.Popen(f'"{exe_path}" /feed="{tag_cmd}"')
-                    sent_cmds += 1
-                    self._update_progress(sent_cmds, total_files)
-                    time.sleep(0.05)
+                    all_commands.append(f"    tag '{safe_tag}', '{safe_file_list_str}', 1, 0;")
+            
+            # 【高维优化 2：量子分批与呼吸缓冲，彻底告别卡死】
+            BATCH_SIZE = 100 # 根据要求，每次处理 100 条合并指令
+            sent_cmds = 0
+            for i in range(0, len(all_commands), BATCH_SIZE):
+                if getattr(self, '_cancel_flag', False): break
+                batch_cmds = all_commands[i : i + BATCH_SIZE]
+                
+                # 融合静默运行技巧：带有 AutoRun 标题并首行无缩进，其余缩进
+                script_content = '"AutoRun"\n' + "\n".join(batch_cmds)
+                
+                temp_script = os.path.join(tempfile.gettempdir(), f"xy_helper_batch_ucs_{i}.xys")
+                with open(temp_script, "w", encoding="utf-16") as f:
+                    f.write(script_content)
+                
+                temp_safe = temp_script.replace("'", "''")
+                # 使用指定的标签参数运行，彻底绕过菜单实现静默批量瞬发
+                cmd_str = f'"{exe_path}" /feed="::load \'{temp_safe}\', \'AutoRun\';"'
+                subprocess.Popen(cmd_str)
+                
+                sent_cmds += len(batch_cmds)
+                self._update_progress(sent_cmds, total_files)
+                
+                # 【救命缓冲】：处理完 100 条指令后，强制挂起 0.3 秒！
+                time.sleep(0.3)
             
             if getattr(self, '_cancel_flag', False):
                 return {"success": False, "msg": self._t('batch_cancelled')}
@@ -1005,7 +1021,7 @@ class Api:
     # ==========================================
     # --- AI 大模型通信模块 (调用本地 Ollama) ---
     # ==========================================
-    def _call_ollama(self, prompt, system_prompt=""):
+    def _call_ollama(self, prompt, system_prompt="", require_json=False):
         cfg = self.get_config()
         api_url = cfg.get('ai_api', 'http://localhost:11434/api/generate')
         model = cfg.get('ai_model', 'qwen2.5:0.5b')
@@ -1019,6 +1035,10 @@ class Api:
                 "num_ctx": 16384
             }
         }
+        
+        # 激活 Ollama 的原生 JSON 强制约束格式
+        if require_json:
+            payload["format"] = "json"
         
         if system_prompt:
             payload["system"] = system_prompt
@@ -1126,79 +1146,56 @@ class Api:
                 static_sys_prompt = f"你是一个冷酷无情的关键词提取机器。你必须将提取的核心标签【全部彻底翻译为{lang_instruction}】！\n\n【极度严格规则，违背将被毁灭】：\n1. 词汇必须极度精简！必须是【短名词】（如“工作区”、“标签树”），绝对禁止拼接长句、动宾短语或造词（如“可视化状态转换”是严重错误的）。\n2. 标签字数限制：中文必须在 2 到 4 个汉字之间。\n3. 只输出 3 到 5 个词，必须严格用英文逗号(,)分隔，绝不能连写，不要任何解释。\n4. 绝对禁止输出以下标签：{forbidden_str}。"
 
             tag_to_files, tagged_count, all_applied_tags = {}, 0, set()
-
-            for file_path in all_files:
-                if getattr(self, '_cancel_flag', False): break
-                basename = os.path.basename(file_path)
-                basename_no_ext = os.path.splitext(basename)[0] 
+            FLUSH_BATCH_SIZE = 50 
+            script_index = 0
+            
+            def flush_ai_tags():
+                nonlocal script_index, tag_to_files
+                if not tag_to_files: return
                 
-                prompt = ""
-                file_sys_prompt = static_sys_prompt
+                all_commands = []
+                MAX_CHUNK_LEN = 4000
+                for combo_tags, file_list in tag_to_files.items():
+                    current_chunk = []
+                    current_len = 0
+                    for fp in file_list:
+                        current_chunk.append(fp)
+                        current_len += len(fp) + 1 
+                        if current_len >= MAX_CHUNK_LEN:
+                            file_list_str = "|".join(current_chunk)
+                            safe_tags = combo_tags.replace("'", "''")
+                            safe_file_list_str = file_list_str.replace("'", "''")
+                            all_commands.append(f"    tag '{safe_tags}', '{safe_file_list_str}', 1, ',';")
+                            current_chunk = []
+                            current_len = 0
+                    
+                    if current_chunk:
+                        file_list_str = "|".join(current_chunk)
+                        safe_tags = combo_tags.replace("'", "''")
+                        safe_file_list_str = file_list_str.replace("'", "''")
+                        all_commands.append(f"    tag '{safe_tags}', '{safe_file_list_str}', 1, ',';")
                 
-                if mode == 'dict_name':
-                    categories_list = list(merged_dict.keys())
-                    cat_sys_prompt = f"你是一个专业的【音效素材】分类路由器。你需要根据给定的【音效文件名】，推断该声音的来源或发声主体。请从以下音效大类列表中挑选出 1 到 3 个最相关的类别：\n{', '.join(categories_list)}\n\n【严格规则】：只输出大类名称的英文，用英文逗号(,)分隔，绝对禁止输出其他任何多余文字或解释。"
-                    cat_prompt = f"音效文件名：【{basename_no_ext}】\n匹配的音效大类："
-                    
-                    cat_response = self._call_ollama(cat_prompt, cat_sys_prompt)
-                    if not cat_response: return {"success": False, "msg": self._t('err_ollama')}
-                    
-                    selected_cats = []
-                    cat_lower_map = {k.lower(): k for k in categories_list}
-                    for c in cat_response.split(','):
-                        c_clean = c.strip(' \n\r\t。，.,\'"[]*').lower()
-                        if c_clean in cat_lower_map and cat_lower_map[c_clean] not in selected_cats:
-                            selected_cats.append(cat_lower_map[c_clean])
-                            
-                    if not selected_cats:
-                        tagged_count += 1
-                        self._update_progress(tagged_count, total_files, mode='ai')
-                        continue
+                if all_commands:
+                    CMD_BATCH = 100
+                    for i in range(0, len(all_commands), CMD_BATCH):
+                        if getattr(self, '_cancel_flag', False): break
+                        batch_cmds = all_commands[i : i + CMD_BATCH]
+                        script_content = '"AutoRun"\n' + "\n".join(batch_cmds)
                         
-                    mini_dict_lines = []
-                    for cat in selected_cats:
-                        tags_in_cat = [f"{p.split('|')[0].strip()}({p.split('|')[1].strip()})" for p in merged_dict[cat]]
-                        mini_dict_lines.append(f"[{cat}]: {', '.join(tags_in_cat)}")
-                    mini_dict_str = "\n".join(mini_dict_lines)
-                    
-                    file_sys_prompt = f"""你是一个极其严谨的【音效素材】标签匹配专家。请记住：你正在处理的是【声音/音效文件】，请务必从发声源、动作、材质等听觉维度去理解文件名。
-请阅读以下动态提取的【双语音效字典库】，为给定的音效寻找最契合的标签。
+                        temp_script = os.path.join(tempfile.gettempdir(), f"xy_helper_ai_batch_{script_index}_{i}.xys")
+                        with open(temp_script, "w", encoding="utf-16") as f:
+                            f.write(script_content)
+                        
+                        temp_safe = temp_script.replace("'", "''")
+                        cmd_str = f'"{exe_path}" /feed="::load \'{temp_safe}\', \'AutoRun\';"'
+                        subprocess.Popen(cmd_str)
+                        time.sleep(0.3)
+                    script_index += 1
+                tag_to_files.clear()
 
-【双语音效字典库】(格式为 英文(中文))：
-{mini_dict_str}
-
-【极度严格匹配规则】（违背将被重罚）：
-1. 必须有发声证据，严禁脑补：必须基于文件名中实际存在的【发声体/名词】进行匹配。绝对禁止挑选文件名中不存在的细分场景词条（例如：文件名仅为"Rain"，绝对不能瞎猜它打在塑料上而匹配"Rain_Plastic"）。
-2. 发声修饰词辅助：文件名中的修饰词（如具体的发声动作、撞击的材质、发声体表面）必须与词条细分项严格对应时，才能提取具体细分标签。
-3. 宁泛勿错（兜底机制）：如果文件名只有基础发声物，没有具体的发声细节与修饰词，请【强制优先】匹配带有“_Misc”、“_其它”、“_General”、“_通用”后缀的泛用音效词条，或者只匹配基础词。
-4. 宁缺毋滥：最多提取 1 到 3 个核心标签。如果字典中完全没有合理的匹配项，请直接输出“无”。
-5. 格式规范：绝对禁止自己发明新词！必须严格原样摘取上述字典库中存在的词条，输出【英文部分】或【中文部分】均可，并用英文逗号(,)分隔。"""
-
-                    prompt = f"当前仅处理这 1 个音效文件。\n音效文件名：【{basename_no_ext}】\n请输出匹配的标签(用英文逗号分隔)："
-                    
-                elif mode == 'auto_name':
-                    prompt = f"当前仅对这 1 个文件进行打标。\n输入: 【{basename_no_ext}】\n输出纯标签:"
-                elif mode == 'auto_name_en_zh':
-                    prompt = f"当前仅对这 1 个文件进行打标。\n输入: 【{basename_no_ext}】\n输出:"
-                elif mode == 'auto_content':
-                    try:
-                        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f: 
-                            full_text = f.read()
-                            import re
-                            clean_text = re.sub(r'\s+', ' ', full_text).strip()
-                            if len(clean_text) <= 2300:
-                                content = clean_text
-                            else:
-                                content = clean_text[:1500] + "\n...[中间部分已折叠]...\n" + clean_text[-800:]
-                        prompt = f"请阅读以下经过压缩的文档片段，直接提取出 3 到 5 个最能代表核心概念的【简短名词】（请原样摘取，不要自己造长词）。\n内容片段：\n{content}\n\n请直接输出纯标签(用英文逗号分隔)："
-                    except: 
-                        tagged_count += 1
-                        self._update_progress(tagged_count, total_files, mode='ai')
-                        continue
-                else: continue
-                
-                ai_response = self._call_ollama(prompt, file_sys_prompt)
-                if not ai_response: return {"success": False, "msg": self._t('err_ollama')}
+            # 【新增引擎组件 2】结果清洗与聚合处理器 (独立剥离，供多场景调用)
+            def process_ai_result(file_path, ai_response):
+                nonlocal tagged_count
                 
                 if mode in ['auto_name', 'auto_content']:
                     if is_zh:
@@ -1218,11 +1215,9 @@ class Api:
                 filler_words = ["翻译", "如下", "以下", "标签是", "这里是", "这些是", "these are", "here are", "translated", "输出", "分类", "大类"]
                 
                 current_file_tags = []
-                
                 for t in normalized_response.split(','):
                     raw_tag = t.strip(' \n\r\t。，.,\'"[]*')
                     if not raw_tag: continue
-                    
                     clean_tag = raw_tag.strip(' -_()（）')
                     if clean_tag.lower() in ["无", "none", "null", "no", "n/a"]: continue
                     
@@ -1266,57 +1261,108 @@ class Api:
                     if clean_tag not in current_file_tags:
                         current_file_tags.append(clean_tag)
                 
+                xy_tags = []
                 for clean_tag in current_file_tags[:5]:
-                    if clean_tag not in tag_to_files: tag_to_files[clean_tag] = []
-                    tag_to_files[clean_tag].append(file_path)
                     all_applied_tags.add(clean_tag)
+                    xy_t = clean_tag.split('@@')[0] if '@@' in clean_tag else clean_tag
+                    if xy_t not in xy_tags:
+                        xy_tags.append(xy_t)
+                
+                if xy_tags:
+                    combo_key = ", ".join(sorted(xy_tags))
+                    if combo_key not in tag_to_files: 
+                        tag_to_files[combo_key] = []
+                    tag_to_files[combo_key].append(file_path)
                 
                 tagged_count += 1
                 self._update_progress(tagged_count, total_files, mode='ai')
-                time.sleep(0.1) 
+                
+                # 每解析完成并累计到 50 个有效打标文件时，向 XYplorer 静默写入一次，告别卡死
+                if tagged_count > 0 and tagged_count % FLUSH_BATCH_SIZE == 0:
+                    flush_ai_tags()
+
+            # 【新增引擎组件 3】安全降级机制：单文件独立处理 (专防大面积幻觉或个别漏答)
+            def process_single(file_path):
+                basename = os.path.basename(file_path)
+                basename_no_ext = os.path.splitext(basename)[0] 
+                
+                prompt = ""
+                file_sys_prompt = static_sys_prompt
+                
+                if mode == 'dict_name':
+                    categories_list = list(merged_dict.keys())
+                    cat_sys_prompt = f"你是一个专业的【音效素材】分类路由器。你需要根据给定的【音效文件名】，推断该声音的来源或发声主体。请从以下音效大类列表中挑选出 1 到 3 个最相关的类别：\n{', '.join(categories_list)}\n\n【严格规则】：只输出大类名称的英文，用英文逗号(,)分隔，绝对禁止输出其他任何多余文字或解释。"
+                    cat_prompt = f"音效文件名：【{basename_no_ext}】\n匹配的音效大类："
+                    
+                    cat_response = self._call_ollama(cat_prompt, cat_sys_prompt)
+                    if not cat_response: return
+                    
+                    selected_cats = []
+                    cat_lower_map = {k.lower(): k for k in categories_list}
+                    for c in cat_response.split(','):
+                        c_clean = c.strip(' \n\r\t。，.,\'"[]*').lower()
+                        if c_clean in cat_lower_map and cat_lower_map[c_clean] not in selected_cats:
+                            selected_cats.append(cat_lower_map[c_clean])
+                            
+                    if not selected_cats:
+                        process_ai_result(file_path, "无")
+                        return
+                        
+                    mini_dict_lines = []
+                    for cat in selected_cats:
+                        tags_in_cat = [f"{p.split('|')[0].strip()}({p.split('|')[1].strip()})" for p in merged_dict[cat]]
+                        mini_dict_lines.append(f"[{cat}]: {', '.join(tags_in_cat)}")
+                    mini_dict_str = "\n".join(mini_dict_lines)
+                    
+                    file_sys_prompt = f"""你是一个极其严谨的【音效素材】标签匹配专家。请记住：你正在处理的是【声音/音效文件】，请务必从发声源、动作、材质等听觉维度去理解文件名。
+请阅读以下动态提取的【双语音效字典库】，为给定的音效寻找最契合的标签。
+
+【双语音效字典库】(格式为 英文(中文))：
+{mini_dict_str}
+
+【极度严格匹配规则】（违背将被重罚）：
+1. 必须有发声证据，严禁脑补：必须基于文件名中实际存在的【发声体/名词】进行匹配。绝对禁止挑选文件名中不存在的细分场景词条（例如：文件名仅为"Rain"，绝对不能瞎猜它打在塑料上而匹配"Rain_Plastic"）。
+2. 发声修饰词辅助：文件名中的修饰词（如具体的发声动作、撞击的材质、发声体表面）必须与词条细分项严格对应时，才能提取具体细分标签。
+3. 宁泛勿错（兜底机制）：如果文件名只有基础发声物，没有具体的发声细节与修饰词，请【强制优先】匹配带有“_Misc”、“_其它”、“_General”、“_通用”后缀的泛用音效词条，或者只匹配基础词。
+4. 宁缺毋滥：最多提取 1 到 3 个核心标签。如果字典中完全没有合理的匹配项，请直接输出“无”。
+5. 格式规范：绝对禁止自己发明新词！必须严格原样摘取上述字典库中存在的词条，输出【英文部分】或【中文部分】均可，并用英文逗号(,)分隔。"""
+                    prompt = f"当前仅处理这 1 个音效文件。\n音效文件名：【{basename_no_ext}】\n请输出匹配的标签(用英文逗号分隔)："
+                    
+                elif mode == 'auto_name':
+                    prompt = f"当前仅对这 1 个文件进行打标。\n输入: 【{basename_no_ext}】\n输出纯标签:"
+                elif mode == 'auto_name_en_zh':
+                    prompt = f"当前仅对这 1 个文件进行打标。\n输入: 【{basename_no_ext}】\n输出:"
+                elif mode == 'auto_content':
+                    try:
+                        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f: 
+                            clean_text = re.sub(r'\s+', ' ', f.read()).strip()
+                            if len(clean_text) <= 2300: content = clean_text
+                            else: content = clean_text[:1500] + "\n...[中间部分已折叠]...\n" + clean_text[-800:]
+                        prompt = f"请阅读以下经过压缩的文档片段，直接提取出 3 到 5 个最能代表核心概念的【简短名词】（请原样摘取，不要自己造长词）。\n内容片段：\n{content}\n\n请直接输出纯标签(用英文逗号分隔)："
+                    except: 
+                        process_ai_result(file_path, "无")
+                        return
+                
+                ai_response = self._call_ollama(prompt, file_sys_prompt)
+                if ai_response: process_ai_result(file_path, ai_response)
+                else: process_ai_result(file_path, "无")
+
+            # ================= 极速单线程流式引擎 (Optimized Stream Engine) =================
+            # 【原理说明】：本地大模型的算力瓶颈在于生成长度（Token 数量）。
+            # 彻底抛弃合并生成臃肿 JSON 结构的方案，让 AI 每次只需极速输出几十字的纯标签。
+            # 完美消除 JSON 解析带来的界面“假死”等待期，实现进度条秒级、丝滑地连续推进！
+            for fp in all_files:
+                if getattr(self, '_cancel_flag', False): break
+                process_single(fp)
+                time.sleep(0.05)
 
             if getattr(self, '_cancel_flag', False):
                 return {"success": False, "msg": self._t('batch_cancelled')}
 
-            if not tag_to_files: return {"success": False, "msg": "AI 未能生成有效的标签（或已被系统过滤机制拦截）"}
-                
-            MAX_CHUNK_LEN = 6000
-            sent_cmds = 0
-            for tag, file_list in tag_to_files.items():
-                if getattr(self, '_cancel_flag', False): break
-                current_chunk = []
-                current_len = 0
-                for fp in file_list:
-                    current_chunk.append(fp)
-                    current_len += len(fp) + 1 
-                    if current_len >= MAX_CHUNK_LEN:
-                        file_list_str = "|".join(current_chunk)
-                        xy_tag = tag.split('@@')[0] if '@@' in tag else tag
-                        safe_tag = xy_tag.replace("'", "''")
-                        safe_file_list_str = file_list_str.replace("'", "''")
-                        tag_cmd = f"::tag '{safe_tag}', '{safe_file_list_str}', 1, 0;"
-                        subprocess.Popen(f'"{exe_path}" /feed="{tag_cmd}"')
-                        sent_cmds += 1
-                        self._update_progress(sent_cmds, total_files, mode='cmd')
-                        time.sleep(0.05) 
-                        if getattr(self, '_cancel_flag', False): break
-                        current_chunk = []
-                        current_len = 0
-                
-                if getattr(self, '_cancel_flag', False): break
-                if current_chunk:
-                    file_list_str = "|".join(current_chunk)
-                    xy_tag = tag.split('@@')[0] if '@@' in tag else tag
-                    safe_tag = xy_tag.replace("'", "''")
-                    safe_file_list_str = file_list_str.replace("'", "''")
-                    tag_cmd = f"::tag '{safe_tag}', '{safe_file_list_str}', 1, 0;"
-                    subprocess.Popen(f'"{exe_path}" /feed="{tag_cmd}"')
-                    sent_cmds += 1
-                    self._update_progress(sent_cmds, total_files, mode='cmd')
-                    time.sleep(0.05)
+            # 最终兜底，把剩下的所有文件标签刷入 XYplorer
+            flush_ai_tags()
             
-            if getattr(self, '_cancel_flag', False):
-                return {"success": False, "msg": self._t('batch_cancelled')}
+            if not all_applied_tags: return {"success": False, "msg": "AI 未能生成有效的标签（或已被系统过滤机制拦截）"}
             
             self.log_message(self._t('log_ai_ok'), "INFO")
             return {"success": True, "count": len(all_files), "tags": list(all_applied_tags), "mode": mode}
@@ -1839,8 +1885,11 @@ html_template = """
 
     <div id="tag-search-modal" class="global-dropdown" style="width: 380px; padding: 10px; z-index: 10002; display: none; cursor: default; background: var(--bg-panel);">
         <div style="display: flex; gap: 6px; margin-bottom: 8px; align-items: center;">
-            <input type="text" id="tag-search-input" data-i18n-ph="search_ph" style="flex: 1;" oninput="doTagSearch()">
-            <button class="tool-btn" onclick="closeTagSearch()" v-html="delete"></button>
+            <div class="input-group" style="flex: 1; display: flex;">
+                <input type="text" id="tag-search-input" data-i18n-ph="search_ph" style="flex: 1;" oninput="doTagSearch()">
+                <button class="hist-toggle" onclick="toggleHistory(event, 'tagSearch')" v-html="arrowDown"></button>
+            </div>
+            <button class="tool-btn" style="flex-shrink: 0;" onclick="closeTagSearch()" v-html="delete"></button>
         </div>
         <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; color: var(--text-muted); padding: 0 4px;">
             <div style="display: flex; gap: 15px;">
@@ -3532,8 +3581,10 @@ ageM: <= 7 d = modified last 7 days</div>
             let html = ''; 
             arr.forEach(val => {
                 let safeVal = _e(val);
+                // 动态分配输入框 ID，兼容标签搜索栏
+                let inputId = stateKey === 'tagSearch' ? 'tag-search-input' : 'comp-input-' + stateKey;
                 html += `<div class="hist-item">
-                            <span class="hist-item-text" onclick="applyHistory('comp-input-${stateKey}', '${stateKey}', '${safeVal}')">${_h(val)}</span>
+                            <span class="hist-item-text" onclick="applyHistory('${inputId}', '${stateKey}', '${safeVal}')">${_h(val)}</span>
                             <span class="hist-del" onclick="delHistory(event, '${stateKey}', '${safeVal}')" title="${t('delete')}">×</span>
                          </div>`;
             }); 
@@ -3541,7 +3592,8 @@ ageM: <= 7 d = modified last 7 days</div>
             el.innerHTML = html; 
             el.dataset.key = stateKey;
             
-            let inputEl = document.getElementById('comp-input-' + stateKey);
+            let inputId = stateKey === 'tagSearch' ? 'tag-search-input' : 'comp-input-' + stateKey;
+            let inputEl = document.getElementById(inputId);
             let wrapperRect = inputEl.parentElement.getBoundingClientRect();
             
             el.style.left = wrapperRect.left + 'px';
@@ -3562,7 +3614,15 @@ ageM: <= 7 d = modified last 7 days</div>
             }
         }
         
-        function applyHistory(inputId, stateKey, val) { document.getElementById(inputId).value = val; updateCompState(stateKey, val); document.getElementById('global-hist-dropdown').style.display = 'none'; }
+        function applyHistory(inputId, stateKey, val) { 
+            document.getElementById(inputId).value = val; 
+            document.getElementById('global-hist-dropdown').style.display = 'none'; 
+            if (stateKey === 'tagSearch') {
+                doTagSearch(); // 搜索历史专用：填入后直接触发搜索过滤
+            } else {
+                updateCompState(stateKey, val); 
+            }
+        }
         
         function pushHistory(stateKey, val) { 
             if (!val) return; 
@@ -4539,9 +4599,9 @@ ageM: <= 7 d = modified last 7 days</div>
                 if (!rawT || rawT.includes("Ctrl+V") || rawT.includes("剪贴板")) return; 
                 
                 let tKey = reverseSysT(rawT);
-                let pt = parseTag(tKey); // [修改] 智能剥离别名
+                let pt = parseTag(tKey); 
                 
-                let foundPath = findTagPath(tree, "", pt.name); // [修改] 用纯净的英文名去查找
+                let foundPath = findTagPath(tree, "", pt.name); 
                 if (foundPath) { 
                     state.tagStates[`${foundPath}|${pt.name}`] = 1; 
                     if (!clickOrder.includes(`${foundPath}|${pt.name}`)) clickOrder.push(`${foundPath}|${pt.name}`); 
@@ -4550,7 +4610,7 @@ ageM: <= 7 d = modified last 7 days</div>
                     changed = true; 
                 } else { 
                     if (!tree["未分类"]) tree["未分类"] = { "_bg_color": "", "_tags": ["?*", '""'] }; 
-                    if (!tree["未分类"]._tags.some(t => parseTag(t).name === pt.name)) tree["未分类"]._tags.push(tKey); // [修改] 写入完整的 English@@中文
+                    if (!tree["未分类"]._tags.some(t => parseTag(t).name === pt.name)) tree["未分类"]._tags.push(tKey); 
                     state.tagStates[`未分类|${pt.name}`] = 1; 
                     if (!clickOrder.includes(`未分类|${pt.name}`)) clickOrder.push(`未分类|${pt.name}`); 
                     state.expandedGroups["未分类"] = true; 
@@ -4559,10 +4619,12 @@ ageM: <= 7 d = modified last 7 days</div>
             });
             
             if (changed) { 
-                state.activeOnly = true;
-                document.getElementById('btn-active').classList.add('active-green');
-                state.filterOnly = false;
-                document.getElementById('btn-filter').classList.remove('active-green');
+                // 【修改点】：彻底关闭“仅展开激活组”，开启“仅显示激活组” (filterOnly)
+                state.activeOnly = false;
+                document.getElementById('btn-active').classList.remove('active-green');
+                
+                state.filterOnly = true;
+                document.getElementById('btn-filter').classList.add('active-green');
                 
                 for (let k in state.expandedGroups) state.expandedGroups[k] = false;
                 forceExpandActive(currentTree(), "");
@@ -5416,15 +5478,27 @@ ageM: <= 7 d = modified last 7 days</div>
             document.getElementById('tag-search-modal').style.display = 'none';
         }
 
-        // 监听面板内的点击，防止冒泡导致误关
+        // 监听面板内的点击，防止冒泡导致主搜索面板误关
         document.getElementById('tag-search-modal').addEventListener('mousedown', function(e) {
+            // 【修改点】：只要点击的不是下拉开关按钮，就立刻关闭历史记录下拉栏
+            if (!e.target.closest('.hist-toggle')) {
+                const histDropdown = document.getElementById('global-hist-dropdown');
+                if (histDropdown && histDropdown.style.display === 'flex') {
+                    histDropdown.style.display = 'none';
+                }
+            }
             e.stopPropagation();
         });
 
         // 修改原有的全局点击拦截规则：点击其他地方关闭搜索框
         document.addEventListener('mousedown', e => {
             const tagSearchModal = document.getElementById('tag-search-modal');
-            if (tagSearchModal && tagSearchModal.style.display === 'flex' && !tagSearchModal.contains(e.target) && !e.target.closest('button[data-i18n-title="search_tags"]')) {
+            // 【修改点】：增加 !e.target.closest('#global-hist-dropdown') 豁免条件
+            // 这样在操作历史记录下拉栏（如点击、删除）时，绝不会误关主搜索框
+            if (tagSearchModal && tagSearchModal.style.display === 'flex' && 
+                !tagSearchModal.contains(e.target) && 
+                !e.target.closest('#global-hist-dropdown') && 
+                !e.target.closest('button[data-i18n-title="search_tags"]')) {
                 tagSearchModal.style.display = 'none';
             }
         });
@@ -5643,6 +5717,20 @@ ageM: <= 7 d = modified last 7 days</div>
                 closeTagSearch();
                 return;
             }
+            
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                let query = this.value.trim();
+                // 仅执行：记录搜索历史记忆
+                if (query) pushHistory('tagSearch', query);
+                
+                // 仅当用户明确使用上下方向键选中了某一项时，回车才执行激活
+                if (results.length > 0 && currentSearchIndex >= 0 && currentSearchIndex < results.length) {
+                    results[currentSearchIndex].click();
+                }
+                return;
+            }
+            
             if (results.length === 0) return;
 
             if (e.key === 'ArrowDown') {
@@ -5653,13 +5741,6 @@ ageM: <= 7 d = modified last 7 days</div>
                 e.preventDefault();
                 currentSearchIndex = (currentSearchIndex - 1 + results.length) % results.length;
                 updateSearchSelection(results);
-            } else if (e.key === 'Enter') {
-                e.preventDefault();
-                if (currentSearchIndex >= 0 && currentSearchIndex < results.length) {
-                    results[currentSearchIndex].click();
-                } else if (results.length > 0) {
-                    results[0].click(); // 没主动选择时，默认触发第一条
-                }
             }
         });
 
@@ -5677,6 +5758,10 @@ ageM: <= 7 d = modified last 7 days</div>
 
         function activateSearchedTag(path, tag) {
             let key = `${path}|${tag}`;
+            
+            // 新增：激活搜索结果时，将当前的关键词推入历史记录 (独立工作区隔离)
+            let query = document.getElementById('tag-search-input').value.trim();
+            if (query) pushHistory('tagSearch', query);
             
             state.tagStates[key] = 1;
             if (!clickOrder.includes(key)) clickOrder.push(key);
